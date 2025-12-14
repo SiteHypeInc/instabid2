@@ -1,0 +1,306 @@
+{
+  "generated": "2024-01-08T00:00:00Z",
+  "count": 50,
+  "metros": {
+    "New York-Newark-Jersey City": {
+      "states": ["NY", "NJ", "CT"],
+      "population": 19500000,
+      "cost_index": 1.35,
+      "primary_zips": ["10001", "07101", "06901"]
+    },
+    "Los Angeles-Long Beach-Anaheim": {
+      "states": ["CA"],
+      "population": 13200000,
+      "cost_index": 1.28,
+      "primary_zips": ["90001", "90210", "91101"]
+    },
+    "Chicago-Naperville-Elgin": {
+      "states": ["IL", "IN", "WI"],
+      "population": 9500000,
+      "cost_index": 1.12,
+      "primary_zips": ["60601", "60007", "60014"]
+    },
+    "Dallas-Fort Worth-Arlington": {
+      "states": ["TX"],
+      "population": 7600000,
+      "cost_index": 1.05,
+      "primary_zips": ["75201", "76101", "76051"]
+    },
+    "Houston-The Woodlands-Sugar Land": {
+      "states": ["TX"],
+      "population": 7100000,
+      "cost_index": 1.03,
+      "primary_zips": ["77001", "77002", "77380"]
+    },
+    "Washington-Arlington-Alexandria": {
+      "states": ["DC", "VA", "MD", "WV"],
+      "population": 6300000,
+      "cost_index": 1.22,
+      "primary_zips": ["20001", "22201", "20850"]
+    },
+    "Miami-Fort Lauderdale-Pompano Beach": {
+      "states": ["FL"],
+      "population": 6200000,
+      "cost_index": 1.08,
+      "primary_zips": ["33101", "33301", "33401"]
+    },
+    "Philadelphia-Camden-Wilmington": {
+      "states": ["PA", "NJ", "DE", "MD"],
+      "population": 6100000,
+      "cost_index": 1.15,
+      "primary_zips": ["19101", "08101", "19801"]
+    },
+    "Atlanta-Sandy Springs-Alpharetta": {
+      "states": ["GA"],
+      "population": 6000000,
+      "cost_index": 1.04,
+      "primary_zips": ["30301", "30303", "30328"]
+    },
+    "Phoenix-Mesa-Chandler": {
+      "states": ["AZ"],
+      "population": 4900000,
+      "cost_index": 1.02,
+      "primary_zips": ["85001", "85201", "85224"]
+    },
+    "Boston-Cambridge-Newton": {
+      "states": ["MA", "NH"],
+      "population": 4900000,
+      "cost_index": 1.25,
+      "primary_zips": ["02101", "02138", "02139"]
+    },
+    "San Francisco-Oakland-Berkeley": {
+      "states": ["CA"],
+      "population": 4700000,
+      "cost_index": 1.42,
+      "primary_zips": ["94101", "94102", "94601"]
+    },
+    "Riverside-San Bernardino-Ontario": {
+      "states": ["CA"],
+      "population": 4600000,
+      "cost_index": 1.10,
+      "primary_zips": ["92501", "92401", "91761"]
+    },
+    "Detroit-Warren-Dearborn": {
+      "states": ["MI"],
+      "population": 4300000,
+      "cost_index": 1.08,
+      "primary_zips": ["48201", "48089", "48126"]
+    },
+    "Seattle-Tacoma-Bellevue": {
+      "states": ["WA"],
+      "population": 4000000,
+      "cost_index": 1.20,
+      "primary_zips": ["98101", "98401", "98004"]
+    },
+    "Minneapolis-St. Paul-Bloomington": {
+      "states": ["MN", "WI"],
+      "population": 3700000,
+      "cost_index": 1.10,
+      "primary_zips": ["55401", "55101", "55420"]
+    },
+    "San Diego-Chula Vista-Carlsbad": {
+      "states": ["CA"],
+      "population": 3300000,
+      "cost_index": 1.18,
+      "primary_zips": ["92101", "91910", "92008"]
+    },
+    "Tampa-St. Petersburg-Clearwater": {
+      "states": ["FL"],
+      "population": 3200000,
+      "cost_index": 1.01,
+      "primary_zips": ["33601", "33701", "33755"]
+    },
+    "Denver-Aurora-Lakewood": {
+      "states": ["CO"],
+      "population": 3000000,
+      "cost_index": 1.08,
+      "primary_zips": ["80201", "80010", "80226"]
+    },
+    "St. Louis": {
+      "states": ["MO", "IL"],
+      "population": 2800000,
+      "cost_index": 0.98,
+      "primary_zips": ["63101", "62001", "63110"]
+    },
+    "Baltimore-Columbia-Towson": {
+      "states": ["MD"],
+      "population": 2800000,
+      "cost_index": 1.12,
+      "primary_zips": ["21201", "21044", "21204"]
+    },
+    "Charlotte-Concord-Gastonia": {
+      "states": ["NC", "SC"],
+      "population": 2600000,
+      "cost_index": 1.02,
+      "primary_zips": ["28201", "28025", "28052"]
+    },
+    "Orlando-Kissimmee-Sanford": {
+      "states": ["FL"],
+      "population": 2600000,
+      "cost_index": 1.03,
+      "primary_zips": ["32801", "34741", "32771"]
+    },
+    "San Antonio-New Braunfels": {
+      "states": ["TX"],
+      "population": 2600000,
+      "cost_index": 0.98,
+      "primary_zips": ["78201", "78130", "78205"]
+    },
+    "Portland-Vancouver-Hillsboro": {
+      "states": ["OR", "WA"],
+      "population": 2500000,
+      "cost_index": 1.12,
+      "primary_zips": ["97201", "98660", "97005"]
+    },
+    "Sacramento-Roseville-Folsom": {
+      "states": ["CA"],
+      "population": 2400000,
+      "cost_index": 1.15,
+      "primary_zips": ["95814", "95678", "95630"]
+    },
+    "Pittsburgh": {
+      "states": ["PA"],
+      "population": 2300000,
+      "cost_index": 1.05,
+      "primary_zips": ["15201", "15212", "15219"]
+    },
+    "Austin-Round Rock-Georgetown": {
+      "states": ["TX"],
+      "population": 2300000,
+      "cost_index": 1.08,
+      "primary_zips": ["78701", "78664", "78628"]
+    },
+    "Las Vegas-Henderson-Paradise": {
+      "states": ["NV"],
+      "population": 2300000,
+      "cost_index": 1.05,
+      "primary_zips": ["89101", "89002", "89109"]
+    },
+    "Cincinnati": {
+      "states": ["OH", "KY", "IN"],
+      "population": 2200000,
+      "cost_index": 1.00,
+      "primary_zips": ["45201", "41001", "47001"]
+    },
+    "Kansas City": {
+      "states": ["MO", "KS"],
+      "population": 2200000,
+      "cost_index": 1.00,
+      "primary_zips": ["64101", "66101", "64111"]
+    },
+    "Columbus": {
+      "states": ["OH"],
+      "population": 2100000,
+      "cost_index": 1.02,
+      "primary_zips": ["43201", "43215", "43220"]
+    },
+    "Indianapolis-Carmel-Anderson": {
+      "states": ["IN"],
+      "population": 2100000,
+      "cost_index": 0.98,
+      "primary_zips": ["46201", "46032", "46011"]
+    },
+    "Cleveland-Elyria": {
+      "states": ["OH"],
+      "population": 2000000,
+      "cost_index": 1.03,
+      "primary_zips": ["44101", "44113", "44035"]
+    },
+    "Nashville-Davidson-Murfreesboro-Franklin": {
+      "states": ["TN"],
+      "population": 2000000,
+      "cost_index": 1.04,
+      "primary_zips": ["37201", "37129", "37067"]
+    },
+    "Virginia Beach-Norfolk-Newport News": {
+      "states": ["VA", "NC"],
+      "population": 1800000,
+      "cost_index": 1.02,
+      "primary_zips": ["23510", "23451", "23606"]
+    },
+    "Providence-Warwick": {
+      "states": ["RI", "MA"],
+      "population": 1600000,
+      "cost_index": 1.10,
+      "primary_zips": ["02901", "02840", "02813"]
+    },
+    "Milwaukee-Waukesha": {
+      "states": ["WI"],
+      "population": 1600000,
+      "cost_index": 1.05,
+      "primary_zips": ["53201", "53188", "53045"]
+    },
+    "Jacksonville": {
+      "states": ["FL"],
+      "population": 1600000,
+      "cost_index": 0.98,
+      "primary_zips": ["32099", "32202", "32225"]
+    },
+    "Memphis": {
+      "states": ["TN", "MS", "AR"],
+      "population": 1300000,
+      "cost_index": 0.95,
+      "primary_zips": ["38101", "38103", "38111"]
+    },
+    "Oklahoma City": {
+      "states": ["OK"],
+      "population": 1400000,
+      "cost_index": 0.95,
+      "primary_zips": ["73101", "73102", "73103"]
+    },
+    "Louisville/Jefferson County": {
+      "states": ["KY", "IN"],
+      "population": 1300000,
+      "cost_index": 0.98,
+      "primary_zips": ["40201", "40202", "47130"]
+    },
+    "Richmond": {
+      "states": ["VA"],
+      "population": 1300000,
+      "cost_index": 1.02,
+      "primary_zips": ["23219", "23220", "23221"]
+    },
+    "New Orleans-Metairie": {
+      "states": ["LA"],
+      "population": 1300000,
+      "cost_index": 1.00,
+      "primary_zips": ["70112", "70115", "70118"]
+    },
+    "Raleigh-Cary": {
+      "states": ["NC"],
+      "population": 1400000,
+      "cost_index": 1.03,
+      "primary_zips": ["27601", "27511", "27518"]
+    },
+    "Birmingham-Hoover": {
+      "states": ["AL"],
+      "population": 1100000,
+      "cost_index": 0.96,
+      "primary_zips": ["35004", "35007", "35094"]
+    },
+    "Salt Lake City": {
+      "states": ["UT"],
+      "population": 1200000,
+      "cost_index": 1.05,
+      "primary_zips": ["84101", "84102", "84010"]
+    },
+    "Buffalo-Cheektowaga": {
+      "states": ["NY"],
+      "population": 1100000,
+      "cost_index": 1.02,
+      "primary_zips": ["14201", "14202", "14203"]
+    },
+    "Rochester": {
+      "states": ["NY"],
+      "population": 1100000,
+      "cost_index": 1.02,
+      "primary_zips": ["14604", "14605", "14606"]
+    },
+    "Tucson": {
+      "states": ["AZ"],
+      "population": 1000000,
+      "cost_index": 0.98,
+      "primary_zips": ["85701", "85702", "85704"]
+    }
+  }
+}
