@@ -116,7 +116,7 @@ async function initDatabase() {
     console.log('✅ Database tables initialized');
 
     // Load ZIP to MSA mappings from JSON file
-    const zipMappingPath = path.join(__dirname, 'zip-to-msa-compressed.json');
+    const zipMappingPath = path.join(__dirname, 'Data', 'zip-to-msa-compressed.json');
     if (fs.existsSync(zipMappingPath)) {
       const zipData = JSON.parse(fs.readFileSync(zipMappingPath, 'utf8'));
       
