@@ -36,6 +36,9 @@ const pool = new Pool({
 async function initDatabase() {
   const client = await pool.connect();
   try {
+    // Drop dependent tables first
+    await client.query(`DROP TABLE IF EXISTS contracts CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS estimates CASCADE`);
    // Estimates table
     await client.query(`
       CREATE TABLE IF NOT EXISTS estimates (
