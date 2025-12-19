@@ -1,680 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InstaBid - Multi-Trade Estimator</title>
-    
-    <!-- External Libraries -->
-    <script src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&callback=initMap&libraries=places"></script>
-    
-    <!-- Your CSS -->
-    <link rel="stylesheet" href="css/form-styles.css">
-    
-    <!-- Your JS Files (order matters!) -->
-    <script src="js/form-schema.js"></script>
-    <script src="js/form-builder.js"></script>
-    <script src="js/app.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InstaBid - Multi-Trade Estimator</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f5f5f5;
+  padding: 20px;
+}
 
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .demo-container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        
-        .demo-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .demo-header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .demo-header p {
-            font-size: 1.2em;
-            opacity: 0.95;
-        }
-        
-        .demo-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 20px;
-            border-radius: 20px;
-            margin-top: 15px;
-            font-size: 0.9em;
-        }
-        
-        .demo-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: 600px;
-        }
-        
-        .input-section {
-            padding: 40px;
-            background: #f8f9fa;
-            border-right: 2px solid #e0e0e0;
-            overflow-y: auto;
-            max-height: 700px;
-        }
-        
-        .output-section {
-            padding: 40px;
-            overflow-y: auto;
-            max-height: 700px;
-        }
-        
-        .section-title {
-            color: #667eea;
-            font-size: 1.8em;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .step-indicator {
-            background: #667eea;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2em;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #333;
-            font-size: 1em;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s;
-            background: white;
-            font-family: inherit;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px;
+  text-align: center;
+}
 
-        .aerial-view-container {
-            margin: 20px 0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: none;
-            animation: slideIn 0.5s ease-out;
-        }
+.header h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
 
-        .aerial-view-container.active {
-            display: block;
-        }
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding: 30px;
+}
 
-        #map {
-            width: 100%;
-            height: 300px;
-        }
+.left-column, .right-column {
+  padding: 20px;
+}
 
-        .map-label {
-            background: #667eea;
-            color: white;
-            padding: 10px 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.right-column {
+  background: #f8f9fa;
+  border-radius: 8px;
+  min-height: 600px;
+}
 
-        @keyframes slideIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(-20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-        
-        .photo-upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .photo-upload-area:hover {
-            background: #f0f4ff;
-            border-color: #764ba2;
-        }
-        
-        .photo-upload-area.drag-over {
-            background: #e6f7ff;
-            border-color: #44dd44;
-            transform: scale(1.02);
-        }
-        
-        .upload-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-            color: #667eea;
-        }
-        
-        .upload-text {
-            font-size: 1.1em;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .upload-hint {
-            font-size: 0.9em;
-            color: #666;
-        }
-        
-        #photoInput {
-            display: none;
-        }
-        
-        .photo-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .photo-preview-item {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            aspect-ratio: 1;
-        }
-        
-        .photo-preview-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .photo-remove {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(255, 0, 0, 0.8);
-            color: white;
-            border: none;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        
-        .photo-remove:hover {
-            background: red;
-            transform: scale(1.1);
-        }
-        
-        .photo-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px;
-            font-size: 0.75em;
-            text-align: center;
-        }
-        
-        .photo-count {
-            display: inline-block;
-            background: #44dd44;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-top: 10px;
-            font-weight: 600;
-        }
-        
-        .generate-button {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-        
-        .generate-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .generate-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .output-placeholder {
-            text-align: center;
-            color: #999;
-            padding: 60px 20px;
-        }
-        
-        .output-placeholder .icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-        
-        .estimate-output {
-            display: none;
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .estimate-output.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .estimate-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .estimate-header h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        
-        .project-details, .project-photos {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
-        
-        .project-details h3, .project-photos h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-        
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            font-weight: 600;
-            color: #555;
-        }
-        
-        .photo-gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .photo-gallery img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .photo-gallery img:hover {
-            transform: scale(1.05);
-        }
-        
-        .cost-breakdown {
-            margin-bottom: 25px;
-        }
-        
-        .cost-breakdown h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-        
-        .line-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .line-item:hover {
-            background: #f8f9fa;
-        }
-        
-        .line-item.subtotal {
-            font-weight: 600;
-            background: #f0f4ff;
-            margin-top: 10px;
-        }
-        
-        .line-item.total {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 700;
-            font-size: 1.4em;
-            border-radius: 8px;
-            margin-top: 15px;
-            padding: 20px;
-            border: none;
-        }
-        
-        .timeline-box {
-            background: #e6f7e6;
-            border: 2px solid #44dd44;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 25px;
-        }
-        
-        .timeline-box h3 {
-            color: #2a9d2a;
-            margin-bottom: 15px;
-        }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-top: 25px;
-        }
-        
-        .action-button {
-            padding: 15px 10px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 13px;
-        }
-        
-        .action-button:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        .action-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        @media (max-width: 968px) {
-            .demo-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .input-section {
-                border-right: none;
-                border-bottom: 2px solid #e0e0e0;
-            }
-            
-            .action-buttons {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.map-container {
+  margin: 20px 0;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  height: 250px;
+  overflow: hidden;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.result-section {
+  display: none;
+}
+
+.result-section.active {
+  display: block;
+}
+
+.result-section h2 {
+  color: #667eea;
+  margin-bottom: 20px;
+  font-size: 1.8em;
+}
+
+.cost-breakdown {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.cost-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 1.1em;
+}
+
+.cost-item:last-child {
+  border-bottom: none;
+  font-weight: bold;
+  font-size: 1.3em;
+  color: #667eea;
+  padding-top: 15px;
+  margin-top: 10px;
+  border-top: 2px solid #667eea;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.btn-email {
+  background: #28a745;
+  color: white;
+}
+
+.btn-pdf {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-contract {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-action:hover {
+  opacity: 0.9;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 6px;
+  margin: 20px 0;
+  display: none;
+}
+
+.photo-upload {
+  margin: 20px 0;
+}
+
+.photo-preview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.photo-item {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #ddd;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+
+.photo-item button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+@media (max-width: 968px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="demo-container">
-            <div class="demo-header">
-                <h1>🏠 InstaBid Pro</h1>
-                <p>Multi-Trade Professional Estimating System</p>
-                <div class="demo-badge">✨ Multi-Trade • Aerial View • Photo Upload • PDF Export</div>
-            </div>
-            
-            <div class="demo-content">
-                <div class="input-section">
-                    <div class="section-title">
-                        <div class="step-indicator">1</div>
-                        Project Details
-                    </div>
-                    
-                    <form id="demoForm">
-                        <!-- DYNAMIC: Trade Selector -->
-                        <div id="tradeSelectorContainer"></div>
-                        
-                        <!-- DYNAMIC: Trade-Specific Fields -->
-                        <div id="tradeFieldsContainer"></div>
-                        
-                        <!-- STATIC: Client Information -->
-                        <h3 style="color: #667eea; margin: 30px 0 20px 0;">Client Information</h3>
-                        
-                        <div class="form-group">
-                            <label for="companyName">Your Company Name</label>
-                            <input type="text" id="companyName" placeholder="Your Company Name" value="Elite Services Co." required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="clientName">Client Name *</label>
-                            <input type="text" id="clientName" placeholder="John Smith" value="John Smith" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="clientEmail">Client Email *</label>
-                            <input type="email" id="clientEmail" placeholder="john@email.com" value="john@email.com" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="clientPhone">Client Phone</label>
-                            <input type="tel" id="clientPhone" placeholder="(555) 987-6543" value="(555) 987-6543">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="address">Property Address *</label>
-                            <input type="text" id="address" placeholder="123 Main St, Dallas, TX" value="456 Oak Avenue, Dallas, TX 75201" required>
-                        </div>
 
-                        <!-- AERIAL VIEW MAP -->
-                        <div class="aerial-view-container" id="aerialViewContainer">
-                            <div class="map-label">🛰️ Satellite View</div>
-                            <div id="map"></div>
-                        </div>
+<div class="container">
+  <div class="header">
+    <h1>🏗️ InstaBid</h1>
+    <p>Multi-Trade Instant Estimator</p>
+  </div>
 
-                        <div class="form-group">
-                            <label for="state">State *</label>
-                            <select id="state" required>
-                                <option value="">Select State</option>
-                                <option value="AL">Alabama</option>
-                                <option value="AK">Alaska</option>
-                                <option value="AZ">Arizona</option>
-                                <option value="AR">Arkansas</option>
-                                <option value="CA">California</option>
-                                <option value="CO">Colorado</option>
-                                <option value="CT">Connecticut</option>
-                                <option value="DE">Delaware</option>
-                                <option value="FL">Florida</option>
-                                <option value="GA">Georgia</option>
-                                <option value="HI">Hawaii</option>
-                                <option value="ID">Idaho</option>
-                                <option value="IL">Illinois</option>
-                                <option value="IN">Indiana</option>
-                                <option value="IA">Iowa</option>
-                                <option value="KS">Kansas</option>
-                                <option value="KY">Kentucky</option>
-                                <option value="LA">Louisiana</option>
-                                <option value="ME">Maine</option>
-                                <option value="MD">Maryland</option>
-                                <option value="MA">Massachusetts</option>
-                                <option value="MI">Michigan</option>
-                                <option value="MN">Minnesota</option>
-                                <option value="MS">Mississippi</option>
-                                <option value="MO">Missouri</option>
-                                <option value="MT">Montana</option>
-                                <option value="NE">Nebraska</option>
-                                <option value="NV">Nevada</option>
-                                <option value="NH">New Hampshire</option>
-                                <option value="NJ">New Jersey</option>
-                                <option value="NM">New Mexico</option>
-                                <option value="NY">New York</option>
-                                <option value="NC">North Carolina</option>
-                                <option value="ND">North Dakota</option>
-                                <option value="OH">Ohio</option>
-                                <option value="OK">Oklahoma</option>
-                                <option value="OR">Oregon</option>
-                                <option value="PA">Pennsylvania</option>
-                                <option value="RI">Rhode Island</option>
-                                <option value="SC">South Carolina</option>
-                                <option value="SD">South Dakota</option>
-                                <option value="TN">Tennessee</option>
-                                <option value="TX" selected>Texas</option>
-                                <option value="UT">Utah</option>
-                                <option value="VT">Vermont</option>
-                                <option value="VA">Virginia</option>
-                                <option value="WA">Washington</option>
-                                <option value="WV">West Virginia</option>
-                                <option value="WI">Wisconsin</option>
-                                <option value="WY">Wyoming</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>📸 Upload Project Photos</label>
-                            <div class="photo-upload-area" id="photoUploadArea">
-                                <div class="upload-icon">📷</div>
-                                <div class="upload-text">Click or Drag Photos Here</div>
-                                <div class="upload-hint">Property images, damage areas, etc.</div>
-                                <input type="file" id="photoInput" accept="image/*" multiple>
-                            </div>
-                            <div id="photoCount" style="text-align: center;"></div>
-                            <div class="photo-preview-grid" id="photoPreview"></div>
-                        </div>
-                        
-                        <button type="submit" class="generate-button">
-                            ⚡ Generate Estimate
-                        </button>
-                    </form>
-                </div>
-                
-                <div class="output-section">
-                    <div class="output-placeholder" id="placeholder">
-                        <div class="icon">📋</div>
-                        <h3>Professional Estimate</h3>
-                        <p>Select a trade and fill out the form</p>
-                    </div>
-                    
-                    <div class="estimate-output" id="estimateOutput">
-                        <div class="estimate-header">
-                            <h2>Professional Estimate</h2>
-                            <p id="estimateDate"></p>
-                        </div>
-                        
-                        <div class="project-photos" id="projectPhotosSection" style="display: none;">
-                            <h3>📸 Project Photos</h3>
-                            <div class="photo-gallery" id="photoGallery"></div>
-                        </div>
-                        
-                        <div class="project-details">
-                            <h3>📍 Project Information</h3>
-                            <div id="projectInfo"></div>
-                        </div>
-                        
-                        <div class="cost-breakdown">
-                            <h3>💰 Cost Breakdown</h3>
-                            <div id="lineItems"></div>
-                        </div>
-                        
-                        <div class="timeline-box">
-                            <h3>📅 Timeline</h3>
-                            <div id="timelineContent"></div>
-                        </div>
-                        
-                        <div class="action-buttons">
-                            <button class="action-button" onclick="downloadPDF()">📄 PDF</button>
-                            <button class="action-button" onclick="downloadContract()">📝 Contract</button>
-                            <button class="action-button" onclick="emailEstimate()">📧 Email</button>
-                            <button class="action-button" onclick="createPaymentLink()">💳 Payment</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="main-content">
+    <div class="left-column">
+      <form id="estimateForm">
+        <div class="form-group">
+          <label>Select Trade *</label>
+          <select id="tradeSelector" required>
+            <option value="">-- Select a Trade --</option>
+            <option value="roofing">Roofing</option>
+            <option value="hvac">HVAC</option>
+            <option value="electrical">Electrical</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="flooring">Flooring</option>
+            <option value="painting">Painting</option>
+            <option value="general_contracting">General Contracting</option>
+          </select>
         </div>
+
+        <div id="dynamicFormFields"></div>
+
+        <div class="photo-upload">
+          <label>Upload Photos (Optional)</label>
+          <input type="file" id="photoInput" accept="image/*" multiple>
+          <div class="photo-preview" id="photoPreview"></div>
+        </div>
+
+        <div class="map-container">
+          <div id="map"></div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">Get Instant Estimate</button>
+      </form>
     </div>
+
+    <div class="right-column">
+      <div class="result-section" id="resultSection">
+        <h2>Your Estimate</h2>
+        <div class="cost-breakdown" id="costBreakdown"></div>
+        <div class="action-buttons">
+          <button class="btn-action btn-email" id="emailBtn">📧 Email</button>
+          <button class="btn-action btn-pdf" id="pdfBtn">📄 PDF</button>
+          <button class="btn-action btn-contract" id="contractBtn">📝 Contract</button>
+        </div>
+      </div>
+      <div class="error-message" id="errorMessage"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
+<script>
+var TRADE_FORM_SCHEMA = {
+  roofing: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'roofType', label: 'Roof Type', type: 'select', options: ['Asphalt Shingle', 'Metal', 'Tile', 'Flat'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true }
+  ],
+  hvac: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'systemType', label: 'System Type', type: 'select', options: ['Central AC', 'Heat Pump', 'Furnace', 'Ductless Mini-Split'], required: true },
+    { name: 'units', label: 'Number of Units', type: 'number', required: true }
+  ],
+  electrical: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Panel Upgrade', 'Rewiring', 'New Outlets', 'Lighting'], required: true }
+  ],
+  plumbing: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'serviceType', label: 'Service Type', type: 'select', options: ['Repiping', 'Drain Cleaning', 'Water Heater', 'Fixture Installation'], required: true },
+    { name: 'bathrooms', label: 'Number of Bathrooms', type: 'number', required: true }
+  ],
+  flooring: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'floorType', label: 'Floor Type', type: 'select', options: ['Hardwood', 'Laminate', 'Tile', 'Carpet', 'Vinyl'], required: true },
+    { name: 'rooms', label: 'Number of Rooms', type: 'number', required: true }
+  ],
+  painting: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'paintType', label: 'Paint Type', type: 'select', options: ['Interior', 'Exterior', 'Both'], required: true },
+    { name: 'rooms', label: 'Number of Rooms', type: 'number', required: true }
+  ],
+  general_contracting: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'projectType', label: 'Project Type', type: 'select', options: ['Remodel', 'Addition', 'New Construction', 'Renovation'], required: true },
+    { name: 'projectDetails', label: 'Project Details', type: 'textarea', required: true }
+  ]
+};
+
+var selectedTrade = null;
+var map = null;
+var marker = null;
+var uploadedPhotos = [];
+var currentEstimateData = null;
+
+document.getElementById('tradeSelector').addEventListener('change', function() {
+  selectedTrade = this.value;
+  if (selectedTrade) {
+    renderForm(selectedTrade);
+  } else {
+    document.getElementById('dynamicFormFields').innerHTML = '';
+  }
+});
+
+function renderForm(trade) {
+  var container = document.getElementById('dynamicFormFields');
+  container.innerHTML = '';
+  
+  var schema = TRADE_FORM_SCHEMA[trade];
+  
+  for (var i = 0; i < schema.length; i++) {
+    var field = schema[i];
+    var formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+    
+    var label = document.createElement('label');
+    label.textContent = field.label + (field.required ? ' *' : '');
+    formGroup.appendChild(label);
+    
+    var input;
+    if (field.type === 'select') {
+      input = document.createElement('select');
+      input.innerHTML = '<option value="">Select...</option>';
+      for (var j = 0; j < field.options.length; j++) {
+        var option = document.createElement('option');
+        option.value = field.options[j];
+        option.textContent = field.options[j];
+        input.appendChild(option);
+      }
+    } else if (field.type === 'textarea') {
+      input = document.createElement('textarea');
+      input.rows = 4;
+    } else {
+      input = document.createElement('input');
+      input.type = field.type;
+    }
+    
+    input.name = field.name;
+    input.id = field.name;
+    input.required = field.required;
+    
+    formGroup.appendChild(input);
+    container.appendChild(formGroup);
+  }
+  
+  setTimeout(initMap, 100);
+}
+
+document.getElementById('photoInput').addEventListener('change', function(e) {
+  var files = Array.prototype.slice.call(e.target.files);
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      uploadedPhotos.push(event.target.result);
+      renderPhotos();
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function renderPhotos() {
+  var container = document.getElementById('photoPreview');
+  container.innerHTML = '';
+  for (var i = 0; i < uploadedPhotos.length; i++) {
+    var photo = uploadedPhotos[i];
+    var div = document.createElement('div');
+    div.className = 'photo-item';
+    div.innerHTML = '<img src="' + photo + '" alt="Photo ' + (i + 1) + '"><button type="button" onclick="removePhoto(' + i + ')">×</button>';
+    container.appendChild(div);
+  }
+}
+
+function removePhoto(index) {
+  uploadedPhotos.splice(index, 1);
+  renderPhotos();
+}
+
+function initMap() {
+  var mapDiv = document.getElementById('map');
+  map = new google.maps.Map(mapDiv, {
+    center: { lat: 39.8283, lng: -98.5795 },
+    zoom: 4,
+    mapTypeId: 'satellite'
+  });
+  
+  var addressInput = document.getElementById('address');
+  if (addressInput) {
+    var autocomplete = new google.maps.places.Autocomplete(addressInput);
+    autocomplete.addListener('place_changed', function() {
+      var place = autocomplete.getPlace();
+      if (place.geometry) {
+        map.setCenter(place.geometry.location);
+        map.setZoom(18);
+        
+        if (marker) marker.setMap(null);
+        marker = new google.maps.Marker({
+          position: place.geometry.location,
+          map: map
+        });
+        
+        var components = place.address_components;
+        for (var i = 0; i < components.length; i++) {
+          var comp = components[i];
+          if (comp.types.indexOf('locality') > -1) {
+            document.getElementById('city').value = comp.long_name;
+          }
+          if (comp.types.indexOf('administrative_area_level_1') > -1) {
+            document.getElementById('state').value = comp.short_name;
+          }
+          if (comp.types.indexOf('postal_code') > -1) {
+            document.getElementById('zip').value = comp.long_name;
+          }
+        }
+      }
+    });
+  }
+}
+
+document.getElementById('estimateForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  var formData = new FormData(e.target);
+  var data = {};
+  
+  formData.forEach(function(value, key) {
+    data[key] = value;
+  });
+  
+  data.trade = selectedTrade;
+  data.photos = uploadedPhotos;
+  
+  var submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ Processing...';
+  
+  fetch('https://roofbid-backend-production.up.railway.app/api/calculate-estimate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(function(response) {
+    return response.json().then(function(result) {
+      return { ok: response.ok, result: result };
+    });
+  })
+  .then(function(data) {
+    if (data.ok) {
+      currentEstimateData = Object.assign({}, data.result);
+      displayResults(data.result);
+    } else {
+      showError(data.result.error || 'Failed to calculate estimate');
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Get Instant Estimate';
+  })
+  .catch(function(error) {
+    showError('Network error: ' + error.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Get Instant Estimate';
+  });
+});
+
+/*function displayResults(result) {
+  var breakdown = document.getElementById('costBreakdown');
+  breakdown.innerHTML = '<div class="cost-item"><span>Material Cost:</span><span>$' + result.materialCost.toFixed(2) + '</span></div><div class="cost-item"><span>Labor Cost:</span><span>$' + result.laborCost.toFixed(2) + '</span></div><div class="cost-item"><span>Fixed Costs:</span><span>$' + result.fixedCosts.toFixed(2) + '</span></div><div class="cost-item"><span>Region: ' + result.msa + '</span><span>Index: ' + result.costIndex.toFixed(2) + '</span></div><div class="cost-item"><span>Total Cost:</span><span>$' + result.totalCost.toFixed(2) + '</span></div>';
+  
+  document.getElementById('resultSection').classList.add('active');
+}*/
+
+function displayResults(result) {
+  var breakdown = document.getElementById('costBreakdown');
+  
+  var itemsHTML = '';
+  result.lineItems.forEach(function(item) {
+    itemsHTML += '<div class="cost-item"><span>' + item.description + ':</span><span>$' + item.amount.toFixed(2) + '</span></div>';
+  });
+  
+  breakdown.innerHTML = itemsHTML + 
+    '<div class="cost-item"><span>Subtotal:</span><span>$' + result.subtotal.toFixed(2) + '</span></div>' +
+    '<div class="cost-item"><span>Tax (8.25%):</span><span>$' + result.tax.toFixed(2) + '</span></div>' +
+    '<div class="cost-item"><span>Region: ' + result.msa + '</span><span>Timeline: ' + result.timeline + '</span></div>' +
+    '<div class="cost-item"><span>Total Cost:</span><span>$' + result.total.toFixed(2) + '</span></div>';
+  
+  document.getElementById('resultSection').classList.add('active');
+}
+
+function showError(message) {
+  var errorDiv = document.getElementById('errorMessage');
+  errorDiv.textContent = '❌ ' + message;
+  errorDiv.style.display = 'block';
+  setTimeout(function() {
+    errorDiv.style.display = 'none';
+  }, 5000);
+}
+
+document.getElementById('emailBtn').addEventListener('click', function() {
+  if (!currentEstimateData) return;
+  
+  this.disabled = true;
+  this.textContent = '⏳ Sending...';
+  
+  var self = this;
+  
+  fetch('https://roofbid-backend-production.up.railway.app/api/send-estimate-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(currentEstimateData)
+  })
+  .then(function(response) {
+    return response.json().then(function(result) {
+      return { ok: response.ok, result: result };
+    });
+  })
+  .then(function(data) {
+    if (data.ok) {
+      alert('✅ Email sent successfully!');
+    } else {
+      alert('❌ Failed to send email: ' + (data.result.error || 'Unknown error'));
+    }
+    self.disabled = false;
+    self.textContent = '📧 Email';
+  })
+  .catch(function(error) {
+    alert('❌ Network error: ' + error.message);
+    self.disabled = false;
+    self.textContent = '📧 Email';
+  });
+});
+
+document.getElementById('pdfBtn').addEventListener('click', function() {
+  if (!currentEstimateData) return;
+  alert('PDF generation coming soon!');
+});
+
+document.getElementById('contractBtn').addEventListener('click', function() {
+  if (!currentEstimateData) return;
+  alert('Contract generation coming soon!');
+});
+</script>
+
 </body>
 </html>
