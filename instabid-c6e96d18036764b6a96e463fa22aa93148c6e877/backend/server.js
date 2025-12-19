@@ -36,7 +36,29 @@ const pool = new Pool({
 async function initDatabase() {
   const client = await pool.connect();
   try {
-   
+   // Estimates table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS estimates (
+        id SERIAL PRIMARY KEY,
+        trade VARCHAR(50) NOT NULL,
+        customer_name VARCHAR(255),
+        customer_email VARCHAR(255),
+        customer_phone VARCHAR(50),
+        address TEXT,
+        city VARCHAR(100),
+        state VARCHAR(2),
+        zip VARCHAR(10),
+        square_feet INTEGER,
+        material_cost DECIMAL(10,2),
+        labor_cost DECIMAL(10,2),
+        fixed_costs DECIMAL(10,2),
+        total_cost DECIMAL(10,2),
+        cost_index DECIMAL(5,2),
+        msa VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
 
     // Pricing cache table
     await client.query(`
@@ -169,7 +191,28 @@ app.post('/api/calculate-estimate', async (req, res) => {
        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
       [trade, state, msa, JSON.stringify(estimate)]
     );
-
+// Save to database
+    await pool.query(
+      `INSERT INTO estimates (trade, customer_name, customer_email, customer_phone, address, city, state, zip, square_feet, material_cost, labor_cost, fixed_costs, total_cost, cost_index, msa) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+      [
+        trade,
+        tradeData.name || null,
+        tradeData.email || null,
+        tradeData.phone || null,
+        address,
+        tradeData.city || null,
+        state,
+        tradeData.zip || null,
+        tradeData.squareFeet || null,
+        estimate.lineItems.reduce((sum, item) => sum + item.amount, 0),
+        0,
+        0,
+        estimate.total,
+        1.0,
+        msa
+      ]
+    );
     res.json(estimate);
 
   } catch (error) {
