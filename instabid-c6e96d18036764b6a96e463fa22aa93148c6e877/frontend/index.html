@@ -307,17 +307,21 @@ body {
 <script>
 var TRADE_FORM_SCHEMA = {
   roofing: [
-    { name: 'name', label: 'Full Name', type: 'text', required: true },
-    { name: 'email', label: 'Email', type: 'email', required: true },
-    { name: 'phone', label: 'Phone', type: 'tel', required: true },
-    { name: 'address', label: 'Property Address', type: 'text', required: true },
-    { name: 'city', label: 'City', type: 'text', required: true },
-    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
-    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
-    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
-    { name: 'roofType', label: 'Roof Type', type: 'select', options: ['Asphalt Shingle', 'Metal', 'Tile', 'Flat'], required: true },
-    { name: 'stories', label: 'Number of Stories', type: 'number', required: true }
-  ],
+  { name: 'name', label: 'Full Name', type: 'text', required: true },
+  { name: 'email', label: 'Email', type: 'email', required: true },
+  { name: 'phone', label: 'Phone', type: 'tel', required: true },
+  { name: 'address', label: 'Property Address', type: 'text', required: true },
+  { name: 'city', label: 'City', type: 'text', required: true },
+  { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+  { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+  { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+  { name: 'pitch', label: 'Roof Pitch', type: 'select', options: ['1.0 (Flat)', '1.1 (4/12)', '1.2 (6/12)', '1.4 (8/12)', '1.6 (10/12)', '1.8 (12/12)'], required: true },
+  { name: 'material', label: 'Material Cost per Sq Ft', type: 'select', options: ['2.50 (Basic Shingle)', '3.50 (Architectural)', '5.00 (Premium)', '8.00 (Metal)', '12.00 (Tile)'], required: true },
+  { name: 'layers', label: 'Tear-Off Layers', type: 'select', options: ['0', '1', '2', '3'], required: true },
+  { name: 'chimneys', label: 'Number of Chimneys', type: 'number', required: true },
+  { name: 'valleys', label: 'Number of Valleys', type: 'number', required: true },
+  { name: 'stories', label: 'Number of Stories', type: 'number', required: true }
+],
   hvac: [
     { name: 'name', label: 'Full Name', type: 'text', required: true },
     { name: 'email', label: 'Email', type: 'email', required: true },
