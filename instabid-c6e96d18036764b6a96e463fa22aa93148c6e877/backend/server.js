@@ -604,7 +604,7 @@ function calculateEstimate(trade, state, msa, data) {
   let timeline = '';
 
   switch(trade) {
-    case 'roofing':
+     /*case 'roofing':
       const sqft = parseFloat(data.squareFeet);
       const pitch = parseFloat(data.pitch);
       const material = parseFloat(data.material);
@@ -622,7 +622,53 @@ function calculateEstimate(trade, state, msa, data) {
       lineItems.push({ description: 'Permits & Disposal', amount: 500 });
       subtotal = materialCost + laborCost + tearOffCost + 500;
       timeline = '3-5 business days';
-      break;
+      break;*/
+  case 'roofing':
+  const sqft = parseFloat(data.squareFeet);
+  
+  // Parse pitch - extract the numeric multiplier from "1.2 (6/12)" format
+  const pitchMatch = data.pitch.match(/^([\d.]+)/);
+  const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
+  
+  // Parse material - extract the cost from "3.50 (Architectural)" format
+  const materialMatch = data.material.match(/^([\d.]+)/);
+  const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
+  
+  const layers = parseInt(data.layers) || 0;
+  const chimneys = parseInt(data.chimneys) || 0;
+  const valleys = parseInt(data.valleys) || 0;
+  const stories = parseInt(data.stories) || 1;
+  
+  // Calculate material cost
+  const materialCost = sqft * materialCostPerSqFt;
+  
+  // Calculate labor (base $1.50/sqft * pitch multiplier * story multiplier)
+  const storyMultiplier = 1 + ((stories - 1) * 0.2); // +20% per story above 1
+  const laborCost = sqft * 1.50 * pitch * storyMultiplier;
+  
+  // Additional costs
+  const tearOffCost = layers * sqft * 0.50; // $0.50/sqft per layer
+  const chimneyCost = chimneys * 500;
+  const valleyCost = valleys * 150;
+  const permitsCost = 500;
+  
+  subtotal = materialCost + laborCost + tearOffCost + chimneyCost + valleyCost + permitsCost;
+  
+  lineItems.push({ description: 'Roofing Material', amount: materialCost });
+  lineItems.push({ description: 'Labor', amount: laborCost });
+  if (tearOffCost > 0) {
+    lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
+  }
+  if (chimneyCost > 0) {
+    lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
+  }
+  if (valleyCost > 0) {
+    lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
+  }
+  lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
+  
+  timeline = '3-5 business days';
+  break;
 
     case 'hvac':
       const tonnage = parseInt(data.tonnage);
