@@ -124,6 +124,45 @@ async function initDatabase() {
       ON zip_metro_mapping(zip_code)
     `);
 
+    // BLS Labor Rates table
+await client.query(`
+  CREATE TABLE IF NOT EXISTS bls_labor_rates (
+    id SERIAL PRIMARY KEY,
+    soc_code VARCHAR(10) NOT NULL,
+    occupation_title VARCHAR(255),
+    state VARCHAR(2) NOT NULL,
+    hourly_wage DECIMAL(10,2) NOT NULL,
+    annual_wage DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+await client.query(`
+  CREATE INDEX IF NOT EXISTS idx_bls_soc_state 
+  ON bls_labor_rates(soc_code, state)
+`);
+
+// Regional Cost Indices table
+await client.query(`
+  CREATE TABLE IF NOT EXISTS regional_cost_indices (
+    id SERIAL PRIMARY KEY,
+    msa_name VARCHAR(100) NOT NULL,
+    state VARCHAR(2),
+    cost_index DECIMAL(5,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+await client.query(`
+  CREATE INDEX IF NOT EXISTS idx_regional_msa 
+  ON regional_cost_indices(msa_name)
+`);
+
+console.log('✅ BLS and regional pricing tables initialized');
+// END NEW CODE
+
     console.log('✅ Database tables initialized');
 
     // Load ZIP to MSA mappings from JSON file
