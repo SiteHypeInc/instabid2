@@ -47,7 +47,7 @@ const TRADE_SOC_CODES = {
 async function fetchBLSData() {
   console.log('📊 Fetching BLS labor rate data...');
   
-  const BLS_API_URL = '[https://api.bls.gov/publicAPI/v2/timeseries/data/';](https://api.bls.gov/publicAPI/v2/timeseries/data/';)
+  const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
   const currentYear = new Date().getFullYear();
   const lastYear = currentYear - 1;
   
