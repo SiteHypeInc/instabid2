@@ -1,12 +1,3 @@
-/*const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
-const PDFDocument = require('pdfkit');
-const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid-transport');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const fs = require('fs');
-const path = require('path');*/
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -16,7 +7,6 @@ const sgTransport = require('nodemailer-sendgrid-transport');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
-const { calculateEstimate, TRADE_SOC_CODES } = require('./calculators');
 
 const app = express();
 app.use((req, res, next) => {
@@ -42,6 +32,17 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Define SOC codes for each trade
+const TRADE_SOC_CODES = {
+  'roofing': '47-2181',
+  'hvac': '49-9021',
+  'electrical': '47-2111',
+  'plumbing': '47-2152',
+  'flooring': '47-2042',
+  'painting': '47-2141',
+  'general': '47-1011'
+};
+
 // Initialize database tables
 async function initDatabase() {
   const client = await pool.connect();
@@ -49,7 +50,8 @@ async function initDatabase() {
     // Drop dependent tables first
     await client.query(`DROP TABLE IF EXISTS contracts CASCADE`);
     await client.query(`DROP TABLE IF EXISTS estimates CASCADE`);
-   // Estimates table
+   
+    // Estimates table
     await client.query(`
       CREATE TABLE IF NOT EXISTS estimates (
         id SERIAL PRIMARY KEY,
@@ -71,7 +73,6 @@ async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
 
     // Pricing cache table
     await client.query(`
@@ -169,78 +170,12 @@ app.get('/', (req, res) => {
 });
 
 // Calculate estimate endpoint
-/*app.post('/api/calculate-estimate', async (req, res) => {
-  try {
-    const { trade, state, address, ...tradeData } = req.body;
-
-    console.log(`📊 Calculating ${trade} estimate for ${state}`);
-
-    // Extract ZIP from address if available
-    let zip = null;
-    const zipMatch = address.match(/\b\d{5}\b/);
-    if (zipMatch) {
-      zip = zipMatch[0];
-    }
-
-    // Get MSA from ZIP if available
-    let msa = null;
-    if (zip) {
-      const msaResult = await pool.query(
-        'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
-        [zip]
-      );
-      if (msaResult.rows.length > 0) {
-        msa = msaResult.rows[0].msa_name;
-        console.log(`📍 Found MSA: ${msa} for ZIP: ${zip}`);
-      }
-    }
-
-    // Calculate estimate based on trade
-    const estimate = calculateEstimate(trade, state, msa, tradeData);
-
-    // Cache the result
-    await pool.query(
-      `INSERT INTO pricing_cache (trade, state, msa, pricing_data, updated_at) 
-       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
-      [trade, state, msa, JSON.stringify(estimate)]
-    );
-// Save to database
-    await pool.query(
-      `INSERT INTO estimates (trade, customer_name, customer_email, customer_phone, address, city, state, zip, square_feet, material_cost, labor_cost, fixed_costs, total_cost, cost_index, msa) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-      [
-        trade,
-        tradeData.name || null,
-        tradeData.email || null,
-        tradeData.phone || null,
-        address,
-        tradeData.city || null,
-        state,
-        tradeData.zip || null,
-        tradeData.squareFeet || null,
-        estimate.lineItems.reduce((sum, item) => sum + item.amount, 0),
-        0,
-        0,
-        estimate.total,
-        1.0,
-        msa
-      ]
-    );
-    res.json(estimate);
-
-  } catch (error) {
-    console.error('❌ Calculate estimate error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});*/
-
-// Calculate estimate endpoint
 app.post('/api/calculate-estimate', async (req, res) => {
   try {
     const { trade, state, address, zip, ...tradeData } = req.body;
 
     console.log(`📊 Calculating ${trade} estimate for ${state}`);
-    console.log('Received data:', tradeData);
+    console.log('Trade data received:', tradeData);
 
     // Get MSA from ZIP if available
     let msa = 'National Average';
@@ -266,7 +201,9 @@ app.post('/api/calculate-estimate', async (req, res) => {
     
     if (laborResult.rows.length > 0) {
       blsLaborRate = parseFloat(laborResult.rows[0].hourly_wage);
-      console.log(`💰 BLS Labor Rate: $${blsLaborRate}/hr`);
+      console.log(`💰 BLS Labor Rate for ${trade}: $${blsLaborRate}/hr`);
+    } else {
+      console.log(`⚠️ No BLS rate found for ${socCode} in ${state}, using default $${blsLaborRate}/hr`);
     }
 
     // Get regional multiplier
@@ -279,39 +216,18 @@ app.post('/api/calculate-estimate', async (req, res) => {
       
       if (regionResult.rows.length > 0) {
         regionalMultiplier = parseFloat(regionResult.rows[0].cost_index);
-        console.log(`📊 Regional Multiplier: ${regionalMultiplier}`);
+        console.log(`📊 Regional Multiplier for ${msa}: ${regionalMultiplier}`);
       }
     }
 
-    // Calculate estimate using trade calculators
-    const calculation = calculateEstimate(trade, tradeData, blsLaborRate, regionalMultiplier);
+    // Calculate adjusted labor rate
+    const adjustedLaborRate = blsLaborRate * regionalMultiplier;
+    console.log(`🔧 Adjusted Labor Rate: $${adjustedLaborRate.toFixed(2)}/hr`);
+
+    // Calculate estimate using trade-specific logic with BLS data
+    const estimate = calculateEstimate(trade, state, msa, tradeData, adjustedLaborRate, regionalMultiplier);
     
-    console.log('Calculation result:', calculation);
-
-    // Format response with line items
-    const lineItems = [];
-    Object.keys(calculation).forEach(key => {
-      if (key !== 'totalCost' && key !== 'breakdown' && typeof calculation[key] === 'number') {
-        lineItems.push({
-          description: key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase()),
-          amount: calculation[key]
-        });
-      }
-    });
-
-    const subtotal = calculation.totalCost - (calculation.contingency || 0);
-    const tax = subtotal * 0.0825;
-    const total = calculation.totalCost + tax;
-
-    const estimate = {
-      lineItems,
-      subtotal,
-      tax,
-      total,
-      msa,
-      timeline: '2-4 weeks',
-      ...tradeData
-    };
+    console.log('✅ Estimate calculated:', estimate);
 
     // Save to database
     await pool.query(
@@ -327,10 +243,10 @@ app.post('/api/calculate-estimate', async (req, res) => {
         state,
         zip || null,
         tradeData.squareFeet || null,
-        calculation.materialCost || 0,
-        calculation.laborCost || 0,
-        0,
-        total,
+        estimate.materialCost || 0,
+        estimate.laborCost || 0,
+        estimate.fixedCosts || 0,
+        estimate.total,
         regionalMultiplier,
         msa
       ]
@@ -367,7 +283,7 @@ app.post('/api/send-estimate-email', async (req, res) => {
       after_completion: {
         type: 'redirect',
         redirect: { 
-          url: process.env.SUCCESS_URL || 'https://instabid.com/thank-you' 
+          url: process.env.SUCCESS_URL || '[https://instabid.com/thank-you'](https://instabid.com/thank-you') 
         }
       }
     });
@@ -968,190 +884,6 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
     fixedCosts
   };
 }
-
-
-/*function calculateEstimate(trade, state, msa, data) {
-  let subtotal = 0;
-  let lineItems = [];
-  let timeline = '';
-
-  switch(trade) {
-     /*case 'roofing':
-      const sqft = parseFloat(data.squareFeet);
-      const pitch = parseFloat(data.pitch);
-      const material = parseFloat(data.material);
-      const layers = parseInt(data.layers || 0);
-      
-      const materialCost = sqft * material * pitch;
-      const laborCost = sqft * 2.5 * pitch;
-      const tearOffCost = layers * sqft * 0.75;
-      
-      lineItems.push({ description: 'Roofing Material', amount: materialCost });
-      lineItems.push({ description: 'Labor', amount: laborCost });
-      if (tearOffCost > 0) {
-        lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
-      }
-      lineItems.push({ description: 'Permits & Disposal', amount: 500 });
-      subtotal = materialCost + laborCost + tearOffCost + 500;
-      timeline = '3-5 business days';
-      break;
-  case 'roofing':
-  const sqft = parseFloat(data.squareFeet);
-  
-  // Parse pitch - extract the numeric multiplier from "1.2 (6/12)" format
-  const pitchMatch = data.pitch.match(/^([\d.]+)/);
-  const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
-  
-  // Parse material - extract the cost from "3.50 (Architectural)" format
-  const materialMatch = data.material.match(/^([\d.]+)/);
-  const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
-  
-  const layers = parseInt(data.layers) || 0;
-  const chimneys = parseInt(data.chimneys) || 0;
-  const valleys = parseInt(data.valleys) || 0;
-  const stories = parseInt(data.stories) || 1;
-  
-  // Calculate material cost
-  const materialCost = sqft * materialCostPerSqFt;
-  
-  // Calculate labor (base $1.50/sqft * pitch multiplier * story multiplier)
-  const storyMultiplier = 1 + ((stories - 1) * 0.2); // +20% per story above 1
-  const laborCost = sqft * 1.50 * pitch * storyMultiplier;
-  
-  // Additional costs
-  const tearOffCost = layers * sqft * 0.50; // $0.50/sqft per layer
-  const chimneyCost = chimneys * 500;
-  const valleyCost = valleys * 150;
-  const permitsCost = 500;
-  
-  subtotal = materialCost + laborCost + tearOffCost + chimneyCost + valleyCost + permitsCost;
-  
-  lineItems.push({ description: 'Roofing Material', amount: materialCost });
-  lineItems.push({ description: 'Labor', amount: laborCost });
-  if (tearOffCost > 0) {
-    lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
-  }
-  if (chimneyCost > 0) {
-    lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
-  }
-  if (valleyCost > 0) {
-    lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
-  }
-  lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
-  
-  timeline = '3-5 business days';
-  break;
-
-    case 'hvac':
-      const tonnage = parseInt(data.tonnage);
-      const systemCost = tonnage * 2000;
-      const installCost = tonnage * 800;
-      lineItems.push({ description: `${tonnage} Ton HVAC System`, amount: systemCost });
-      lineItems.push({ description: 'Installation Labor', amount: installCost });
-      if (data.ductwork === 'full') {
-        lineItems.push({ description: 'Full Ductwork Replacement', amount: 3500 });
-        subtotal = systemCost + installCost + 3500;
-      } else if (data.ductwork === 'partial') {
-        lineItems.push({ description: 'Partial Ductwork', amount: 1500 });
-        subtotal = systemCost + installCost + 1500;
-      } else {
-        subtotal = systemCost + installCost;
-      }
-      timeline = '1-2 days';
-      break;
-
-    case 'electrical':
-      const elecSqft = parseFloat(data.squareFeet);
-      let elecCost = 0;
-      if (data.serviceType === 'panel') {
-        elecCost = parseInt(data.amperage) * 10;
-        lineItems.push({ description: `${data.amperage} Amp Panel Upgrade`, amount: elecCost });
-      } else if (data.serviceType === 'rewire') {
-        elecCost = elecSqft * 4;
-        lineItems.push({ description: 'Full Rewire', amount: elecCost });
-      } else {
-        elecCost = 2000;
-        lineItems.push({ description: 'Electrical Work', amount: elecCost });
-      }
-      lineItems.push({ description: 'Permits & Inspection', amount: 300 });
-      subtotal = elecCost + 300;
-      timeline = '2-4 days';
-      break;
-
-    case 'plumbing':
-      const bathrooms = parseInt(data.bathrooms);
-      const plumbSqft = parseFloat(data.squareFeet);
-      let plumbCost = 0;
-      if (data.serviceType === 'repipe') {
-        plumbCost = plumbSqft * 3.5;
-        lineItems.push({ description: 'Full Repipe', amount: plumbCost });
-      } else if (data.serviceType === 'water_heater') {
-        plumbCost = 1800;
-        lineItems.push({ description: 'Water Heater Installation', amount: plumbCost });
-      } else {
-        plumbCost = bathrooms * 800;
-        lineItems.push({ description: 'Plumbing Work', amount: plumbCost });
-      }
-      subtotal = plumbCost;
-      timeline = '1-3 days';
-      break;
-
-    case 'flooring':
-      const floorSqft = parseFloat(data.squareFeet);
-      let floorRate = 0;
-      switch(data.floorType) {
-        case 'hardwood': floorRate = 8; break;
-        case 'laminate': floorRate = 4; break;
-        case 'tile': floorRate = 6; break;
-        case 'carpet': floorRate = 3; break;
-        case 'vinyl': floorRate = 5; break;
-      }
-      const floorCost = floorSqft * floorRate;
-      lineItems.push({ description: 'Flooring Material & Installation', amount: floorCost });
-      lineItems.push({ description: 'Removal & Disposal', amount: 500 });
-      subtotal = floorCost + 500;
-      timeline = '2-4 days';
-      break;
-
-    case 'painting':
-      const paintSqft = parseFloat(data.squareFeet);
-      let paintRate = 0;
-      if (data.paintType === 'interior') paintRate = 2;
-      else if (data.paintType === 'exterior') paintRate = 2.5;
-      else paintRate = 4;
-      const paintCost = paintSqft * paintRate;
-      lineItems.push({ description: 'Paint & Labor', amount: paintCost });
-      subtotal = paintCost;
-      timeline = '3-7 days';
-      break;
-
-    case 'general':
-      const genSqft = parseFloat(data.squareFeet);
-      let genRate = 0;
-      if (data.projectType === 'remodel') genRate = 100;
-      else if (data.projectType === 'addition') genRate = 150;
-      else if (data.projectType === 'new_build') genRate = 200;
-      else genRate = 50;
-      const genCost = genSqft * genRate;
-      lineItems.push({ description: 'General Contracting', amount: genCost });
-      subtotal = genCost;
-      timeline = '2-8 weeks';
-      break;
-  }
-
-  const tax = subtotal * 0.0825;
-  const total = subtotal + tax;
-
-  return {
-    success: true,
-    lineItems,
-    subtotal,
-    tax,
-    total,
-    timeline,
-    msa: msa || 'N/A'
-  };
-}*/
 
 app.listen(port, () => {
   console.log(`🚀 InstaBid Backend running on port ${port}`);
