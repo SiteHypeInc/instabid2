@@ -56,7 +56,7 @@ function calculateRoofing(criteria, blsLaborRate, regionalMultiplier) {
 // ========================================
 // 2. HVAC CALCULATOR
 // ========================================
-function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
+/*function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
   const {
     squareFeet,
     zones = 1,
@@ -107,6 +107,52 @@ function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
     laborCost: Math.round(laborCost * 100) / 100,
     removalCost: Math.round(removalCost * 100) / 100,
     thermostatCost: Math.round(thermostatCost * 100) / 100,
+    contingency: Math.round(contingency * 100) / 100,
+    totalCost: Math.round((subtotal + contingency) * 100) / 100,
+    breakdown: {
+      estimatedHours,
+      blsLaborRate,
+      regionalMultiplier
+    }
+  };
+}*/
+
+function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
+  const {
+    squareFeet,
+    systemType = 'Central AC',
+    units = 1
+  } = criteria;
+
+  // Base system costs
+  const systemCosts = {
+    'Central AC': 5000,
+    'Heat Pump': 6500,
+    'Furnace': 4500,
+    'Ductless Mini-Split': 3500
+  };
+
+  const baseCost = (systemCosts[systemType] || 5000) * units;
+  const systemCost = baseCost * regionalMultiplier;
+
+  // Ductwork estimate (if central system)
+  let ductworkCost = 0;
+  if (systemType === 'Central AC' || systemType === 'Heat Pump' || systemType === 'Furnace') {
+    const estimatedFeet = squareFeet / 10;
+    ductworkCost = estimatedFeet * 30 * regionalMultiplier;
+  }
+
+  // Labor
+  const estimatedHours = 40 * units;
+  const laborCost = estimatedHours * blsLaborRate;
+
+  const subtotal = systemCost + ductworkCost + laborCost;
+  const contingency = subtotal * 0.10;
+
+  return {
+    systemCost: Math.round(systemCost * 100) / 100,
+    ductworkCost: Math.round(ductworkCost * 100) / 100,
+    laborCost: Math.round(laborCost * 100) / 100,
     contingency: Math.round(contingency * 100) / 100,
     totalCost: Math.round((subtotal + contingency) * 100) / 100,
     breakdown: {
