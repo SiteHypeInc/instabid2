@@ -43,6 +43,71 @@ const TRADE_SOC_CODES = {
   'general': '47-1011'
 };
 
+// BLS API Integration
+async function fetchBLSData() {
+  console.log('📊 Fetching BLS labor rate data...');
+  
+  const BLS_API_URL = '[https://api.bls.gov/publicAPI/v2/timeseries/data/';](https://api.bls.gov/publicAPI/v2/timeseries/data/';)
+  const currentYear = new Date().getFullYear();
+  const lastYear = currentYear - 1;
+  
+  const states = [
+    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+    'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+    'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
+  ];
+  
+  const socCodes = Object.values(TRADE_SOC_CODES);
+  let insertedCount = 0;
+  
+  for (const state of states) {
+    for (const socCode of socCodes) {
+      try {
+        // BLS series ID format: OEUS + state code + 0000000 + SOC code
+        const seriesId = `OEUS${state}0000000${socCode.replace('-', '')}03`; // 03 = mean hourly wage
+        
+        const response = await fetch(BLS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            seriesid: [seriesId],
+            startyear: lastYear.toString(),
+            endyear: currentYear.toString()
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.length > 0) {
+          const latestData = data.Results.series[0].data[0];
+          const hourlyWage = parseFloat(latestData.value);
+          
+          if (hourlyWage > 0) {
+            await pool.query(`
+              INSERT INTO bls_labor_rates (soc_code, state, hourly_wage, annual_wage)
+              VALUES ($1, $2, $3, $4)
+              ON CONFLICT DO NOTHING
+            `, [socCode, state, hourlyWage, hourlyWage * 2080]);
+            
+            insertedCount++;
+          }
+        }
+        
+        // Rate limit: BLS allows 25 requests per 10 seconds for unregistered users
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+      } catch (err) {
+        console.error(`⚠️ BLS fetch error for ${state} ${socCode}:`, err.message);
+      }
+    }
+  }
+  
+  console.log(`✅ BLS data fetch complete: ${insertedCount} rates inserted`);
+  return insertedCount;
+}
+
 // Initialize database tables
 async function initDatabase() {
   const client = await pool.connect();
@@ -125,7 +190,7 @@ async function initDatabase() {
     `);
 
     // BLS Labor Rates table
-await client.query(`
+/*await client.query(`
   CREATE TABLE IF NOT EXISTS bls_labor_rates (
     id SERIAL PRIMARY KEY,
     soc_code VARCHAR(10) NOT NULL,
@@ -135,6 +200,19 @@ await client.query(`
     annual_wage DECIMAL(10,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);*/
+
+    await client.query(`
+  CREATE TABLE IF NOT EXISTS bls_labor_rates (
+    id SERIAL PRIMARY KEY,
+    soc_code VARCHAR(10) NOT NULL,
+    state VARCHAR(2) NOT NULL,
+    hourly_wage DECIMAL(10,2) NOT NULL,
+    annual_wage DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(soc_code, state)
   )
 `);
 
@@ -163,6 +241,16 @@ await client.query(`
 console.log('✅ BLS and regional pricing tables initialized');
 // END NEW CODE
 
+    // Populate BLS data if tables are empty
+const countResult = await client.query('SELECT COUNT(*) FROM bls_labor_rates');
+const blsCount = parseInt(countResult.rows[0].count);
+
+if (blsCount === 0) {
+  console.log('📊 BLS tables empty - fetching initial data...');
+  setTimeout(() => fetchBLSData(), 2000); // Run after startup to avoid blocking
+} else {
+  console.log(`✅ BLS data already loaded: ${blsCount} rates`);
+}
     console.log('✅ Database tables initialized');
 
     // Load ZIP to MSA mappings from JSON file
