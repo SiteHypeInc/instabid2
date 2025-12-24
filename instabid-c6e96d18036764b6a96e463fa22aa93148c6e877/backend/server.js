@@ -159,7 +159,7 @@ app.get('/', (req, res) => {
 });
 
 // Calculate estimate endpoint
-app.post('/api/calculate-estimate', async (req, res) => {
+/*app.post('/api/calculate-estimate', async (req, res) => {
   try {
     const { trade, state, address, ...tradeData } = req.body;
 
@@ -216,6 +216,116 @@ app.post('/api/calculate-estimate', async (req, res) => {
         msa
       ]
     );
+    res.json(estimate);
+
+  } catch (error) {
+    console.error('❌ Calculate estimate error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});*/
+
+// Calculate estimate endpoint
+app.post('/api/calculate-estimate', async (req, res) => {
+  try {
+    const { trade, state, address, zip, ...tradeData } = req.body;
+
+    console.log(`📊 Calculating ${trade} estimate for ${state}`);
+    console.log('Received data:', tradeData);
+
+    // Get MSA from ZIP if available
+    let msa = 'National Average';
+    if (zip) {
+      const msaResult = await pool.query(
+        'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
+        [zip]
+      );
+      if (msaResult.rows.length > 0) {
+        msa = msaResult.rows[0].msa_name;
+        console.log(`📍 Found MSA: ${msa} for ZIP: ${zip}`);
+      }
+    }
+
+    // Get BLS labor rate for this trade
+    const socCode = TRADE_SOC_CODES[trade] || TRADE_SOC_CODES['general'];
+    let blsLaborRate = 35; // Default fallback
+    
+    const laborResult = await pool.query(
+      'SELECT hourly_wage FROM bls_labor_rates WHERE soc_code = $1 AND state = $2',
+      [socCode, state]
+    );
+    
+    if (laborResult.rows.length > 0) {
+      blsLaborRate = parseFloat(laborResult.rows[0].hourly_wage);
+      console.log(`💰 BLS Labor Rate: $${blsLaborRate}/hr`);
+    }
+
+    // Get regional multiplier
+    let regionalMultiplier = 1.0;
+    if (msa !== 'National Average') {
+      const regionResult = await pool.query(
+        'SELECT cost_index FROM regional_cost_indices WHERE msa_name = $1',
+        [msa]
+      );
+      
+      if (regionResult.rows.length > 0) {
+        regionalMultiplier = parseFloat(regionResult.rows[0].cost_index);
+        console.log(`📊 Regional Multiplier: ${regionalMultiplier}`);
+      }
+    }
+
+    // Calculate estimate using trade calculators
+    const calculation = calculateEstimate(trade, tradeData, blsLaborRate, regionalMultiplier);
+    
+    console.log('Calculation result:', calculation);
+
+    // Format response with line items
+    const lineItems = [];
+    Object.keys(calculation).forEach(key => {
+      if (key !== 'totalCost' && key !== 'breakdown' && typeof calculation[key] === 'number') {
+        lineItems.push({
+          description: key.replace(/([A-Z])/g, ' $1').trim().replace(/^./, str => str.toUpperCase()),
+          amount: calculation[key]
+        });
+      }
+    });
+
+    const subtotal = calculation.totalCost - (calculation.contingency || 0);
+    const tax = subtotal * 0.0825;
+    const total = calculation.totalCost + tax;
+
+    const estimate = {
+      lineItems,
+      subtotal,
+      tax,
+      total,
+      msa,
+      timeline: '2-4 weeks',
+      ...tradeData
+    };
+
+    // Save to database
+    await pool.query(
+      `INSERT INTO estimates (trade, customer_name, customer_email, customer_phone, address, city, state, zip, square_feet, material_cost, labor_cost, fixed_costs, total_cost, cost_index, msa) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+      [
+        trade,
+        tradeData.name || null,
+        tradeData.email || null,
+        tradeData.phone || null,
+        address,
+        tradeData.city || null,
+        state,
+        zip || null,
+        tradeData.squareFeet || null,
+        calculation.materialCost || 0,
+        calculation.laborCost || 0,
+        0,
+        total,
+        regionalMultiplier,
+        msa
+      ]
+    );
+
     res.json(estimate);
 
   } catch (error) {
