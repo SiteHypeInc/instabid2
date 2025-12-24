@@ -283,7 +283,7 @@ app.post('/api/send-estimate-email', async (req, res) => {
       after_completion: {
         type: 'redirect',
         redirect: { 
-          url: process.env.SUCCESS_URL || '[https://instabid.com/thank-you'](https://instabid.com/thank-you') 
+          url: process.env.SUCCESS_URL || 'https://instabid.com/thank-you' 
         }
       }
     });
