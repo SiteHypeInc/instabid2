@@ -1,3 +1,12 @@
+/*const express = require('express');
+const cors = require('cors');
+const { Pool } = require('pg');
+const PDFDocument = require('pdfkit');
+const nodemailer = require('nodemailer');
+const sgTransport = require('nodemailer-sendgrid-transport');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const fs = require('fs');
+const path = require('path');*/
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -7,6 +16,7 @@ const sgTransport = require('nodemailer-sendgrid-transport');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
+const { calculateEstimate, TRADE_SOC_CODES } = require('./calculators');
 
 const app = express();
 app.use((req, res, next) => {
