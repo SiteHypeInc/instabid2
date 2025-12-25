@@ -253,6 +253,10 @@ if (blsCount === 0) {
 }
     console.log('✅ Database tables initialized');
 
+    // Load reference data from JSON files
+const dataLoader = require('./dataLoader');
+await dataLoader.loadReferenceData(pool);
+
     // Load ZIP to MSA mappings from JSON file
     const zipMappingPath = path.join(__dirname, 'Data', 'zip-to-msa-compressed.json');
     if (fs.existsSync(zipMappingPath)) {
