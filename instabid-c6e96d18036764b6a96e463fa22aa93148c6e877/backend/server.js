@@ -262,8 +262,8 @@ if (blsCount === 0) {
       const { rows } = await client.query('SELECT COUNT(*) FROM zip_metro_mapping');
       if (parseInt(rows[0].count) === 0) {
         console.log('📦 Loading ZIP to MSA mappings...');
-        
-        for (const [zip, msaData] of Object.entries(zipData)) {
+      //changed zipData to zipData.prefix_map line 266  
+        for (const [zip, msaData] of Object.entries(zipData.prefix_map)) {
           await client.query(
             'INSERT INTO zip_metro_mapping (zip_code, msa_name, state) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
             [zip, msaData.msa || null, msaData.state || null]
