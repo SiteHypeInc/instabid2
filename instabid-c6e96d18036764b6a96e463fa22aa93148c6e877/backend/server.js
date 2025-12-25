@@ -254,7 +254,7 @@ if (blsCount === 0) {
     console.log('✅ Database tables initialized');
 
     // Load reference data from JSON files
-const dataLoader = require('./dataLoader');
+const dataLoader = require('./data-loader');
 await dataLoader.loadReferenceData(pool);
 
     // Load ZIP to MSA mappings from JSON file
