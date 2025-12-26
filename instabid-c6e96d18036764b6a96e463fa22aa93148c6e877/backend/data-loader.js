@@ -124,4 +124,40 @@ class DataLoader {
   }
 }
 
+  // NEW FUNCTION 12-25 - Insert reference data into database
+  async loadReferenceData(pool) {
+    try {
+      // Load counties into database
+      await this.loadCounties();
+      
+      if (this.counties && this.counties.length > 0) {
+        for (const county of this.counties) {
+          await pool.query(`
+            INSERT INTO county_seats (county_name, state, zip_code, metro_area)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (county_name, state) DO NOTHING
+          `, [county.county, county.state, county.zip, county.metro || null]);
+        }
+        console.log(`✅ Loaded ${this.counties.length} county seats into database`);
+      }
+      
+      // Load metros into database
+      await this.loadMetros();
+      
+      if (this.metros && Object.keys(this.metros).length > 0) {
+        for (const [metroName, metroData] of Object.entries(this.metros)) {
+          await pool.query(`
+            INSERT INTO metro_areas (name, cost_index)
+            VALUES ($1, $2)
+            ON CONFLICT (name) DO NOTHING
+          `, [metroName, metroData.cost_index || 1.0]);
+        }
+        console.log(`✅ Loaded ${Object.keys(this.metros).length} metro areas into database`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading reference data:', error);
+    }
+  }
+
 module.exports = new DataLoader();
