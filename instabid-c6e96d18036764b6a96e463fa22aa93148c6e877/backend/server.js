@@ -78,7 +78,7 @@ async function fetchBLSData() {
           })
         });
         
-        const data = await response.json();
+        /*const data = await response.json();
         
         if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.length > 0) {
           const latestData = data.Results.series[0].data[0];
@@ -94,6 +94,34 @@ async function fetchBLSData() {
             insertedCount++;
           }
         }
+        */
+
+      const data = await response.json();
+
+// Debug logging
+console.log(`🔍 Series ID: ${seriesId}`);
+console.log(`📊 BLS Status: ${data.status}`);
+console.log(`📊 Has series data: ${!!data.Results?.series?.[0]?.data?.length}`);
+
+if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.length > 0) {
+  const latestData = data.Results.series[0].data[0];
+  const hourlyWage = parseFloat(latestData.value);
+  
+  console.log(`💰 ${state} ${socCode}: $${hourlyWage}/hr`);
+  
+  if (hourlyWage > 0) {
+    await pool.query(`
+      INSERT INTO bls_labor_rates (soc_code, state, hourly_wage, annual_wage)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT DO NOTHING
+    `, [socCode, state, hourlyWage, hourlyWage * 2080]);
+    
+    insertedCount++;
+  }
+} else {
+  console.log(`❌ No data returned for ${seriesId}`);
+  if (data.message) console.log(`   Message: ${data.message}`);
+}
         
         // Rate limit: BLS allows 25 requests per 10 seconds for unregistered users
         await new Promise(resolve => setTimeout(resolve, 500));
