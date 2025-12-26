@@ -11,7 +11,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
 
-const BLS_API_URL = '[https://api.bls.gov/publicAPI/v2/timeseries/data/';](https://api.bls.gov/publicAPI/v2/timeseries/data/';)
+const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
 const NATIONAL_AVERAGE_WAGE = 33.50;
 const TRADE_TYPES = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting'];
 
@@ -421,7 +421,7 @@ app.post('/api/send-estimate-email', async (req, res) => {
       after_completion: {
         type: 'redirect',
         redirect: { 
-          url: process.env.SUCCESS_URL || '[https://instabid.com/thank-you'](https://instabid.com/thank-you') 
+          url: process.env.SUCCESS_URL || 'https://instabid.com/thank-you'
         }
       }
     });
