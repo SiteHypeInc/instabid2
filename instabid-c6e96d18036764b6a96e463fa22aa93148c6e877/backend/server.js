@@ -406,6 +406,7 @@ app.post('/api/calculate-estimate', async (req, res) => {
     const { trade, state, address, zip, ...tradeData } = req.body;
 
     console.log(`📊 Calculating ${trade} estimate for ${state}`);
+    console.log('Trade data:', tradeData);
 
     // Query BLS data
     const laborResult = await pool.query(
@@ -419,21 +420,15 @@ app.post('/api/calculate-estimate', async (req, res) => {
 
     console.log(`💵 Labor rate: $${hourlyRate}/hr (source: ${laborResult.rows.length > 0 ? 'BLS' : 'National Average'})`);
 
-    // Return estimate in the format frontend expects
-    res.json({
-      success: true,
-      lineItems: [
-        { description: 'Labor', amount: 1000 },
-        { description: 'Materials', amount: 500 }
-      ],
-      subtotal: 1500,
-      tax: 123.75,
-      total: 1623.75,
-      timeline: '3-5 days',
-      msa: 'National Average',
-      laborRate: hourlyRate,
-      dataSource: laborResult.rows.length > 0 ? 'BLS' : 'National Average'
-    });
+    // Calculate real estimate using trade-specific logic
+    const estimate = calculateTradeEstimate(trade, tradeData, hourlyRate, state, 'National Average');
+
+    // Add metadata
+    estimate.msa = 'National Average';
+    estimate.laborRate = hourlyRate;
+    estimate.dataSource = laborResult.rows.length > 0 ? 'BLS' : 'National Average';
+
+    res.json(estimate);
 
   } catch (error) {
     console.error('❌ Estimate error:', error);
@@ -443,6 +438,91 @@ app.post('/api/calculate-estimate', async (req, res) => {
     });
   }
 });
+
+
+function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
+  let subtotal = 0;
+  let lineItems = [];
+  let timeline = '';
+  let materialCost = 0;
+  let laborCost = 0;
+  let fixedCosts = 0;
+
+  const LABOR_HOURS_PER_SQFT = {
+    'roofing': 0.02,
+    'hvac': 0.015,
+    'electrical': 0.025,
+    'plumbing': 0.02,
+    'flooring': 0.015,
+    'painting': 0.01,
+    'general': 0.05
+  };
+
+  const regionalMultiplier = 1.0;
+
+  switch(trade) {
+    case 'roofing':
+      const sqft = parseFloat(data.squareFeet);
+      const pitchMatch = data.pitch.match(/^([\d.]+)/);
+      const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
+      const materialMatch = data.material.match(/^([\d.]+)/);
+      const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
+      const layers = parseInt(data.layers) || 0;
+      const chimneys = parseInt(data.chimneys) || 0;
+      const valleys = parseInt(data.valleys) || 0;
+      const stories = parseInt(data.stories) || 1;
+      
+      materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
+      const storyMultiplier = 1 + ((stories - 1) * 0.2);
+      const laborHours = sqft * LABOR_HOURS_PER_SQFT['roofing'] * pitch * storyMultiplier;
+      laborCost = laborHours * hourlyRate;
+      
+      const tearOffCost = layers * sqft * 0.50 * regionalMultiplier;
+      const chimneyCost = chimneys * 500 * regionalMultiplier;
+      const valleyCost = valleys * 150 * regionalMultiplier;
+      const permitsCost = 500 * regionalMultiplier;
+      
+      fixedCosts = tearOffCost + chimneyCost + valleyCost + permitsCost;
+      subtotal = materialCost + laborCost + fixedCosts;
+      
+      lineItems.push({ description: 'Roofing Material', amount: materialCost });
+      lineItems.push({ description: `Labor (${laborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
+      if (tearOffCost > 0) lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
+      if (chimneyCost > 0) lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
+      if (valleyCost > 0) lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
+      lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
+      
+      timeline = '3-5 business days';
+      break;
+
+    default:
+      // Generic fallback for other trades
+      const defaultSqft = parseFloat(data.squareFeet) || 1000;
+      materialCost = defaultSqft * 2;
+      laborCost = defaultSqft * 3;
+      subtotal = materialCost + laborCost;
+      
+      lineItems.push({ description: 'Materials', amount: materialCost });
+      lineItems.push({ description: 'Labor', amount: laborCost });
+      timeline = '3-5 days';
+      break;
+  }
+
+  const tax = subtotal * 0.0825;
+  const total = subtotal + tax;
+
+  return {
+    success: true,
+    lineItems,
+    subtotal,
+    tax,
+    total,
+    timeline,
+    materialCost,
+    laborCost,
+    fixedCosts
+  };
+}
 
 app.post('/api/send-estimate-email', async (req, res) => {
   try {
