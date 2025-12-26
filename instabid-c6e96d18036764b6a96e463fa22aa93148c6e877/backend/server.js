@@ -339,11 +339,11 @@ await dataLoader.loadReferenceData(pool);
         for (const [zip, msaData] of Object.entries(zipData.prefix_map)) {
           await client.query(
             'INSERT INTO zip_metro_mapping (zip_code, msa_name, state) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-            [zip, msaData.msa || null, msaData.state || null]
+            [zip, msaData.metro || null, msaData.state || null]
           );
         }
         
-        console.log(`✅ Loaded ${Object.keys(zipData).length} ZIP to MSA mappings`);
+        console.log(`✅ Loaded ${Object.keys(zipData.prefix_map).length} ZIP to MSA mappings`);
       }
     }
 
