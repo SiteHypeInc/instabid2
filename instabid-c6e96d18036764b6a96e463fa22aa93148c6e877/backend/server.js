@@ -161,8 +161,9 @@ async function fetchBLSData() {
   // BLS allows max 50 series per request
   let insertedCount = 0;
   for (let i = 0; i < allSeries.length; i += 50) {
-console.log(`🔍 Sample series ID: ${batch[0]}`);
     const batch = allSeries.slice(i, i + 50);
+
+    console.log(`🔍 Sample series ID: ${batch[0]}`);
     
     try {
       const response = await fetch(BLS_API_URL, {
