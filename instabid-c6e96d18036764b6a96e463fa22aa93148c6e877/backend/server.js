@@ -7,6 +7,7 @@ const sgTransport = require('nodemailer-sendgrid-transport');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
+const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
 
 const app = express();
 app.use((req, res, next) => {
@@ -418,9 +419,13 @@ console.log('✅ Reference data tables initialized');
 const countResult = await client.query('SELECT COUNT(*) FROM bls_labor_rates');
 const blsCount = parseInt(countResult.rows[0].count);
 
-if (blsCount === 0) {
+console.log(`📊 Current BLS records: ${blsCount}`);
+
+if (blsCount === 0 && process.env.ENABLE_BLS_INITIAL_FETCH === 'true') {
   console.log('📊 BLS tables empty - fetching initial data...');
-  setTimeout(() => fetchBLSData(), 2000); // Run after startup to avoid blocking
+  setTimeout(() => fetchBLSData(), 2000);
+} else if (blsCount === 0) {
+  console.log('⚠️ BLS table empty but auto-fetch disabled. Set ENABLE_BLS_INITIAL_FETCH=true to enable.');
 } else {
   console.log(`✅ BLS data already loaded: ${blsCount} rates`);
 }
