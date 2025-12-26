@@ -1,3 +1,6 @@
+//HERE'S YOUR CLEAN CORRECTED server.js:
+
+
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -7,8 +10,10 @@ const sgTransport = require('nodemailer-sendgrid-transport');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
-const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+
+const BLS_API_URL = '[https://api.bls.gov/publicAPI/v2/timeseries/data/';](https://api.bls.gov/publicAPI/v2/timeseries/data/';)
 const NATIONAL_AVERAGE_WAGE = 33.50;
+const TRADE_TYPES = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting'];
 
 const app = express();
 app.use((req, res, next) => {
@@ -34,209 +39,10 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Define SOC codes for each trade
-/*const TRADE_SOC_CODES = {
-  'roofing': '47-2181',
-  'hvac': '49-9021',
-  'electrical': '47-2111',
-  'plumbing': '47-2152',
-  'flooring': '47-2042',
-  'painting': '47-2141',
-  'general': '47-1011'
-};
-*/
-
-/*const TRADE_SOC_CODES = {
-  'roofing': '47-2180',      // Roofers (broad)
-  'hvac': '49-9020',         // HVAC (broad)  
-  'electrical': '47-2110',   // Electricians (broad)
-  'plumbing': '47-2150',     // Plumbers (broad)
-  'flooring': '47-2040',     // Floor layers (broad)
-  'painting': '47-2140',     // Painters (broad)
-  'general': '47-1010'       // First-line supervisors (broad)
-};*/
-
-// BLS API Integration
-/*async function fetchBLSData() {
-  console.log('📊 Fetching BLS labor rate data...');
-  
-  const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
-  const currentYear = new Date().getFullYear();
-  const lastYear = currentYear - 1;
-  
-  const states = [
-    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
-    'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
-    'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
-    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
-    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'
-  ];
-  
-  const socCodes = Object.values(TRADE_SOC_CODES);
-  let insertedCount = 0;
-  
-  for (const state of states) {
-    for (const socCode of socCodes) {
-      try {
-        // BLS series ID format: OEUS + state code + 0000000 + SOC code
-        const seriesId = `OEUS${state}000000${socCode.replace('-', '')}03`; // 03 = mean hourly wage
-        
-        const response = await fetch(BLS_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            seriesid: [seriesId],
-            startyear: lastYear.toString(),
-            endyear: currentYear.toString()
-          })
-        });
-
-const data = await response.json();
-
-// Debug logging
-console.log(`🔍 Series ID: ${seriesId}`);
-console.log(`📊 BLS Status: ${data.status}`);
-console.log(`📊 Has series data: ${!!data.Results?.series?.[0]?.data?.length}`);
-
-if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.length > 0) {
-  const latestData = data.Results.series[0].data[0];
-  const hourlyWage = parseFloat(latestData.value);
-  
-  console.log(`💰 ${state} ${socCode}: $${hourlyWage}/hr`);
-  
-  if (hourlyWage > 0) {
-    await pool.query(`
-      INSERT INTO bls_labor_rates (soc_code, state, hourly_wage, annual_wage)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT DO NOTHING
-    `, [socCode, state, hourlyWage, hourlyWage * 2080]);
-    
-    insertedCount++;
-  }
-} else {
-  console.log(`❌ No data returned for ${seriesId}`);
-  if (data.message) console.log(`   Message: ${data.message}`);
-}
-        
-        // Rate limit: BLS allows 25 requests per 10 seconds for unregistered users
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-      } catch (err) {
-        console.error(`⚠️ BLS fetch error for ${state} ${socCode}:`, err.message);
-      }
-    }
-  }
-  
-  console.log(`✅ BLS data fetch complete: ${insertedCount} rates inserted`);
-  return insertedCount;
-}
-*/
-
-/*async function fetchBLSData() {
-  console.log('📊 Fetching BLS labor rate data...');
-  
-  const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
-                  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-                  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-                  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-                  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-  
-  const STATE_FIPS = {
-    'AL': '01', 'AK': '02', 'AZ': '04', 'AR': '05', 'CA': '06', 'CO': '08',
-    'CT': '09', 'DE': '10', 'FL': '12', 'GA': '13', 'HI': '15', 'ID': '16',
-    'IL': '17', 'IN': '18', 'IA': '19', 'KS': '20', 'KY': '21', 'LA': '22',
-    'ME': '23', 'MD': '24', 'MA': '25', 'MI': '26', 'MN': '27', 'MS': '28',
-    'MO': '29', 'MT': '30', 'NE': '31', 'NV': '32', 'NH': '33', 'NJ': '34',
-    'NM': '35', 'NY': '36', 'NC': '37', 'ND': '38', 'OH': '39', 'OK': '40',
-    'OR': '41', 'PA': '42', 'RI': '44', 'SC': '45', 'SD': '46', 'TN': '47',
-    'TX': '48', 'UT': '49', 'VT': '50', 'VA': '51', 'WA': '53', 'WV': '54',
-    'WI': '55', 'WY': '56'
-  };
-
-  const socCodes = Object.values(TRADE_SOC_CODES);
-  
-  // Build ALL series IDs (7 trades × 50 states = 350 series)
-  const allSeries = [];
-  const seriesMap = {}; // Map series ID back to state/SOC
-  
-  for (const state of states) {
-    const stateFips = STATE_FIPS[state];
-    for (const socCode of socCodes) {
-      const seriesId = `OEUS${stateFips}000000${socCode.replace('-', '')}03`;
-      allSeries.push(seriesId);
-      seriesMap[seriesId] = { state, socCode };
-    }
-  }
-  
-  console.log(`📊 Requesting ${allSeries.length} series in batches of 50...`);
-  
-  // BLS allows max 50 series per request
-  let insertedCount = 0;
-  for (let i = 0; i < allSeries.length; i += 50) {
-    const batch = allSeries.slice(i, i + 50);
-
-    console.log(`🔍 Sample series ID: ${batch[0]}`);
-    
-    try {
-      const response = await fetch(BLS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          seriesid: batch,
-          startyear: (new Date().getFullYear() - 1).toString(),
-          endyear: new Date().getFullYear().toString(),
-          registrationkey: process.env.BLS_API_KEY
-        })
-      });
-      
-      const data = await response.json();
-
-      //DEBUG TEST
-      console.log(`📊 Batch ${Math.floor(i/50) + 1} status: ${data.status}`);
-      if (data.message) console.log(`   Message: ${data.message}`);
-      console.log(`   Series returned: ${data.Results?.series?.length || 0}`);
-      
-      if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series) {
-        for (const series of data.Results.series) {
-          if (series.data?.length > 0) {
-            const latestData = series.data[0];
-            const hourlyWage = parseFloat(latestData.value);
-            const { state, socCode } = seriesMap[series.seriesID];
-            
-            if (hourlyWage > 0) {
-              await pool.query(`
-                INSERT INTO bls_labor_rates (soc_code, state, hourly_wage, annual_wage)
-                VALUES ($1, $2, $3, $4)
-                ON CONFLICT (soc_code, state) DO UPDATE 
-                SET hourly_wage = $3, annual_wage = $4, updated_at = CURRENT_TIMESTAMP
-              `, [socCode, state, hourlyWage, hourlyWage * 2080]);
-              
-              insertedCount++;
-            }
-          }
-        }
-        console.log(`✅ Batch ${Math.floor(i/50) + 1}/${Math.ceil(allSeries.length/50)}: ${insertedCount} rates loaded`);
-      } else {
-        console.log(`⚠️ Batch ${Math.floor(i/50) + 1} failed: ${data.message || 'Unknown error'}`);
-      }
-      
-      // Rate limit: 25 requests per 10 seconds
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-    } catch (err) {
-      console.error(`⚠️ BLS batch fetch error:`, err.message);
-    }
-  }
-  
-  console.log(`✅ BLS data fetch complete: ${insertedCount} rates inserted`);
-  return insertedCount;
-}*/
-
 async function fetchBLSData() {
   try {
     console.log('📊 Fetching BLS construction wage data by state...');
     
-    // State FIPS codes (50 states + DC)
     const stateFIPS = {
       '01': 'Alabama', '02': 'Alaska', '04': 'Arizona', '05': 'Arkansas',
       '06': 'California', '08': 'Colorado', '09': 'Connecticut', '10': 'Delaware',
@@ -254,7 +60,6 @@ async function fetchBLSData() {
       '55': 'Wisconsin', '56': 'Wyoming'
     };
 
-    // Build series IDs: SMS[STATE_FIPS]000002300000003 = Avg Hourly Earnings, Construction
     const allSeries = Object.keys(stateFIPS).map(fips => 
       `SMU${fips}000002000000003`
     );
@@ -264,9 +69,8 @@ async function fetchBLSData() {
 
     let totalInserted = 0;
     const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 2; // Get last 2 years of data
+    const startYear = currentYear - 2;
 
-    // Process in batches of 50 (API limit)
     for (let i = 0; i < allSeries.length; i += 50) {
       const batch = allSeries.slice(i, i + 50);
       
@@ -294,25 +98,17 @@ async function fetchBLSData() {
           
           for (const series of data.Results.series) {
             const seriesId = series.seriesID;
-            // Extract state FIPS from SMS06000002300000003 format
             const stateFipsCode = seriesId.substring(3, 5);
             const stateName = stateFIPS[stateFipsCode];
             
             if (!stateName || !series.data || series.data.length === 0) continue;
 
-            // Get most recent data point
             const latestData = series.data[0];
             const hourlyRate = parseFloat(latestData.value);
             
             if (isNaN(hourlyRate)) continue;
 
-            // Insert/update for all trade types with the same base rate
-            // (You can apply trade multipliers later in your calculation logic)
-           const trades = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting']; 
-            // National average construction wage (fallback for states without BLS data)
-           
-
-           /* const trades = TRADE_TYPES; */
+            const trades = TRADE_TYPES;
             
             for (const trade of trades) {
               await pool.query(`
@@ -331,7 +127,6 @@ async function fetchBLSData() {
 
         console.log(`✅ Batch ${Math.floor(i/50) + 1}/${Math.ceil(allSeries.length/50)}: ${totalInserted} rates loaded`);
         
-        // Rate limiting: wait 1 second between batches
         if (i + 50 < allSeries.length) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
@@ -348,16 +143,12 @@ async function fetchBLSData() {
   }
 }
 
-
-// Initialize database tables
 async function initDatabase() {
   const client = await pool.connect();
   try {
-    // Drop dependent tables first
     await client.query(`DROP TABLE IF EXISTS contracts CASCADE`);
     await client.query(`DROP TABLE IF EXISTS estimates CASCADE`);
    
-    // Estimates table
     await client.query(`
       CREATE TABLE IF NOT EXISTS estimates (
         id SERIAL PRIMARY KEY,
@@ -380,7 +171,6 @@ async function initDatabase() {
       )
     `);
 
-    // Pricing cache table
     await client.query(`
       CREATE TABLE IF NOT EXISTS pricing_cache (
         id SERIAL PRIMARY KEY,
@@ -393,7 +183,6 @@ async function initDatabase() {
       )
     `);
 
-    // Create indexes
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_pricing_cache_trade_state 
       ON pricing_cache(trade, state)
@@ -404,7 +193,6 @@ async function initDatabase() {
       ON pricing_cache(msa)
     `);
 
-    // API refresh log
     await client.query(`
       CREATE TABLE IF NOT EXISTS api_refresh_log (
         id SERIAL PRIMARY KEY,
@@ -414,7 +202,6 @@ async function initDatabase() {
       )
     `);
 
-    // ZIP to MSA mapping table
     await client.query(`
       CREATE TABLE IF NOT EXISTS zip_metro_mapping (
         id SERIAL PRIMARY KEY,
@@ -430,193 +217,106 @@ async function initDatabase() {
       ON zip_metro_mapping(zip_code)
     `);
 
-    // BLS Labor Rates table
-/*await client.query(`
-  CREATE TABLE IF NOT EXISTS bls_labor_rates (
-    id SERIAL PRIMARY KEY,
-    soc_code VARCHAR(10) NOT NULL,
-    occupation_title VARCHAR(255),
-    state VARCHAR(2) NOT NULL,
-    hourly_wage DECIMAL(10,2) NOT NULL,
-    annual_wage DECIMAL(10,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`);*/
-
-  /*  await client.query(`
-  CREATE TABLE IF NOT EXISTS bls_labor_rates (
-    id SERIAL PRIMARY KEY,
-    soc_code VARCHAR(10) NOT NULL,
-    state VARCHAR(2) NOT NULL,
-    hourly_wage DECIMAL(10,2) NOT NULL,
-    annual_wage DECIMAL(10,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(soc_code, state)
-  )
-`);
-
-await client.query(`
-  CREATE INDEX IF NOT EXISTS idx_bls_soc_state 
-  ON bls_labor_rates(soc_code, state)
-`);*/
-
     await client.query(`
-  CREATE TABLE IF NOT EXISTS bls_labor_rates (
-    id SERIAL PRIMARY KEY,
-    state_code VARCHAR(50) NOT NULL,
-    trade_type VARCHAR(50) NOT NULL,
-    hourly_rate DECIMAL(10,2) NOT NULL,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(state_code, trade_type)
-  )
-`);
-
-// Migrate from old structure if needed
-await client.query(`
-  DO $$ 
-  BEGIN
-    IF EXISTS (
-      SELECT FROM information_schema.columns 
-      WHERE table_name = 'bls_labor_rates' AND column_name = 'soc_code'
-    ) THEN
-      DROP TABLE bls_labor_rates;
-      CREATE TABLE bls_labor_rates (
+      CREATE TABLE IF NOT EXISTS bls_labor_rates (
         id SERIAL PRIMARY KEY,
         state_code VARCHAR(50) NOT NULL,
         trade_type VARCHAR(50) NOT NULL,
         hourly_rate DECIMAL(10,2) NOT NULL,
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(state_code, trade_type)
+      )
+    `);
+
+    await client.query(`
+      DO $$ 
+      BEGIN
+        IF EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'bls_labor_rates' AND column_name = 'soc_code'
+        ) THEN
+          DROP TABLE bls_labor_rates;
+          CREATE TABLE bls_labor_rates (
+            id SERIAL PRIMARY KEY,
+            state_code VARCHAR(50) NOT NULL,
+            trade_type VARCHAR(50) NOT NULL,
+            hourly_rate DECIMAL(10,2) NOT NULL,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(state_code, trade_type)
+          );
+        END IF;
+      END $$;
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS regional_cost_indices (
+        id SERIAL PRIMARY KEY,
+        msa_name VARCHAR(100) NOT NULL,
+        state VARCHAR(2),
+        cost_index DECIMAL(5,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_regional_msa 
+      ON regional_cost_indices(msa_name)
+    `);
+
+    console.log('✅ BLS and regional pricing tables initialized');
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS county_seats (
+        id SERIAL PRIMARY KEY,
+        county_name VARCHAR(255) NOT NULL,
+        state VARCHAR(2) NOT NULL,
+        zip_code VARCHAR(10) NOT NULL,
+        metro_area VARCHAR(255),
+        UNIQUE(county_name, state)
       );
-    END IF;
-  END $$;
-`);
+    `);
 
-// Regional Cost Indices table
-await client.query(`
-  CREATE TABLE IF NOT EXISTS regional_cost_indices (
-    id SERIAL PRIMARY KEY,
-    msa_name VARCHAR(100) NOT NULL,
-    state VARCHAR(2),
-    cost_index DECIMAL(5,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS metro_areas (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        cost_index DECIMAL(10,2) DEFAULT 1.0
+      );
+    `);
 
-await client.query(`
-  CREATE INDEX IF NOT EXISTS idx_regional_msa 
-  ON regional_cost_indices(msa_name)
-`);
+    console.log('✅ Reference data tables initialized');
 
-console.log('✅ BLS and regional pricing tables initialized');
-// END NEW CODE
+    const countResult = await client.query('SELECT COUNT(*) FROM bls_labor_rates');
+    const blsCount = parseInt(countResult.rows[0].count);
 
-// CREATE REFERENCE DATA TABLES
-await client.query(`
-  CREATE TABLE IF NOT EXISTS county_seats (
-    id SERIAL PRIMARY KEY,
-    county_name VARCHAR(255) NOT NULL,
-    state VARCHAR(2) NOT NULL,
-    zip_code VARCHAR(10) NOT NULL,
-    metro_area VARCHAR(255),
-    UNIQUE(county_name, state)
-  );
-`);
+    console.log(`📊 Current BLS records: ${blsCount}`);
 
-await client.query(`
-  CREATE TABLE IF NOT EXISTS metro_areas (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    cost_index DECIMAL(10,2) DEFAULT 1.0
-  );
-`);
-
-await client.query(`
-  CREATE TABLE IF NOT EXISTS regional_cost_indices (
-    id SERIAL PRIMARY KEY,
-    region VARCHAR(100) NOT NULL UNIQUE,
-    cost_index DECIMAL(10,2) NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-console.log('✅ Reference data tables initialized');
-// END NEW CODE
-
-console.log('✅ BLS and regional pricing tables initialized');
-
-// CREATE REFERENCE DATA TABLES
-await client.query(`
-  CREATE TABLE IF NOT EXISTS county_seats (
-    id SERIAL PRIMARY KEY,
-    county_name VARCHAR(255) NOT NULL,
-    state VARCHAR(2) NOT NULL,
-    zip_code VARCHAR(10) NOT NULL,
-    metro_area VARCHAR(255),
-    UNIQUE(county_name, state)
-  );
-`);
-
-await client.query(`
-  CREATE TABLE IF NOT EXISTS metro_areas (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
-    cost_index DECIMAL(10,2) DEFAULT 1.0
-  );
-`);
-
-await client.query(`
-  CREATE TABLE IF NOT EXISTS regional_cost_indices (
-    id SERIAL PRIMARY KEY,
-    region VARCHAR(100) NOT NULL UNIQUE,
-    cost_index DECIMAL(10,2) NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-console.log('✅ Reference data tables initialized');
+    if (blsCount === 0 && process.env.ENABLE_BLS_INITIAL_FETCH === 'true') {
+      console.log('📊 BLS tables empty - fetching initial data...');
+      setTimeout(() => fetchBLSData(), 2000);
+    } else if (blsCount === 0) {
+      console.log('⚠️ BLS table empty but auto-fetch disabled. Set ENABLE_BLS_INITIAL_FETCH=true to enable.');
+    } else {
+      console.log(`✅ BLS data already loaded: ${blsCount} rates`);
+    }
     
-// END NEW CODE
-
-    
-    // Populate BLS data if tables are empty
-const countResult = await client.query('SELECT COUNT(*) FROM bls_labor_rates');
-const blsCount = parseInt(countResult.rows[0].count);
-
-console.log(`📊 Current BLS records: ${blsCount}`);
-
-if (blsCount === 0 && process.env.ENABLE_BLS_INITIAL_FETCH === 'true') {
-  console.log('📊 BLS tables empty - fetching initial data...');
-  setTimeout(() => fetchBLSData(), 2000);
-} else if (blsCount === 0) {
-  console.log('⚠️ BLS table empty but auto-fetch disabled. Set ENABLE_BLS_INITIAL_FETCH=true to enable.');
-} else {
-  console.log(`✅ BLS data already loaded: ${blsCount} rates`);
-}
     console.log('✅ Database tables initialized');
 
-    // Load reference data from JSON files
+    const dataLoader = require('./data-loader');
+    await dataLoader.loadReferenceData(pool);
 
-const dataLoader = require('./data-loader');
-await dataLoader.loadReferenceData(pool);
-
-    // Load ZIP to MSA mappings from JSON file
     const zipMappingPath = path.join(__dirname, 'data', 'zip-to-msa-compressed.json');
     if (fs.existsSync(zipMappingPath)) {
       const zipData = JSON.parse(fs.readFileSync(zipMappingPath, 'utf8'));
 
-      // Clear old seed data
-await client.query('DELETE FROM zip_metro_mapping');
-console.log('🗑️ Cleared old ZIP mapping data');
+      await client.query('DELETE FROM zip_metro_mapping');
+      console.log('🗑️ Cleared old ZIP mapping data');
       
-      // Check if we need to populate the table
       const { rows } = await client.query('SELECT COUNT(*) FROM zip_metro_mapping');
       if (parseInt(rows[0].count) === 0) {
         console.log('📦 Loading ZIP to MSA mappings...');
-      //changed zipData to zipData.prefix_map line 266  
+        
         for (const [zip, msaData] of Object.entries(zipData.prefix_map)) {
           await client.query(
             'INSERT INTO zip_metro_mapping (zip_code, msa_name, state) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
@@ -635,10 +335,8 @@ console.log('🗑️ Cleared old ZIP mapping data');
   }
 }
 
-// Initialize on startup
 initDatabase();
 
-// Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
     status: 'InstaBid Backend Running',
@@ -650,36 +348,13 @@ app.get('/', (req, res) => {
   });
 });
 
-// Calculate estimate endpoint
-/*app.post('/api/calculate-estimate', async (req, res) => {
+app.post('/api/calculate-estimate', async (req, res) => {
   try {
     const { trade, state, address, zip, ...tradeData } = req.body;
 
     console.log(`📊 Calculating ${trade} estimate for ${state}`);
     console.log('Trade data received:', tradeData);
 
-    // Get MSA from ZIP if available
-    let msa = 'National Average';
-    if (zip) {
-      const msaResult = await pool.query(
-        'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
-        [zip]
-      );
-      if (msaResult.rows.length > 0) {
-        msa = msaResult.rows[0].msa_name;
-        console.log(`📍 Found MSA: ${msa} for ZIP: ${zip}`);
-      }
-    }
-    */
-
-    app.post('/api/calculate-estimate', async (req, res) => {
-  try {
-    const { trade, state, address, zip, ...tradeData } = req.body;
-
-    console.log(`📊 Calculating ${trade} estimate for ${state}`);
-    console.log('Trade data received:', tradeData);
-
-    // Get MSA from ZIP if available
     let msa = 'National Average';
     if (zip) {
       const msaResult = await pool.query(
@@ -692,7 +367,6 @@ app.get('/', (req, res) => {
       }
     }
 
-    // Get BLS labor rate for this state and trade (with national average fallback)
     const laborResult = await pool.query(
       'SELECT hourly_rate FROM bls_labor_rates WHERE state_code = $1 AND trade_type = $2',
       [state, trade]
@@ -704,8 +378,7 @@ app.get('/', (req, res) => {
 
     console.log(`💵 Labor rate for ${trade} in ${state}: $${hourlyRate}/hr (source: ${laborResult.rows.length > 0 ? 'BLS' : 'National Average'})`);
 
-    // Calculate production-based estimate
-    const estimate = calculateTradeEstimate(trade, tradeData, hourlyRate, state);
+    const estimate = calculateTradeEstimate(trade, tradeData, hourlyRate, state, msa);
 
     res.json({
       success: true,
@@ -727,84 +400,12 @@ app.get('/', (req, res) => {
   }
 });
 
-    // Get BLS labor rate for this trade
-    const socCode = TRADE_SOC_CODES[trade] || TRADE_SOC_CODES['general'];
-    let blsLaborRate = 35; // Default fallback
-    
-    const laborResult = await pool.query(
-      'SELECT hourly_wage FROM bls_labor_rates WHERE soc_code = $1 AND state = $2',
-      [socCode, state]
-    );
-    
-    if (laborResult.rows.length > 0) {
-      blsLaborRate = parseFloat(laborResult.rows[0].hourly_wage);
-      console.log(`💰 BLS Labor Rate for ${trade}: $${blsLaborRate}/hr`);
-    } else {
-      console.log(`⚠️ No BLS rate found for ${socCode} in ${state}, using default $${blsLaborRate}/hr`);
-    }
-
-    // Get regional multiplier
-    let regionalMultiplier = 1.0;
-    if (msa !== 'National Average') {
-      const regionResult = await pool.query(
-        'SELECT cost_index FROM regional_cost_indices WHERE msa_name = $1',
-        [msa]
-      );
-      
-      if (regionResult.rows.length > 0) {
-        regionalMultiplier = parseFloat(regionResult.rows[0].cost_index);
-        console.log(`📊 Regional Multiplier for ${msa}: ${regionalMultiplier}`);
-      }
-    }
-
-    // Calculate adjusted labor rate
-    const adjustedLaborRate = blsLaborRate * regionalMultiplier;
-    console.log(`🔧 Adjusted Labor Rate: $${adjustedLaborRate.toFixed(2)}/hr`);
-
-    // Calculate estimate using trade-specific logic with BLS data
-    const estimate = calculateEstimate(trade, state, msa, tradeData, adjustedLaborRate, regionalMultiplier);
-    
-    console.log('✅ Estimate calculated:', estimate);
-
-    // Save to database
-    await pool.query(
-      `INSERT INTO estimates (trade, customer_name, customer_email, customer_phone, address, city, state, zip, square_feet, material_cost, labor_cost, fixed_costs, total_cost, cost_index, msa) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-      [
-        trade,
-        tradeData.name || null,
-        tradeData.email || null,
-        tradeData.phone || null,
-        address,
-        tradeData.city || null,
-        state,
-        zip || null,
-        tradeData.squareFeet || null,
-        estimate.materialCost || 0,
-        estimate.laborCost || 0,
-        estimate.fixedCosts || 0,
-        estimate.total,
-        regionalMultiplier,
-        msa
-      ]
-    );
-
-    res.json(estimate);
-
-  } catch (error) {
-    console.error('❌ Calculate estimate error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Email estimate endpoint
 app.post('/api/send-estimate-email', async (req, res) => {
   try {
     const { estimate, formData } = req.body;
 
     console.log(`📧 Sending estimate email to ${formData.clientEmail}`);
 
-    // 1. CREATE STRIPE PAYMENT LINK
     const paymentLink = await stripe.paymentLinks.create({
       line_items: [{
         price_data: {
@@ -820,22 +421,19 @@ app.post('/api/send-estimate-email', async (req, res) => {
       after_completion: {
         type: 'redirect',
         redirect: { 
-          url: process.env.SUCCESS_URL || 'https://instabid.com/thank-you' 
+          url: process.env.SUCCESS_URL || '[https://instabid.com/thank-you'](https://instabid.com/thank-you') 
         }
       }
     });
 
     console.log(`💳 Stripe payment link created: ${paymentLink.url}`);
 
-    // 2. GENERATE PDF ESTIMATE
     const pdfBuffer = await generatePDFEstimate(estimate, formData);
     console.log('📄 PDF estimate generated');
 
-    // 3. GENERATE CONTRACT PDF
     const contractBuffer = await generateContract(estimate, formData);
     console.log('📝 Contract PDF generated');
 
-    // 4. SEND EMAIL VIA SENDGRID
     const transporter = nodemailer.createTransport(sgTransport({
       auth: { 
         api_key: process.env.SENDGRID_API_KEY 
@@ -1171,7 +769,7 @@ function generateContract(estimate, formData) {
   });
 }
 
-function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalMultiplier) {
+function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let subtotal = 0;
   let lineItems = [];
   let timeline = '';
@@ -1179,43 +777,35 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
   let laborCost = 0;
   let fixedCosts = 0;
 
-  // Estimate labor hours per square foot by trade
   const LABOR_HOURS_PER_SQFT = {
-    'roofing': 0.02,      // ~20 hours per 1000 sqft
-    'hvac': 0.015,        // ~15 hours per 1000 sqft
-    'electrical': 0.025,  // ~25 hours per 1000 sqft
-    'plumbing': 0.02,     // ~20 hours per 1000 sqft
-    'flooring': 0.015,    // ~15 hours per 1000 sqft
-    'painting': 0.01,     // ~10 hours per 1000 sqft
-    'general': 0.05       // ~50 hours per 1000 sqft
+    'roofing': 0.02,
+    'hvac': 0.015,
+    'electrical': 0.025,
+    'plumbing': 0.02,
+    'flooring': 0.015,
+    'painting': 0.01,
+    'general': 0.05
   };
+
+  const regionalMultiplier = 1.0; // You can fetch this from regional_cost_indices table if needed
 
   switch(trade) {
     case 'roofing':
       const sqft = parseFloat(data.squareFeet);
-      
-      // Parse pitch - extract the numeric multiplier from "1.2 (6/12)" format
       const pitchMatch = data.pitch.match(/^([\d.]+)/);
       const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
-      
-      // Parse material - extract the cost from "3.50 (Architectural)" format
       const materialMatch = data.material.match(/^([\d.]+)/);
       const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
-      
       const layers = parseInt(data.layers) || 0;
       const chimneys = parseInt(data.chimneys) || 0;
       const valleys = parseInt(data.valleys) || 0;
       const stories = parseInt(data.stories) || 1;
       
-      // Calculate material cost (apply regional multiplier to materials)
       materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
-      
-      // Calculate labor using BLS rate
-      const storyMultiplier = 1 + ((stories - 1) * 0.2); // +20% per story above 1
+      const storyMultiplier = 1 + ((stories - 1) * 0.2);
       const laborHours = sqft * LABOR_HOURS_PER_SQFT['roofing'] * pitch * storyMultiplier;
-      laborCost = laborHours * adjustedLaborRate;
+      laborCost = laborHours * hourlyRate;
       
-      // Additional costs
       const tearOffCost = layers * sqft * 0.50 * regionalMultiplier;
       const chimneyCost = chimneys * 500 * regionalMultiplier;
       const valleyCost = valleys * 150 * regionalMultiplier;
@@ -1225,16 +815,10 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
       subtotal = materialCost + laborCost + fixedCosts;
       
       lineItems.push({ description: 'Roofing Material', amount: materialCost });
-      lineItems.push({ description: `Labor (${laborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
-      if (tearOffCost > 0) {
-        lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
-      }
-      if (chimneyCost > 0) {
-        lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
-      }
-      if (valleyCost > 0) {
-        lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
-      }
+      lineItems.push({ description: `Labor (${laborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
+      if (tearOffCost > 0) lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
+      if (chimneyCost > 0) lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
+      if (valleyCost > 0) lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
       lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
       
       timeline = '3-5 business days';
@@ -1243,15 +827,9 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
     case 'hvac':
       const units = parseInt(data.units) || 1;
       const hvacSqft = parseFloat(data.squareFeet) || 2000;
-      
-      // System cost based on units (apply regional multiplier)
       const systemCost = units * 4500 * regionalMultiplier;
-      
-      // Labor using BLS rate
-      const hvacLaborHours = units * 8; // ~8 hours per unit
-      laborCost = hvacLaborHours * adjustedLaborRate;
-      
-      // Ductwork and materials
+      const hvacLaborHours = units * 8;
+      laborCost = hvacLaborHours * hourlyRate;
       const ductworkCost = hvacSqft * 2.50 * regionalMultiplier;
       const permitsCostHvac = 500 * regionalMultiplier;
       
@@ -1259,7 +837,7 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
       fixedCosts = permitsCostHvac;
       
       lineItems.push({ description: `${units} HVAC Unit${units > 1 ? 's' : ''} (${data.systemType || 'Central AC'})`, amount: systemCost });
-      lineItems.push({ description: `Installation Labor (${hvacLaborHours} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: `Installation Labor (${hvacLaborHours} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
       lineItems.push({ description: 'Ductwork & Materials', amount: ductworkCost });
       lineItems.push({ description: 'Permits & Inspection', amount: permitsCostHvac });
       
@@ -1274,7 +852,7 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
       
       if (data.serviceType === 'panel') {
         elecMaterialCost = parseInt(data.amperage) * 5 * regionalMultiplier;
-        elecLaborHours = 8; // Panel upgrade ~8 hours
+        elecLaborHours = 8;
         lineItems.push({ description: `${data.amperage} Amp Panel Upgrade`, amount: elecMaterialCost });
       } else if (data.serviceType === 'rewire') {
         elecMaterialCost = elecSqft * 2 * regionalMultiplier;
@@ -1286,13 +864,13 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
         lineItems.push({ description: 'Electrical Materials', amount: elecMaterialCost });
       }
       
-      laborCost = elecLaborHours * adjustedLaborRate;
+      laborCost = elecLaborHours * hourlyRate;
       const elecPermits = 300 * regionalMultiplier;
       
       materialCost = elecMaterialCost;
       fixedCosts = elecPermits;
       
-      lineItems.push({ description: `Labor (${elecLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: `Labor (${elecLaborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
       lineItems.push({ description: 'Permits & Inspection', amount: elecPermits });
       
       subtotal = materialCost + laborCost + fixedCosts;
@@ -1319,10 +897,10 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
         lineItems.push({ description: 'Plumbing Materials', amount: plumbMaterialCost });
       }
       
-      laborCost = plumbLaborHours * adjustedLaborRate;
+      laborCost = plumbLaborHours * hourlyRate;
       materialCost = plumbMaterialCost;
       
-      lineItems.push({ description: `Labor (${plumbLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: `Labor (${plumbLaborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
       
       subtotal = materialCost + laborCost;
       timeline = '1-3 days';
@@ -1342,13 +920,13 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
       
       materialCost = floorSqft * floorMaterialRate * regionalMultiplier;
       const floorLaborHours = floorSqft * LABOR_HOURS_PER_SQFT['flooring'];
-      laborCost = floorLaborHours * adjustedLaborRate;
+      laborCost = floorLaborHours * hourlyRate;
       const removalCost = 500 * regionalMultiplier;
       
       fixedCosts = removalCost;
       
       lineItems.push({ description: 'Flooring Material', amount: materialCost });
-      lineItems.push({ description: `Installation Labor (${floorLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: `Installation Labor (${floorLaborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
       lineItems.push({ description: 'Removal & Disposal', amount: removalCost });
       
       subtotal = materialCost + laborCost + fixedCosts;
@@ -1365,10 +943,10 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
       
       materialCost = paintSqft * paintMaterialRate * regionalMultiplier;
       const paintLaborHours = paintSqft * LABOR_HOURS_PER_SQFT['painting'];
-      laborCost = paintLaborHours * adjustedLaborRate;
+      laborCost = paintLaborHours * hourlyRate;
       
       lineItems.push({ description: 'Paint & Materials', amount: materialCost });
-      lineItems.push({ description: `Labor (${paintLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: `Labor (${paintLaborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
       
       subtotal = materialCost + laborCost;
       timeline = '3-7 days';
@@ -1395,10 +973,10 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
       
       materialCost = genSqft * genMaterialRate * regionalMultiplier;
       const genLaborHours = genSqft * LABOR_HOURS_PER_SQFT['general'] * genLaborMultiplier;
-      laborCost = genLaborHours * adjustedLaborRate;
+      laborCost = genLaborHours * hourlyRate;
       
       lineItems.push({ description: 'Materials & Supplies', amount: materialCost });
-      lineItems.push({ description: `Labor (${genLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: `Labor (${genLaborHours.toFixed(1)} hours @ $${hourlyRate.toFixed(2)}/hr)`, amount: laborCost });
       
       subtotal = materialCost + laborCost;
       timeline = '2-8 weeks';
@@ -1415,7 +993,6 @@ function calculateEstimate(trade, state, msa, data, adjustedLaborRate, regionalM
     tax,
     total,
     timeline,
-    msa: msa || 'N/A',
     materialCost,
     laborCost,
     fixedCosts
