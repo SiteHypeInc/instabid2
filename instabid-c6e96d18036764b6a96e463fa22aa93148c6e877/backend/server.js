@@ -330,6 +330,10 @@ await dataLoader.loadReferenceData(pool);
     const zipMappingPath = path.join(__dirname, 'data', 'zip-to-msa-compressed.json');
     if (fs.existsSync(zipMappingPath)) {
       const zipData = JSON.parse(fs.readFileSync(zipMappingPath, 'utf8'));
+
+      // Clear old seed data
+await client.query('DELETE FROM zip_metro_mapping');
+console.log('🗑️ Cleared old ZIP mapping data');
       
       // Check if we need to populate the table
       const { rows } = await client.query('SELECT COUNT(*) FROM zip_metro_mapping');
