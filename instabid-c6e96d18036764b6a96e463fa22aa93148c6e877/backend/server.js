@@ -255,7 +255,7 @@ async function fetchBLSData() {
 
     // Build series IDs: SMS[STATE_FIPS]000002300000003 = Avg Hourly Earnings, Construction
     const allSeries = Object.keys(stateFIPS).map(fips => 
-      `SMS${fips}000002300000003`
+      `SMU${fips}000002000000003`
     );
 
     console.log(`📊 Requesting ${allSeries.length} state construction wage series...`);
