@@ -45,7 +45,7 @@ const pool = new Pool({
 };
 */
 
-const TRADE_SOC_CODES = {
+/*const TRADE_SOC_CODES = {
   'roofing': '47-2180',      // Roofers (broad)
   'hvac': '49-9020',         // HVAC (broad)  
   'electrical': '47-2110',   // Electricians (broad)
@@ -53,7 +53,7 @@ const TRADE_SOC_CODES = {
   'flooring': '47-2040',     // Floor layers (broad)
   'painting': '47-2140',     // Painters (broad)
   'general': '47-1010'       // First-line supervisors (broad)
-};
+};*/
 
 // BLS API Integration
 /*async function fetchBLSData() {
@@ -131,7 +131,7 @@ if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.leng
 }
 */
 
-async function fetchBLSData() {
+/*async function fetchBLSData() {
   console.log('📊 Fetching BLS labor rate data...');
   
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -229,6 +229,120 @@ async function fetchBLSData() {
   
   console.log(`✅ BLS data fetch complete: ${insertedCount} rates inserted`);
   return insertedCount;
+}*/
+
+async function fetchBLSData() {
+  try {
+    console.log('📊 Fetching BLS construction wage data by state...');
+    
+    // State FIPS codes (50 states + DC)
+    const stateFIPS = {
+      '01': 'Alabama', '02': 'Alaska', '04': 'Arizona', '05': 'Arkansas',
+      '06': 'California', '08': 'Colorado', '09': 'Connecticut', '10': 'Delaware',
+      '11': 'District of Columbia', '12': 'Florida', '13': 'Georgia',
+      '15': 'Hawaii', '16': 'Idaho', '17': 'Illinois', '18': 'Indiana',
+      '19': 'Iowa', '20': 'Kansas', '21': 'Kentucky', '22': 'Louisiana',
+      '23': 'Maine', '24': 'Maryland', '25': 'Massachusetts', '26': 'Michigan',
+      '27': 'Minnesota', '28': 'Mississippi', '29': 'Missouri', '30': 'Montana',
+      '31': 'Nebraska', '32': 'Nevada', '33': 'New Hampshire', '34': 'New Jersey',
+      '35': 'New Mexico', '36': 'New York', '37': 'North Carolina', '38': 'North Dakota',
+      '39': 'Ohio', '40': 'Oklahoma', '41': 'Oregon', '42': 'Pennsylvania',
+      '44': 'Rhode Island', '45': 'South Carolina', '46': 'South Dakota',
+      '47': 'Tennessee', '48': 'Texas', '49': 'Utah', '50': 'Vermont',
+      '51': 'Virginia', '53': 'Washington', '54': 'West Virginia',
+      '55': 'Wisconsin', '56': 'Wyoming'
+    };
+
+    // Build series IDs: SMS[STATE_FIPS]000002300000003 = Avg Hourly Earnings, Construction
+    const allSeries = Object.keys(stateFIPS).map(fips => 
+      `SMS${fips}000002300000003`
+    );
+
+    console.log(`📊 Requesting ${allSeries.length} state construction wage series...`);
+    console.log(`🔍 Sample series ID: ${allSeries[0]}`);
+
+    let totalInserted = 0;
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 2; // Get last 2 years of data
+
+    // Process in batches of 50 (API limit)
+    for (let i = 0; i < allSeries.length; i += 50) {
+      const batch = allSeries.slice(i, i + 50);
+      
+      try {
+        const response = await fetch(BLS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            seriesid: batch,
+            startyear: startYear.toString(),
+            endyear: currentYear.toString(),
+            registrationkey: process.env.BLS_API_KEY || ''
+          })
+        });
+
+        const data = await response.json();
+        
+        console.log(`📊 Batch ${Math.floor(i/50) + 1}/${Math.ceil(allSeries.length/50)} status: ${data.status}`);
+        if (data.message && data.message.length > 0) {
+          console.log(`    Message: ${data.message.join(', ')}`);
+        }
+
+        if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series) {
+          console.log(`    Series returned: ${data.Results.series.length}`);
+          
+          for (const series of data.Results.series) {
+            const seriesId = series.seriesID;
+            // Extract state FIPS from SMS06000002300000003 format
+            const stateFipsCode = seriesId.substring(3, 5);
+            const stateName = stateFIPS[stateFipsCode];
+            
+            if (!stateName || !series.data || series.data.length === 0) continue;
+
+            // Get most recent data point
+            const latestData = series.data[0];
+            const hourlyRate = parseFloat(latestData.value);
+            
+            if (isNaN(hourlyRate)) continue;
+
+            // Insert/update for all trade types with the same base rate
+            // (You can apply trade multipliers later in your calculation logic)
+           /* const trades = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting']; */
+
+            const trades = TRADE_TYPES;
+            
+            for (const trade of trades) {
+              await pool.query(`
+                INSERT INTO bls_labor_rates (state_code, trade_type, hourly_rate, last_updated)
+                VALUES ($1, $2, $3, NOW())
+                ON CONFLICT (state_code, trade_type) 
+                DO UPDATE SET 
+                  hourly_rate = EXCLUDED.hourly_rate,
+                  last_updated = NOW()
+              `, [stateName, trade, hourlyRate]);
+              
+              totalInserted++;
+            }
+          }
+        }
+
+        console.log(`✅ Batch ${Math.floor(i/50) + 1}/${Math.ceil(allSeries.length/50)}: ${totalInserted} rates loaded`);
+        
+        // Rate limiting: wait 1 second between batches
+        if (i + 50 < allSeries.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+      } catch (error) {
+        console.error(`❌ Error fetching batch ${Math.floor(i/50) + 1}:`, error.message);
+      }
+    }
+
+    console.log(`✅ BLS data fetch complete: ${totalInserted} rates inserted`);
+    
+  } catch (error) {
+    console.error('❌ Error in fetchBLSData:', error);
+  }
 }
 
 
@@ -327,7 +441,7 @@ async function initDatabase() {
   )
 `);*/
 
-    await client.query(`
+  /*  await client.query(`
   CREATE TABLE IF NOT EXISTS bls_labor_rates (
     id SERIAL PRIMARY KEY,
     soc_code VARCHAR(10) NOT NULL,
@@ -343,6 +457,38 @@ async function initDatabase() {
 await client.query(`
   CREATE INDEX IF NOT EXISTS idx_bls_soc_state 
   ON bls_labor_rates(soc_code, state)
+`);*/
+
+    await client.query(`
+  CREATE TABLE IF NOT EXISTS bls_labor_rates (
+    id SERIAL PRIMARY KEY,
+    state_code VARCHAR(50) NOT NULL,
+    trade_type VARCHAR(50) NOT NULL,
+    hourly_rate DECIMAL(10,2) NOT NULL,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(state_code, trade_type)
+  )
+`);
+
+// Migrate from old structure if needed
+await client.query(`
+  DO $$ 
+  BEGIN
+    IF EXISTS (
+      SELECT FROM information_schema.columns 
+      WHERE table_name = 'bls_labor_rates' AND column_name = 'soc_code'
+    ) THEN
+      DROP TABLE bls_labor_rates;
+      CREATE TABLE bls_labor_rates (
+        id SERIAL PRIMARY KEY,
+        state_code VARCHAR(50) NOT NULL,
+        trade_type VARCHAR(50) NOT NULL,
+        hourly_rate DECIMAL(10,2) NOT NULL,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(state_code, trade_type)
+      );
+    END IF;
+  END $$;
 `);
 
 // Regional Cost Indices table
