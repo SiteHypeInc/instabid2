@@ -273,9 +273,6 @@ await client.query(`
 console.log('✅ Reference data tables initialized');
 // END NEW CODE
 
-So it looks like:
-
-
 console.log('✅ BLS and regional pricing tables initialized');
 
 // CREATE REFERENCE DATA TABLES
