@@ -1,6 +1,6 @@
 // frontend/js/form-schema.js
 const TRADE_FORM_SCHEMA = {
-  "roofing": {
+  /*"roofing": {
     "displayName": "Roofing",
     "fields": [
       {
@@ -58,7 +58,85 @@ const TRADE_FORM_SCHEMA = {
         ]
       }
     ]
-  },
+  },*/
+
+  "roofing": {
+  "displayName": "Roofing",
+  "fields": [
+    {
+      "name": "squareFeet",
+      "label": "Square Footage",
+      "type": "number",
+      "required": true,
+      "min": 100,
+      "placeholder": "e.g., 2000"
+    },
+    {
+      "name": "pitch",
+      "label": "Roof Pitch",
+      "type": "select",
+      "required": true,
+      "options": [
+        { "value": "1.0", "label": "Low (4/12 or less)" },
+        { "value": "1.2", "label": "Medium (5/12 to 8/12)" },
+        { "value": "1.5", "label": "Steep (9/12 or more)" }
+      ]
+    },
+    {
+      "name": "material",
+      "label": "Material Cost ($/sqft)",
+      "type": "select",
+      "required": true,
+      "options": [
+        { "value": "2.50", "label": "Asphalt Shingles ($2.50/sqft)" },
+        { "value": "4.50", "label": "Architectural Shingles ($4.50/sqft)" },
+        { "value": "8.00", "label": "Metal Roofing ($8.00/sqft)" },
+        { "value": "12.00", "label": "Tile/Slate ($12.00/sqft)" }
+      ]
+    },
+    {
+      "name": "stories",
+      "label": "Number of Stories",
+      "type": "select",
+      "required": true,
+      "options": [
+        { "value": "1", "label": "1 Story" },
+        { "value": "2", "label": "2 Stories" },
+        { "value": "3", "label": "3+ Stories" }
+      ]
+    },
+    {
+      "name": "layers",
+      "label": "Layers to Remove",
+      "type": "select",
+      "required": true,
+      "options": [
+        { "value": "0", "label": "New Construction (0)" },
+        { "value": "1", "label": "1 Layer" },
+        { "value": "2", "label": "2 Layers" },
+        { "value": "3", "label": "3+ Layers" }
+      ]
+    },
+    {
+      "name": "chimneys",
+      "label": "Number of Chimneys",
+      "type": "number",
+      "required": false,
+      "min": 0,
+      "placeholder": "0"
+    },
+    {
+      "name": "valleys",
+      "label": "Number of Valleys",
+      "type": "number",
+      "required": false,
+      "min": 0,
+      "placeholder": "0"
+    }
+  ]
+}
+
+  
   "hvac": {
     "displayName": "HVAC",
     "fields": [
