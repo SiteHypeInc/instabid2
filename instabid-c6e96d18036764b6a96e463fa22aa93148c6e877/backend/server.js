@@ -66,7 +66,7 @@ async function fetchBLSData() {
     for (const socCode of socCodes) {
       try {
         // BLS series ID format: OEUS + state code + 0000000 + SOC code
-        const seriesId = `OEUS${state}0000000${socCode.replace('-', '')}03`; // 03 = mean hourly wage
+        const seriesId = `OEUS${state}000000${socCode.replace('-', '')}03`; // 03 = mean hourly wage
         
         const response = await fetch(BLS_API_URL, {
           method: 'POST',
