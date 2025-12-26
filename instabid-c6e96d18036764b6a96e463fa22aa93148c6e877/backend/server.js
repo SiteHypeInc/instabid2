@@ -34,7 +34,7 @@ const pool = new Pool({
 });
 
 // Define SOC codes for each trade
-const TRADE_SOC_CODES = {
+/*const TRADE_SOC_CODES = {
   'roofing': '47-2181',
   'hvac': '49-9021',
   'electrical': '47-2111',
@@ -42,6 +42,17 @@ const TRADE_SOC_CODES = {
   'flooring': '47-2042',
   'painting': '47-2141',
   'general': '47-1011'
+};
+*/
+
+const TRADE_SOC_CODES = {
+  'roofing': '47-2180',      // Roofers (broad)
+  'hvac': '49-9020',         // HVAC (broad)  
+  'electrical': '47-2110',   // Electricians (broad)
+  'plumbing': '47-2150',     // Plumbers (broad)
+  'flooring': '47-2040',     // Floor layers (broad)
+  'painting': '47-2140',     // Painters (broad)
+  'general': '47-1010'       // First-line supervisors (broad)
 };
 
 // BLS API Integration
