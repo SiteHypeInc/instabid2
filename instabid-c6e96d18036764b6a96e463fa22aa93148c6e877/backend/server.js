@@ -8,6 +8,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
 const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
+const NATIONAL_AVERAGE_WAGE = 33.50;
 
 const app = express();
 app.use((req, res, next) => {
@@ -309,7 +310,7 @@ async function fetchBLSData() {
             // (You can apply trade multipliers later in your calculation logic)
            const trades = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting']; 
             // National average construction wage (fallback for states without BLS data)
-           const NATIONAL_AVERAGE_WAGE = 33.50;
+           
 
            /* const trades = TRADE_TYPES; */
             
