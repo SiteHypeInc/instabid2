@@ -44,7 +44,7 @@ const TRADE_SOC_CODES = {
 };
 
 // BLS API Integration
-async function fetchBLSData() {
+/*async function fetchBLSData() {
   console.log('📊 Fetching BLS labor rate data...');
   
   const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
@@ -77,26 +77,8 @@ async function fetchBLSData() {
             endyear: currentYear.toString()
           })
         });
-        
-        /*const data = await response.json();
-        
-        if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.length > 0) {
-          const latestData = data.Results.series[0].data[0];
-          const hourlyWage = parseFloat(latestData.value);
-          
-          if (hourlyWage > 0) {
-            await pool.query(`
-              INSERT INTO bls_labor_rates (soc_code, state, hourly_wage, annual_wage)
-              VALUES ($1, $2, $3, $4)
-              ON CONFLICT DO NOTHING
-            `, [socCode, state, hourlyWage, hourlyWage * 2080]);
-            
-            insertedCount++;
-          }
-        }
-        */
 
-      const data = await response.json();
+const data = await response.json();
 
 // Debug logging
 console.log(`🔍 Series ID: ${seriesId}`);
@@ -135,6 +117,101 @@ if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series?.[0]?.data?.leng
   console.log(`✅ BLS data fetch complete: ${insertedCount} rates inserted`);
   return insertedCount;
 }
+*/
+
+async function fetchBLSData() {
+  console.log('📊 Fetching BLS labor rate data...');
+  
+  const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
+                  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+                  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+                  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+                  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+  
+  const STATE_FIPS = {
+    'AL': '01', 'AK': '02', 'AZ': '04', 'AR': '05', 'CA': '06', 'CO': '08',
+    'CT': '09', 'DE': '10', 'FL': '12', 'GA': '13', 'HI': '15', 'ID': '16',
+    'IL': '17', 'IN': '18', 'IA': '19', 'KS': '20', 'KY': '21', 'LA': '22',
+    'ME': '23', 'MD': '24', 'MA': '25', 'MI': '26', 'MN': '27', 'MS': '28',
+    'MO': '29', 'MT': '30', 'NE': '31', 'NV': '32', 'NH': '33', 'NJ': '34',
+    'NM': '35', 'NY': '36', 'NC': '37', 'ND': '38', 'OH': '39', 'OK': '40',
+    'OR': '41', 'PA': '42', 'RI': '44', 'SC': '45', 'SD': '46', 'TN': '47',
+    'TX': '48', 'UT': '49', 'VT': '50', 'VA': '51', 'WA': '53', 'WV': '54',
+    'WI': '55', 'WY': '56'
+  };
+
+  const socCodes = Object.values(TRADE_SOC_CODES);
+  
+  // Build ALL series IDs (7 trades × 50 states = 350 series)
+  const allSeries = [];
+  const seriesMap = {}; // Map series ID back to state/SOC
+  
+  for (const state of states) {
+    const stateFips = STATE_FIPS[state];
+    for (const socCode of socCodes) {
+      const seriesId = `OEUS${stateFips}000000${socCode.replace('-', '')}03`;
+      allSeries.push(seriesId);
+      seriesMap[seriesId] = { state, socCode };
+    }
+  }
+  
+  console.log(`📊 Requesting ${allSeries.length} series in batches of 50...`);
+  
+  // BLS allows max 50 series per request
+  let insertedCount = 0;
+  for (let i = 0; i < allSeries.length; i += 50) {
+    const batch = allSeries.slice(i, i + 50);
+    
+    try {
+      const response = await fetch(BLS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seriesid: batch,
+          startyear: (new Date().getFullYear() - 1).toString(),
+          endyear: new Date().getFullYear().toString(),
+          registrationkey: process.env.BLS_API_KEY
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === 'REQUEST_SUCCEEDED' && data.Results?.series) {
+        for (const series of data.Results.series) {
+          if (series.data?.length > 0) {
+            const latestData = series.data[0];
+            const hourlyWage = parseFloat(latestData.value);
+            const { state, socCode } = seriesMap[series.seriesID];
+            
+            if (hourlyWage > 0) {
+              await pool.query(`
+                INSERT INTO bls_labor_rates (soc_code, state, hourly_wage, annual_wage)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (soc_code, state) DO UPDATE 
+                SET hourly_wage = $3, annual_wage = $4, updated_at = CURRENT_TIMESTAMP
+              `, [socCode, state, hourlyWage, hourlyWage * 2080]);
+              
+              insertedCount++;
+            }
+          }
+        }
+        console.log(`✅ Batch ${Math.floor(i/50) + 1}/${Math.ceil(allSeries.length/50)}: ${insertedCount} rates loaded`);
+      } else {
+        console.log(`⚠️ Batch ${Math.floor(i/50) + 1} failed: ${data.message || 'Unknown error'}`);
+      }
+      
+      // Rate limit: 25 requests per 10 seconds
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (err) {
+      console.error(`⚠️ BLS batch fetch error:`, err.message);
+    }
+  }
+  
+  console.log(`✅ BLS data fetch complete: ${insertedCount} rates inserted`);
+  return insertedCount;
+}
+
 
 // Initialize database tables
 async function initDatabase() {
