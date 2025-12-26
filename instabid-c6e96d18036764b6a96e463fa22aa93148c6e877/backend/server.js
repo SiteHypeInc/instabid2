@@ -241,6 +241,77 @@ await client.query(`
 console.log('✅ BLS and regional pricing tables initialized');
 // END NEW CODE
 
+// CREATE REFERENCE DATA TABLES
+await client.query(`
+  CREATE TABLE IF NOT EXISTS county_seats (
+    id SERIAL PRIMARY KEY,
+    county_name VARCHAR(255) NOT NULL,
+    state VARCHAR(2) NOT NULL,
+    zip_code VARCHAR(10) NOT NULL,
+    metro_area VARCHAR(255),
+    UNIQUE(county_name, state)
+  );
+`);
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS metro_areas (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    cost_index DECIMAL(10,2) DEFAULT 1.0
+  );
+`);
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS regional_cost_indices (
+    id SERIAL PRIMARY KEY,
+    region VARCHAR(100) NOT NULL UNIQUE,
+    cost_index DECIMAL(10,2) NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+console.log('✅ Reference data tables initialized');
+// END NEW CODE
+
+So it looks like:
+
+
+console.log('✅ BLS and regional pricing tables initialized');
+
+// CREATE REFERENCE DATA TABLES
+await client.query(`
+  CREATE TABLE IF NOT EXISTS county_seats (
+    id SERIAL PRIMARY KEY,
+    county_name VARCHAR(255) NOT NULL,
+    state VARCHAR(2) NOT NULL,
+    zip_code VARCHAR(10) NOT NULL,
+    metro_area VARCHAR(255),
+    UNIQUE(county_name, state)
+  );
+`);
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS metro_areas (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    cost_index DECIMAL(10,2) DEFAULT 1.0
+  );
+`);
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS regional_cost_indices (
+    id SERIAL PRIMARY KEY,
+    region VARCHAR(100) NOT NULL UNIQUE,
+    cost_index DECIMAL(10,2) NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+console.log('✅ Reference data tables initialized');
+    
+// END NEW CODE
+
+    
     // Populate BLS data if tables are empty
 const countResult = await client.query('SELECT COUNT(*) FROM bls_labor_rates');
 const blsCount = parseInt(countResult.rows[0].count);
