@@ -307,9 +307,9 @@ async function fetchBLSData() {
 
             // Insert/update for all trade types with the same base rate
             // (You can apply trade multipliers later in your calculation logic)
-           /* const trades = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting']; */
+           const trades = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting']; 
 
-            const trades = TRADE_TYPES;
+           /* const trades = TRADE_TYPES; */
             
             for (const trade of trades) {
               await pool.query(`
