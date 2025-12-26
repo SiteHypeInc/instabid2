@@ -308,6 +308,8 @@ async function fetchBLSData() {
             // Insert/update for all trade types with the same base rate
             // (You can apply trade multipliers later in your calculation logic)
            const trades = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting']; 
+            // National average construction wage (fallback for states without BLS data)
+           const NATIONAL_AVERAGE_WAGE = 33.50;
 
            /* const trades = TRADE_TYPES; */
             
@@ -648,7 +650,7 @@ app.get('/', (req, res) => {
 });
 
 // Calculate estimate endpoint
-app.post('/api/calculate-estimate', async (req, res) => {
+/*app.post('/api/calculate-estimate', async (req, res) => {
   try {
     const { trade, state, address, zip, ...tradeData } = req.body;
 
@@ -667,6 +669,62 @@ app.post('/api/calculate-estimate', async (req, res) => {
         console.log(`📍 Found MSA: ${msa} for ZIP: ${zip}`);
       }
     }
+    */
+
+    app.post('/api/calculate-estimate', async (req, res) => {
+  try {
+    const { trade, state, address, zip, ...tradeData } = req.body;
+
+    console.log(`📊 Calculating ${trade} estimate for ${state}`);
+    console.log('Trade data received:', tradeData);
+
+    // Get MSA from ZIP if available
+    let msa = 'National Average';
+    if (zip) {
+      const msaResult = await pool.query(
+        'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
+        [zip]
+      );
+      if (msaResult.rows.length > 0) {
+        msa = msaResult.rows[0].msa_name;
+        console.log(`📍 Found MSA: ${msa} for ZIP: ${zip}`);
+      }
+    }
+
+    // Get BLS labor rate for this state and trade (with national average fallback)
+    const laborResult = await pool.query(
+      'SELECT hourly_rate FROM bls_labor_rates WHERE state_code = $1 AND trade_type = $2',
+      [state, trade]
+    );
+    
+    const hourlyRate = laborResult.rows.length > 0 
+      ? laborResult.rows[0].hourly_rate 
+      : NATIONAL_AVERAGE_WAGE;
+
+    console.log(`💵 Labor rate for ${trade} in ${state}: $${hourlyRate}/hr (source: ${laborResult.rows.length > 0 ? 'BLS' : 'National Average'})`);
+
+    // Calculate production-based estimate
+    const estimate = calculateTradeEstimate(trade, tradeData, hourlyRate, state);
+
+    res.json({
+      success: true,
+      estimate: {
+        ...estimate,
+        msa,
+        laborRate: hourlyRate,
+        dataSource: laborResult.rows.length > 0 ? 'BLS' : 'National Average'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Estimate calculation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to calculate estimate',
+      details: error.message
+    });
+  }
+});
 
     // Get BLS labor rate for this trade
     const socCode = TRADE_SOC_CODES[trade] || TRADE_SOC_CODES['general'];
