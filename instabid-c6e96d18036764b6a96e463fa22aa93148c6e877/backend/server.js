@@ -509,8 +509,9 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
 
   console.log(`🔍 Found ${complexityResult.rows.length} complexity factors for ${trade}`);
 
+  //ROOFING
   switch(trade) {
-    case 'roofing':
+    case 'roofing':{
       const sqft = parseFloat(data.squareFeet);
       const pitchMatch = data.pitch.match(/^([\d.]+)/);
       const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
@@ -577,18 +578,69 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       timeline = '3-5 business days';
       break;
 
-    default:
-      // Generic fallback for other trades
-      const defaultSqft = parseFloat(data.squareFeet) || 1000;
-      materialCost = defaultSqft * 2 * regionalMultiplier;
-      laborCost = defaultSqft * 3 * adjustedLaborRate / hourlyRate * seasonalMultiplier;
-      subtotal = materialCost + laborCost;
-      
-      lineItems.push({ description: 'Materials', amount: materialCost });
-      lineItems.push({ description: 'Labor', amount: laborCost });
-      timeline = '3-5 days';
-      break;
+      //HVAC
+   switch(trade) {
+  case 'hvac': {
+  const sqft = parseFloat(data.squareFeet) || 2000;
+  const systemType = data.systemType || 'Central AC';
+  const units = parseInt(data.units) || 1;
+  
+  // Base system costs
+  const systemCosts = {
+    'Central AC': 5000,
+    'Heat Pump': 6500,
+    'Furnace': 4500,
+    'Ductless Mini-Split': 3500
+  };
+  
+  const baseCost = (systemCosts[systemType] || 5000) * units;
+  const systemCost = baseCost * regionalMultiplier;
+  
+  // Ductwork
+  let ductworkCost = 0;
+  if (systemType === 'Central AC' || systemType === 'Heat Pump' || systemType === 'Furnace') {
+    const estimatedFeet = sqft / 10;
+    ductworkCost = estimatedFeet * 30 * regionalMultiplier;
   }
+  
+  // Labor
+  const estimatedHours = 40 * units * seasonalMultiplier;
+  const laborCost = estimatedHours * adjustedLaborRate;
+  
+  // Permits
+  const permitCost = 300 * regionalMultiplier;
+  
+  // Calculate totals
+  materialCost = systemCost + ductworkCost;
+  fixedCosts = permitCost;
+  subtotal = materialCost + laborCost + fixedCosts;
+  
+  // Line items
+  lineItems.push({
+    description: `${systemType} System (${units} unit${units > 1 ? 's' : ''})`,
+    amount: systemCost
+  });
+  
+  if (ductworkCost > 0) {
+    lineItems.push({
+      description: `Ductwork (estimated ${Math.round(sqft / 10)} linear feet)`,
+      amount: ductworkCost
+    });
+  }
+  
+  lineItems.push({
+    description: `Labor (${estimatedHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`,
+    amount: laborCost
+  });
+  
+  lineItems.push({
+    description: 'Permits & Inspections',
+    amount: permitCost
+  });
+  
+  timeline = '5-7 business days';
+  break;
+}
 
   const tax = subtotal * 0.0825;
   const total = subtotal + tax;
