@@ -2,7 +2,6 @@
 
 
 const express = require('express');
-app.get('/test', (req, res) => res.json({ status: 'alive' }));
 const cors = require('cors');
 const { Pool } = require('pg');
 const PDFDocument = require('pdfkit');
@@ -17,6 +16,7 @@ const NATIONAL_AVERAGE_WAGE = 33.50;
 const TRADE_TYPES = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting'];
 
 const app = express();
+app.get('/test', (req, res) => res.json({ status: 'alive' })); 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
