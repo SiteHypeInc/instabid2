@@ -1646,6 +1646,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       subtotal = materialCost + laborCost + fixedCosts;
       timeline = '2-3 days';
       break;
+       
 
     case 'electrical':
       const elecSqft = parseFloat(data.squareFeet);
@@ -1784,7 +1785,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       timeline = '2-8 weeks';
       break;
   }
-
+}
   const tax = subtotal * 0.0825;
   const total = subtotal + tax;
 
