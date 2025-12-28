@@ -401,7 +401,7 @@ app.get('/', (req, res) => {
 });
 */
 
-app.post('/api/calculate-estimate', async (req, res) => {
+/*app.post('/api/calculate-estimate', async (req, res) => {
   try {
     const { trade, state, address, zip, ...tradeData } = req.body;
 
@@ -422,6 +422,44 @@ app.post('/api/calculate-estimate', async (req, res) => {
 
     // Calculate real estimate using trade-specific logic
    const estimate = await calculateTradeEstimate(trade, data, hourlyRate, state, msa);
+
+    // Add metadata
+    estimate.msa = 'National Average';
+    estimate.laborRate = hourlyRate;
+    estimate.dataSource = laborResult.rows.length > 0 ? 'BLS' : 'National Average';
+
+    res.json(estimate);
+
+  } catch (error) {
+    console.error('❌ Estimate error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});*/
+
+app.post('/api/calculate-estimate', async (req, res) => {
+  try {
+    const { trade, state, address, zip, ...tradeData } = req.body;
+
+    console.log(`📊 Calculating ${trade} estimate for ${state}`);
+    console.log('Trade data:', tradeData);
+
+    // Query BLS data
+    const laborResult = await pool.query(
+      'SELECT hourly_rate FROM bls_labor_rates WHERE state_code = $1 AND trade_type = $2',
+      [state, trade]
+    );
+    
+    const hourlyRate = laborResult.rows.length > 0 
+      ? laborResult.rows[0].hourly_rate 
+      : NATIONAL_AVERAGE_WAGE;
+
+    console.log(`💵 Labor rate: $${hourlyRate}/hr (source: ${laborResult.rows.length > 0 ? 'BLS' : 'National Average'})`);
+
+    // Calculate real estimate using trade-specific logic
+    const estimate = await calculateTradeEstimate(trade, tradeData, hourlyRate, state, 'National Average');
 
     // Add metadata
     estimate.msa = 'National Average';
