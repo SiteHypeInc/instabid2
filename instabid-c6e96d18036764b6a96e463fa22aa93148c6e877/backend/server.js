@@ -512,66 +512,125 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   //ROOFING
   switch(trade) {
   case 'roofing': {
-    const sqft = parseFloat(data.squareFeet);
-    const pitchMatch = data.pitch.match(/^([\d.]+)/);
-    const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
-    const materialMatch = data.material.match(/^([\d.]+)/);
-    const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
-    const layers = parseInt(data.layers) || 0;
-    const chimneys = parseInt(data.chimneys) || 0;
-    const valleys = parseInt(data.valleys) || 0;
-    const stories = parseInt(data.stories) || 1;
-    
-    materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
-    
-    let complexityMultiplier = 1.0;
-    
-    if (pitch >= 9) {
-      const steepFactor = complexityResult.rows.find(f => f.factor_key === 'steep_pitch');
-      if (steepFactor) {
-        complexityMultiplier *= parseFloat(steepFactor.multiplier);
-        console.log(`⛰️  Steep pitch applied: ${steepFactor.multiplier}x`);
-      }
+  const sqft = parseFloat(data.squareFeet);
+  const pitchMatch = data.pitch.match(/^([\d.]+)/);
+  const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
+  const materialMatch = data.material.match(/^([\d.]+)/);
+  const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
+  const layers = parseInt(data.layers) || 0;
+  const chimneys = parseInt(data.chimneys) || 0;
+  const valleys = parseInt(data.valleys) || 0;
+  const stories = parseInt(data.stories) || 1;
+  
+  // NEW FIELDS
+  const needsPlywood = data.needsPlywood === 'yes';
+  const plywoodSqft = parseFloat(data.plywoodSqft) || 0;
+  const existingRoofType = data.existingRoofType || 'asphalt';
+  const skylights = parseInt(data.skylights) || 0;
+  const ridgeVentFeet = parseFloat(data.ridgeVentFeet) || 0;
+  
+  // MATERIAL COST
+  materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
+  
+  // COMPLEXITY MULTIPLIER
+  let complexityMultiplier = 1.0;
+  
+  if (pitch >= 9) {
+    const steepFactor = complexityResult.rows.find(f => f.factor_key === 'steep_pitch');
+    if (steepFactor) {
+      complexityMultiplier *= parseFloat(steepFactor.multiplier);
+      console.log(`⛰️  Steep pitch applied: ${steepFactor.multiplier}x`);
     }
-    
-    if (stories >= 2) {
-      const storyFactor = complexityResult.rows.find(f => f.factor_key === 'multi_story');
-      if (storyFactor) {
-        complexityMultiplier *= parseFloat(storyFactor.multiplier);
-        console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x`);
-      }
-    }
-    
-    const laborHours = sqft * LABOR_HOURS_PER_SQFT['roofing'] * pitch * complexityMultiplier;
-    laborCost = laborHours * adjustedLaborRate * seasonalMultiplier;
-    
-    const tearOffCost = layers * sqft * 0.50 * regionalMultiplier;
-    
-    const chimneyFactor = complexityResult.rows.find(f => f.factor_key === 'chimney_flashing');
-    const chimneyCost = chimneys > 0 && chimneyFactor 
-      ? chimneys * parseFloat(chimneyFactor.fixed_cost) * regionalMultiplier 
-      : 0;
-    
-    const valleyFactor = complexityResult.rows.find(f => f.factor_key === 'valley_work');
-    const valleyCost = valleys > 0 && valleyFactor 
-      ? valleys * parseFloat(valleyFactor.fixed_cost) * regionalMultiplier 
-      : 0;
-    
-    const permitsCost = 500 * regionalMultiplier;
-    
-    fixedCosts = tearOffCost + chimneyCost + valleyCost + permitsCost;
-    subtotal = materialCost + laborCost + fixedCosts;
-    
-    lineItems.push({ description: 'Roofing Material', amount: materialCost });
-    lineItems.push({ description: `Labor (${laborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
-    if (tearOffCost > 0) lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
-    if (chimneyCost > 0) lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
-    if (valleyCost > 0) lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
-    lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
-    
-    timeline = '3-5 business days';
-    break;
   }
+  
+  if (stories >= 2) {
+    const storyFactor = complexityResult.rows.find(f => f.factor_key === 'multi_story');
+    if (storyFactor) {
+      complexityMultiplier *= parseFloat(storyFactor.multiplier);
+      console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x`);
+    }
+  }
+  
+  // LABOR COST
+  const laborHours = sqft * LABOR_HOURS_PER_SQFT['roofing'] * pitch * complexityMultiplier;
+  laborCost = laborHours * adjustedLaborRate * seasonalMultiplier;
+  
+  // TEAR-OFF COST (varies by existing roof type)
+  const tearOffRates = {
+    'asphalt': 0.50,
+    'tile': 0.85,
+    'metal': 0.65,
+    'wood_shake': 0.75
+  };
+  const tearOffRate = tearOffRates[existingRoofType] || 0.50;
+  const tearOffCost = layers * sqft * tearOffRate * regionalMultiplier;
+  
+  // PLYWOOD DECKING REPLACEMENT
+  const plywoodCost = needsPlywood && plywoodSqft > 0 
+    ? plywoodSqft * 3.50 * regionalMultiplier 
+    : 0;
+  
+  // CHIMNEYS
+  const chimneyFactor = complexityResult.rows.find(f => f.factor_key === 'chimney_flashing');
+  const chimneyCost = chimneys > 0 && chimneyFactor 
+    ? chimneys * parseFloat(chimneyFactor.fixed_cost) * regionalMultiplier 
+    : 0;
+  
+  // VALLEYS
+  const valleyFactor = complexityResult.rows.find(f => f.factor_key === 'valley_work');
+  const valleyCost = valleys > 0 && valleyFactor 
+    ? valleys * parseFloat(valleyFactor.fixed_cost) * regionalMultiplier 
+    : 0;
+  
+  // SKYLIGHTS
+  const skylightCost = skylights > 0 
+    ? skylights * 300 * regionalMultiplier 
+    : 0;
+  
+  // RIDGE VENTS
+  const ridgeVentCost = ridgeVentFeet > 0 
+    ? ridgeVentFeet * 10 * regionalMultiplier 
+    : 0;
+  
+  // PERMITS
+  const permitsCost = 500 * regionalMultiplier;
+  
+  // TOTALS
+  fixedCosts = tearOffCost + plywoodCost + chimneyCost + valleyCost + skylightCost + ridgeVentCost + permitsCost;
+  subtotal = materialCost + laborCost + fixedCosts;
+  
+  // LINE ITEMS
+  lineItems.push({ description: 'Roofing Material', amount: materialCost });
+  lineItems.push({ 
+    description: `Labor (${laborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, 
+    amount: laborCost 
+  });
+  
+  if (tearOffCost > 0) {
+    const roofTypeName = existingRoofType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    lineItems.push({ 
+      description: `Tear-Off ${roofTypeName} (${layers} layer${layers > 1 ? 's' : ''})`, 
+      amount: tearOffCost 
+    });
+  }
+  
+  if (plywoodCost > 0) {
+    lineItems.push({ 
+      description: `Plywood Decking Replacement (${plywoodSqft} sqft)`, 
+      amount: plywoodCost 
+    });
+  }
+  
+  if (chimneyCost > 0) lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
+  if (valleyCost > 0) lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
+  if (skylightCost > 0) lineItems.push({ description: `Skylights (${skylights})`, amount: skylightCost });
+  if (ridgeVentCost > 0) lineItems.push({ description: `Ridge Vents (${ridgeVentFeet} ft)`, amount: ridgeVentCost });
+  
+  lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
+  
+  timeline = '3-5 business days';
+  break;
+}
 
   case 'hvac': {
     const sqft = parseFloat(data.squareFeet) || 2000;
