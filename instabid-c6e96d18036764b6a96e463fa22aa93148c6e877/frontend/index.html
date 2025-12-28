@@ -726,7 +726,7 @@ function initMap() {
   });
 });*/
 
-  document.getElementById('estimateForm').addEventListener('submit', function(e) {
+ /* document.getElementById('estimateForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
   var formData = new FormData(e.target);
@@ -734,7 +734,28 @@ function initMap() {
   
   formData.forEach(function(value, key) {
     data[key] = value;
+  }); */
+
+  document.getElementById('estimateForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  var formData = new FormData(e.target);
+  var data = {};
+  
+  // Handle regular fields
+  formData.forEach(function(value, key) {
+    data[key] = value;
   });
+  
+  // Handle unchecked checkboxes (they don't appear in FormData)
+  var checkboxes = e.target.querySelectorAll('input[type="checkbox"]');
+  for (var i = 0; i < checkboxes.length; i++) {
+    var cb = checkboxes[i];
+    if (!data[cb.name]) {
+      data[cb.name] = cb.checked ? 'yes' : 'no';
+    }
+  }
+
   
   data.trade = selectedTrade;
   data.photos = uploadedPhotos;
