@@ -2,6 +2,7 @@
 
 
 const express = require('express');
+app.get('/test', (req, res) => res.json({ status: 'alive' }));
 const cors = require('cors');
 const { Pool } = require('pg');
 const PDFDocument = require('pdfkit');
