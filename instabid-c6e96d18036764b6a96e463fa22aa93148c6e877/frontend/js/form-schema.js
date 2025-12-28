@@ -129,7 +129,7 @@ const TRADE_FORM_SCHEMA = {
       "name": "valleys",
       "label": "Number of Valleys",
       "type": "number",
-      "required": false,
+      "required": true,
       "min": 0,
       "placeholder": "0"
     }
