@@ -306,6 +306,28 @@ body {
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
 <script>
 var TRADE_FORM_SCHEMA = {
+  roofing: [
+  { name: 'name', label: 'Full Name', type: 'text', required: true },
+  { name: 'email', label: 'Email', type: 'email', required: true },
+  { name: 'phone', label: 'Phone', type: 'tel', required: true },
+  { name: 'address', label: 'Property Address', type: 'text', required: true },
+  { name: 'city', label: 'City', type: 'text', required: true },
+  { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+  { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+  { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+  { name: 'pitch', label: 'Roof Pitch (e.g., 6/12)', type: 'text', required: true },
+  { name: 'material', label: 'Material Cost per Sq Ft (e.g., 2.50)', type: 'text', required: true },
+  { name: 'layers', label: 'Tear-Off Layers', type: 'number', required: true },
+  { name: 'existingRoofType', label: 'Existing Roof Type', type: 'select', options: ['asphalt', 'tile', 'metal', 'wood_shake'], required: false },
+  { name: 'needsPlywood', label: 'Plywood Decking Replacement?', type: 'checkbox', required: false },
+  { name: 'plywoodSqft', label: 'Plywood Square Feet', type: 'number', required: false },
+  { name: 'chimneys', label: 'Number of Chimneys', type: 'number', required: false },
+  { name: 'valleys', label: 'Number of Valleys', type: 'number', required: false },
+  { name: 'skylights', label: 'Number of Skylights', type: 'number', required: false },
+  { name: 'ridgeVentFeet', label: 'Ridge Vent (Linear Feet)', type: 'number', required: false },
+  { name: 'stories', label: 'Number of Stories', type: 'number', required: true }
+],
+
  /* roofing: [
   { name: 'name', label: 'Full Name', type: 'text', required: true },
   { name: 'email', label: 'Email', type: 'email', required: true },
@@ -487,7 +509,7 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
   }
 });
 
-function renderForm(trade) {
+/*function renderForm(trade) {
   var container = document.getElementById('dynamicFormFields');
   container.innerHTML = '';
   
@@ -525,6 +547,64 @@ function renderForm(trade) {
     input.required = field.required;
     
     formGroup.appendChild(input);
+    container.appendChild(formGroup);
+  }
+  
+  setTimeout(initMap, 100);
+}*/
+
+  function renderForm(trade) {
+  var container = document.getElementById('dynamicFormFields');
+  container.innerHTML = '';
+  
+  var schema = TRADE_FORM_SCHEMA[trade];
+  
+  for (var i = 0; i < schema.length; i++) {
+    var field = schema[i];
+    var formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+    
+    var input;
+    
+    if (field.type === 'checkbox') {
+      var label = document.createElement('label');
+      input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = field.name;
+      input.id = field.name;
+      input.value = 'yes';
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + field.label));
+      formGroup.appendChild(label);
+    } else {
+      var label = document.createElement('label');
+      label.textContent = field.label + (field.required ? ' *' : '');
+      formGroup.appendChild(label);
+      
+      if (field.type === 'select') {
+        input = document.createElement('select');
+        input.innerHTML = '<option value="">Select...</option>';
+        for (var j = 0; j < field.options.length; j++) {
+          var option = document.createElement('option');
+          option.value = field.options[j];
+          option.textContent = field.options[j];
+          input.appendChild(option);
+        }
+      } else if (field.type === 'textarea') {
+        input = document.createElement('textarea');
+        input.rows = 4;
+      } else {
+        input = document.createElement('input');
+        input.type = field.type;
+      }
+      
+      input.name = field.name;
+      input.id = field.name;
+      input.required = field.required;
+      
+      formGroup.appendChild(input);
+    }
+    
     container.appendChild(formGroup);
   }
   
