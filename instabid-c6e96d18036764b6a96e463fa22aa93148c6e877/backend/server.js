@@ -737,6 +737,69 @@ function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   };
 }*/
 
+// ADD THIS NEW ENDPOINT HERE:
+app.post('/api/calculate-estimate', async (req, res) => {
+  try {
+    const { trade, state, zip, address, ...tradeData } = req.body;
+
+    console.log(`📊 Calculate estimate request for ${trade} in ${state}`);
+
+    // 1. Get labor rate from database
+    const laborResult = await pool.query(
+      'SELECT hourly_rate FROM bls_labor_rates WHERE state_code = $1 AND trade_type = $2',
+      [state, trade]
+    );
+
+    const hourlyRate = laborResult.rows.length > 0 
+      ? parseFloat(laborResult.rows[0].hourly_rate) 
+      : NATIONAL_AVERAGE_WAGE;
+
+    const dataSource = laborResult.rows.length > 0 ? 'database' : 'national_average';
+
+    console.log(`💼 Labor rate for ${trade} in ${state}: $${hourlyRate}/hr (source: ${dataSource})`);
+
+    // 2. Get MSA data
+    let msa = 'National Average';
+    if (zip) {
+      const msaResult = await pool.query(
+        'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
+        [zip]
+      );
+      if (msaResult.rows.length > 0) {
+        msa = msaResult.rows[0].msa_name;
+      }
+    }
+
+    // 3. Calculate estimate
+    const estimate = await calculateTradeEstimate(trade, tradeData, hourlyRate, state, msa);
+
+    // 4. Return flat structure
+    res.json({
+      success: true,
+      lineItems: estimate.lineItems,
+      subtotal: estimate.subtotal,
+      tax: estimate.tax,
+      total: estimate.total,
+      timeline: estimate.timeline,
+      msa: msa,
+      laborRate: hourlyRate,
+      dataSource: dataSource,
+      appliedMultipliers: estimate.appliedMultipliers,
+      materialCost: estimate.materialCost,
+      laborCost: estimate.laborCost,
+      fixedCosts: estimate.fixedCosts
+    });
+
+  } catch (error) {
+    console.error('❌ Calculate estimate error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to calculate estimate',
+      details: error.message 
+    });
+  }
+});
+
 app.post('/api/send-estimate-email', async (req, res) => {
   try {
     const { estimate, formData } = req.body;
