@@ -421,7 +421,7 @@ app.post('/api/calculate-estimate', async (req, res) => {
     console.log(`💵 Labor rate: $${hourlyRate}/hr (source: ${laborResult.rows.length > 0 ? 'BLS' : 'National Average'})`);
 
     // Calculate real estimate using trade-specific logic
-    const estimate = calculateTradeEstimate(trade, tradeData, hourlyRate, state, 'National Average');
+   const estimate = await calculateTradeEstimate(trade, data, hourlyRate, state, msa);
 
     // Add metadata
     estimate.msa = 'National Average';
@@ -893,7 +893,7 @@ function generateContract(estimate, formData) {
   });
 }
 
-function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
+/*function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let subtotal = 0;
   let lineItems = [];
   let timeline = '';
@@ -1120,6 +1120,366 @@ function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
     materialCost,
     laborCost,
     fixedCosts
+  };
+} */
+
+async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
+  let subtotal = 0;
+  let lineItems = [];
+  let timeline = '';
+  let materialCost = 0;
+  let laborCost = 0;
+  let fixedCosts = 0;
+
+  console.log(`\n🔧 Starting estimate calculation for ${trade}`);
+  console.log(`📍 Location: ${state}, ${msa || 'N/A'}`);
+  console.log(`💼 Base labor rate: $${hourlyRate}/hr`);
+
+  // =====================================================
+  // 1. GET REGIONAL MULTIPLIER FROM DATABASE
+  // =====================================================
+  let regionalMultiplier = 1.0;
+  let costTier = 'medium';
+  
+  try {
+    const regionalResult = await pool.query(
+      'SELECT multiplier, cost_tier FROM regional_multipliers WHERE state_code = $1',
+      [state]
+    );
+    if (regionalResult.rows.length > 0) {
+      regionalMultiplier = parseFloat(regionalResult.rows[0].multiplier);
+      costTier = regionalResult.rows[0].cost_tier;
+      console.log(`🗺️  Regional multiplier (${state}): ${regionalMultiplier}x [${costTier} cost]`);
+    } else {
+      console.log(`⚠️  No regional data for ${state}, using 1.0x`);
+    }
+  } catch (err) {
+    console.log(`⚠️  Regional multiplier query failed, using 1.0x:`, err.message);
+  }
+
+  const adjustedLaborRate = hourlyRate * regionalMultiplier;
+  console.log(`💰 Adjusted labor rate: $${adjustedLaborRate.toFixed(2)}/hr`);
+
+  // =====================================================
+  // 2. GET SEASONAL MULTIPLIER FROM DATABASE
+  // =====================================================
+  let seasonalMultiplier = 1.0;
+  let seasonalNote = 'Standard season';
+  
+  try {
+    const currentMonth = new Date().getMonth() + 1;
+    const seasonalResult = await pool.query(
+      `SELECT multiplier, description FROM seasonal_adjustments 
+       WHERE trade = $1 
+       AND is_active = true 
+       AND (
+         (month_start <= month_end AND $2 BETWEEN month_start AND month_end)
+         OR
+         (month_start > month_end AND ($2 >= month_start OR $2 <= month_end))
+       )`,
+      [trade, currentMonth]
+    );
+    if (seasonalResult.rows.length > 0) {
+      seasonalMultiplier = parseFloat(seasonalResult.rows[0].multiplier);
+      seasonalNote = seasonalResult.rows[0].description;
+      console.log(`📅 Seasonal multiplier (Month ${currentMonth}): ${seasonalMultiplier}x - ${seasonalNote}`);
+    }
+  } catch (err) {
+    console.log(`⚠️  Seasonal multiplier query failed, using 1.0x:`, err.message);
+  }
+
+  // =====================================================
+  // 3. GET COMPLEXITY FACTORS FROM DATABASE
+  // =====================================================
+  let complexityFactors = [];
+  
+  try {
+    const complexityResult = await pool.query(
+      'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true ORDER BY factor_key',
+      [trade]
+    );
+    complexityFactors = complexityResult.rows;
+    console.log(`🔍 Found ${complexityFactors.length} complexity factors for ${trade}`);
+  } catch (err) {
+    console.log(`⚠️  Complexity factors query failed:`, err.message);
+  }
+
+  const LABOR_HOURS_PER_SQFT = {
+    'roofing': 0.02,
+    'hvac': 0.015,
+    'electrical': 0.025,
+    'plumbing': 0.02,
+    'flooring': 0.015,
+    'painting': 0.01,
+    'general': 0.05
+  };
+
+  switch(trade) {
+    case 'roofing':
+      const sqft = parseFloat(data.squareFeet);
+      const pitchMatch = data.pitch.match(/^([\d.]+)/);
+      const pitch = pitchMatch ? parseFloat(pitchMatch[1]) : 1.0;
+      const materialMatch = data.material.match(/^([\d.]+)/);
+      const materialCostPerSqFt = materialMatch ? parseFloat(materialMatch[1]) : 2.50;
+      const layers = parseInt(data.layers) || 0;
+      const chimneys = parseInt(data.chimneys) || 0;
+      const valleys = parseInt(data.valleys) || 0;
+      const stories = parseInt(data.stories) || 1;
+      
+      console.log(`\n📏 Roofing Details:`);
+      console.log(`   Square feet: ${sqft}, Pitch: ${pitch}, Material: $${materialCostPerSqFt}/sqft`);
+      console.log(`   Stories: ${stories}, Chimneys: ${chimneys}, Valleys: ${valleys}, Layers: ${layers}`);
+      
+      // Material cost with regional adjustment
+      materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
+      console.log(`💵 Material cost: ${sqft} × $${materialCostPerSqFt} × ${regionalMultiplier} = $${materialCost.toFixed(2)}`);
+      
+      // Base labor calculation
+      let laborHours = sqft * LABOR_HOURS_PER_SQFT['roofing'] * pitch;
+      console.log(`⏱️  Base labor: ${sqft} × ${LABOR_HOURS_PER_SQFT['roofing']} × ${pitch} = ${laborHours.toFixed(2)} hours`);
+      
+      // Apply complexity multipliers from database
+      let complexityMultiplier = 1.0;
+      complexityFactors.forEach(factor => {
+        if (factor.factor_type === 'multiplier') {
+          let shouldApply = false;
+          
+          if (factor.factor_key === 'steep_pitch' && pitch > 1.2) shouldApply = true;
+          if (factor.factor_key === 'multi_story' && stories > 1) shouldApply = true;
+          if (factor.factor_key === 'complex_geometry' && (valleys > 2 || chimneys > 2)) shouldApply = true;
+          
+          if (shouldApply) {
+            complexityMultiplier *= parseFloat(factor.multiplier);
+            console.log(`   ✓ Applied: ${factor.factor_label} (${factor.multiplier}x)`);
+          }
+        }
+      });
+      
+      laborHours *= complexityMultiplier;
+      console.log(`⚙️  Complexity-adjusted labor: ${laborHours.toFixed(2)} hours (${complexityMultiplier}x)`);
+      
+      // Apply regional + seasonal to labor cost
+      laborCost = laborHours * adjustedLaborRate * seasonalMultiplier;
+      console.log(`💰 Final labor cost: ${laborHours.toFixed(2)} hrs × $${adjustedLaborRate.toFixed(2)} × ${seasonalMultiplier} = $${laborCost.toFixed(2)}`);
+      
+      // Fixed costs from database or defaults
+      let tearOffCost = layers * sqft * 0.50 * regionalMultiplier;
+      let chimneyCost = 0;
+      let valleyCost = 0;
+      
+      complexityFactors.forEach(factor => {
+        if (factor.factor_type === 'fixed_cost') {
+          if (factor.factor_key === 'chimney_flashing' && chimneys > 0) {
+            chimneyCost = chimneys * parseFloat(factor.fixed_cost) * regionalMultiplier;
+          }
+          if (factor.factor_key === 'valley_work' && valleys > 0) {
+            valleyCost = valleys * parseFloat(factor.fixed_cost) * regionalMultiplier;
+          }
+        }
+      });
+      
+      // Fallback if no DB values
+      if (chimneyCost === 0 && chimneys > 0) chimneyCost = chimneys * 500 * regionalMultiplier;
+      if (valleyCost === 0 && valleys > 0) valleyCost = valleys * 150 * regionalMultiplier;
+      
+      const permitsCost = 500 * regionalMultiplier;
+      
+      fixedCosts = tearOffCost + chimneyCost + valleyCost + permitsCost;
+      subtotal = materialCost + laborCost + fixedCosts;
+      
+      lineItems.push({ description: `Roofing Material (${sqft} sqft @ $${materialCostPerSqFt}/sqft)`, amount: materialCost });
+      lineItems.push({ description: `Labor (${laborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      if (tearOffCost > 0) lineItems.push({ description: `Tear-Off (${layers} layer${layers > 1 ? 's' : ''})`, amount: tearOffCost });
+      if (chimneyCost > 0) lineItems.push({ description: `Chimneys (${chimneys})`, amount: chimneyCost });
+      if (valleyCost > 0) lineItems.push({ description: `Valleys (${valleys})`, amount: valleyCost });
+      lineItems.push({ description: 'Permits & Disposal', amount: permitsCost });
+      
+      timeline = laborHours < 20 ? '2-3 business days' : laborHours < 40 ? '3-5 business days' : '5-7 business days';
+      break;
+
+    case 'hvac':
+      const units = parseInt(data.units) || 1;
+      const hvacSqft = parseFloat(data.squareFeet) || 2000;
+      const systemCost = units * 4500 * regionalMultiplier;
+      const hvacLaborHours = units * 8;
+      laborCost = hvacLaborHours * adjustedLaborRate * seasonalMultiplier;
+      const ductworkCost = hvacSqft * 2.50 * regionalMultiplier;
+      const permitsCostHvac = 500 * regionalMultiplier;
+      
+      materialCost = systemCost + ductworkCost;
+      fixedCosts = permitsCostHvac;
+      
+      lineItems.push({ description: `${units} HVAC Unit${units > 1 ? 's' : ''} (${data.systemType || 'Central AC'})`, amount: systemCost });
+      lineItems.push({ description: `Installation Labor (${hvacLaborHours} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: 'Ductwork & Materials', amount: ductworkCost });
+      lineItems.push({ description: 'Permits & Inspection', amount: permitsCostHvac });
+      
+      subtotal = materialCost + laborCost + fixedCosts;
+      timeline = '2-3 days';
+      break;
+
+    case 'electrical':
+      const elecSqft = parseFloat(data.squareFeet);
+      let elecMaterialCost = 0;
+      let elecLaborHours = 0;
+      
+      if (data.serviceType === 'panel') {
+        elecMaterialCost = parseInt(data.amperage) * 5 * regionalMultiplier;
+        elecLaborHours = 8;
+        lineItems.push({ description: `${data.amperage} Amp Panel Upgrade`, amount: elecMaterialCost });
+      } else if (data.serviceType === 'rewire') {
+        elecMaterialCost = elecSqft * 2 * regionalMultiplier;
+        elecLaborHours = elecSqft * LABOR_HOURS_PER_SQFT['electrical'];
+        lineItems.push({ description: 'Full Rewire Materials', amount: elecMaterialCost });
+      } else {
+        elecMaterialCost = 1000 * regionalMultiplier;
+        elecLaborHours = 12;
+        lineItems.push({ description: 'Electrical Materials', amount: elecMaterialCost });
+      }
+      
+      laborCost = elecLaborHours * adjustedLaborRate * seasonalMultiplier;
+      const elecPermits = 300 * regionalMultiplier;
+      
+      materialCost = elecMaterialCost;
+      fixedCosts = elecPermits;
+      
+      lineItems.push({ description: `Labor (${elecLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: 'Permits & Inspection', amount: elecPermits });
+      
+      subtotal = materialCost + laborCost + fixedCosts;
+      timeline = '2-4 days';
+      break;
+
+    case 'plumbing':
+      const bathrooms = parseInt(data.bathrooms) || 1;
+      const plumbSqft = parseFloat(data.squareFeet);
+      let plumbMaterialCost = 0;
+      let plumbLaborHours = 0;
+      
+      if (data.serviceType === 'repipe') {
+        plumbMaterialCost = plumbSqft * 2 * regionalMultiplier;
+        plumbLaborHours = plumbSqft * LABOR_HOURS_PER_SQFT['plumbing'];
+        lineItems.push({ description: 'Full Repipe Materials', amount: plumbMaterialCost });
+      } else if (data.serviceType === 'water_heater') {
+        plumbMaterialCost = 1200 * regionalMultiplier;
+        plumbLaborHours = 6;
+        lineItems.push({ description: 'Water Heater', amount: plumbMaterialCost });
+      } else {
+        plumbMaterialCost = bathrooms * 400 * regionalMultiplier;
+        plumbLaborHours = bathrooms * 8;
+        lineItems.push({ description: 'Plumbing Materials', amount: plumbMaterialCost });
+      }
+      
+      laborCost = plumbLaborHours * adjustedLaborRate * seasonalMultiplier;
+      materialCost = plumbMaterialCost;
+      
+      lineItems.push({ description: `Labor (${plumbLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      
+      subtotal = materialCost + laborCost;
+      timeline = '1-3 days';
+      break;
+
+    case 'flooring':
+      const floorSqft = parseFloat(data.squareFeet);
+      let floorMaterialRate = 0;
+      
+      switch(data.floorType) {
+        case 'hardwood': floorMaterialRate = 5; break;
+        case 'laminate': floorMaterialRate = 2; break;
+        case 'tile': floorMaterialRate = 3.5; break;
+        case 'carpet': floorMaterialRate = 1.5; break;
+        case 'vinyl': floorMaterialRate = 2.5; break;
+      }
+      
+      materialCost = floorSqft * floorMaterialRate * regionalMultiplier;
+      const floorLaborHours = floorSqft * LABOR_HOURS_PER_SQFT['flooring'];
+      laborCost = floorLaborHours * adjustedLaborRate * seasonalMultiplier;
+      const removalCost = 500 * regionalMultiplier;
+      
+      fixedCosts = removalCost;
+      
+      lineItems.push({ description: 'Flooring Material', amount: materialCost });
+      lineItems.push({ description: `Installation Labor (${floorLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      lineItems.push({ description: 'Removal & Disposal', amount: removalCost });
+      
+      subtotal = materialCost + laborCost + fixedCosts;
+      timeline = '2-4 days';
+      break;
+
+    case 'painting':
+      const paintSqft = parseFloat(data.squareFeet);
+      let paintMaterialRate = 0;
+      
+      if (data.paintType === 'interior') paintMaterialRate = 0.50;
+      else if (data.paintType === 'exterior') paintMaterialRate = 0.75;
+      else paintMaterialRate = 1.00;
+      
+      materialCost = paintSqft * paintMaterialRate * regionalMultiplier;
+      const paintLaborHours = paintSqft * LABOR_HOURS_PER_SQFT['painting'];
+      laborCost = paintLaborHours * adjustedLaborRate * seasonalMultiplier;
+      
+      lineItems.push({ description: 'Paint & Materials', amount: materialCost });
+      lineItems.push({ description: `Labor (${paintLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      
+      subtotal = materialCost + laborCost;
+      timeline = '3-7 days';
+      break;
+
+    case 'general':
+      const genSqft = parseFloat(data.squareFeet);
+      let genMaterialRate = 0;
+      let genLaborMultiplier = 1;
+      
+      if (data.projectType === 'remodel') {
+        genMaterialRate = 50;
+        genLaborMultiplier = 1.5;
+      } else if (data.projectType === 'addition') {
+        genMaterialRate = 75;
+        genLaborMultiplier = 2;
+      } else if (data.projectType === 'new_build') {
+        genMaterialRate = 100;
+        genLaborMultiplier = 2.5;
+      } else {
+        genMaterialRate = 25;
+        genLaborMultiplier = 1;
+      }
+      
+      materialCost = genSqft * genMaterialRate * regionalMultiplier;
+      const genLaborHours = genSqft * LABOR_HOURS_PER_SQFT['general'] * genLaborMultiplier;
+      laborCost = genLaborHours * adjustedLaborRate * seasonalMultiplier;
+      
+      lineItems.push({ description: 'Materials & Supplies', amount: materialCost });
+      lineItems.push({ description: `Labor (${genLaborHours.toFixed(1)} hours @ $${adjustedLaborRate.toFixed(2)}/hr)`, amount: laborCost });
+      
+      subtotal = materialCost + laborCost;
+      timeline = '2-8 weeks';
+      break;
+  }
+
+  const tax = subtotal * 0.0825;
+  const total = subtotal + tax;
+
+  console.log(`\n📊 FINAL ESTIMATE:`);
+  console.log(`   Subtotal: $${subtotal.toFixed(2)}`);
+  console.log(`   Tax: $${tax.toFixed(2)}`);
+  console.log(`   TOTAL: $${total.toFixed(2)}\n`);
+
+  return {
+    success: true,
+    lineItems,
+    subtotal,
+    tax,
+    total,
+    timeline,
+    materialCost,
+    laborCost,
+    fixedCosts,
+    appliedMultipliers: {
+      regional: regionalMultiplier,
+      seasonal: seasonalMultiplier,
+      costTier: costTier,
+      seasonalNote: seasonalNote
+    }
   };
 }
 
