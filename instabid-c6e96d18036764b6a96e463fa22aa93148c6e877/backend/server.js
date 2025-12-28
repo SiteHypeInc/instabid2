@@ -16,7 +16,6 @@ const NATIONAL_AVERAGE_WAGE = 33.50;
 const TRADE_TYPES = ['general', 'roofing', 'hvac', 'electrical', 'plumbing', 'flooring', 'painting'];
 
 const app = express();
-app.get('/test', (req, res) => res.json({ status: 'alive' })); 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -643,7 +642,8 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   timeline = '5-7 business days';
   break;
 }
-
+  }
+  
   const tax = subtotal * 0.0825;
   const total = subtotal + tax;
 
