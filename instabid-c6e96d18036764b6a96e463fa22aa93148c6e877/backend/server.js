@@ -577,9 +577,10 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       
       timeline = '3-5 business days';
       break;
+    }
 
       //HVAC
-   switch(trade) {
+   
   case 'hvac': {
   const sqft = parseFloat(data.squareFeet) || 2000;
   const systemType = data.systemType || 'Central AC';
