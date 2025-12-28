@@ -461,6 +461,34 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
     'general': 0.05
   };
 
+  const TRADE_SCHEMAS = {
+  roofing: {
+    fields: ['squareFeet', 'pitch', 'material', 'layers', 'chimneys', 'valleys', 'stories', 
+             'needsPlywood', 'plywoodSqft', 'existingRoofType', 'skylights', 'ridgeVentFeet'],
+    required: ['squareFeet', 'pitch', 'material']
+  },
+  hvac: {
+    fields: ['squareFeet', 'systemType', 'units'],
+    required: ['squareFeet', 'systemType']
+  },
+  electrical: {
+    fields: ['squareFeet', 'serviceType', 'amperage'],
+    required: ['squareFeet', 'serviceType']
+  },
+  plumbing: {
+    fields: ['bathrooms', 'serviceType', 'squareFeet', 'heaterType', 'fixtures'],
+    required: ['serviceType']
+  },
+  flooring: {
+    fields: ['squareFeet', 'floorType', 'needRemoval'],
+    required: ['squareFeet', 'floorType']
+  },
+  painting: {
+    fields: ['squareFeet', 'paintType', 'coats', 'includeCeilings', 'includeTrim'],
+    required: ['squareFeet', 'paintType']
+  }
+};
+
   // 1. GET REGIONAL MULTIPLIER
   const regionalResult = await pool.query(
     'SELECT multiplier, cost_tier FROM regional_multipliers WHERE state_code = $1',
