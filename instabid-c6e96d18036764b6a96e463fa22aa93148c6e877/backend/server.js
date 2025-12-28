@@ -1999,7 +1999,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       timeline = '2-8 weeks';
       break;
   }
-}
+
   const tax = subtotal * 0.0825;
   const total = subtotal + tax;
 
