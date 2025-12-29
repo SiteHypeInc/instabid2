@@ -307,6 +307,204 @@ body {
 <script>
 var TRADE_FORM_SCHEMA = {
   roofing: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'pitch', label: 'Roof Pitch', type: 'select', options: ['3/12', '4/12', '5/12', '6/12', '7/12', '8/12', '9/12', '10/12', '11/12', '12/12+'], required: true },
+    { name: 'material', label: 'Roofing Material', type: 'select', options: ['Asphalt Shingles ($2.50/sqft)', 'Architectural Shingles ($3.50/sqft)', 'Metal ($5.00/sqft)', 'Tile ($7.00/sqft)', 'Wood Shake ($6.00/sqft)'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'layers', label: 'Existing Layers to Remove', type: 'number', required: false },
+    { name: 'chimneys', label: 'Number of Chimneys', type: 'number', required: false },
+    { name: 'valleys', label: 'Number of Valleys', type: 'number', required: false },
+    { name: 'needsPlywood', label: 'Needs Plywood Replacement?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'plywoodSqft', label: 'Plywood Square Feet', type: 'number', required: false },
+    { name: 'existingRoofType', label: 'Existing Roof Type', type: 'select', options: ['asphalt', 'tile', 'metal', 'wood_shake'], required: false },
+    { name: 'skylights', label: 'Number of Skylights', type: 'number', required: false },
+    { name: 'ridgeVentFeet', label: 'Ridge Vent (Linear Feet)', type: 'number', required: false }
+  ],
+
+  hvac: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'systemType', label: 'System Type', type: 'select', options: ['Central AC', 'Heat Pump', 'Furnace', 'Ductless Mini-Split', 'Boiler'], required: true },
+    { name: 'units', label: 'Number of Units', type: 'number', required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'registers', label: 'Number of Registers (Supply/Return)', type: 'number', required: false },
+    { name: 'accessType', label: 'Access Type', type: 'select', options: ['basement', 'crawlspace', 'attic', 'slab'], required: false },
+    { name: 'existingDucts', label: 'Existing Ductwork', type: 'select', options: ['yes', 'no', 'partial'], required: false },
+    { name: 'zoning', label: 'Zoning', type: 'select', options: ['single', 'multi'], required: false },
+    { name: 'tonnage', label: 'Tonnage', type: 'select', options: ['1.5', '2', '2.5', '3', '3.5', '4', '5'], required: false },
+    { name: 'efficiency', label: 'Efficiency Rating', type: 'select', options: ['standard_14', 'high_16_20', 'premium_20plus'], required: false },
+    { name: 'gasLineNeeded', label: 'Gas Line Needed?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'electricalUpgrade', label: 'Electrical Upgrade Needed?', type: 'radio', options: ['yes', 'no'], required: false }
+  ],
+
+  electrical: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'serviceType', label: 'Service Type', type: 'select', options: ['panel', 'rewire', 'general'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'amperage', label: 'Panel Amperage', type: 'select', options: ['100', '150', '200', '400'], required: false },
+    { name: 'receptacles', label: 'Number of Receptacles (Outlets)', type: 'number', required: false },
+    { name: 'switches', label: 'Number of Switches', type: 'number', required: false },
+    { name: 'lightFixtures', label: 'Number of Light Fixtures', type: 'number', required: false },
+    { name: 'accessType', label: 'Access Type', type: 'select', options: ['basement', 'crawlspace', 'attic', 'slab'], required: false },
+    { name: 'knobAndTube', label: 'Knob & Tube Wiring?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'aluminumWiring', label: 'Aluminum Wiring?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'arcFaultBreakers', label: 'Arc-Fault Breakers Required?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'gfciOutlets', label: 'Number of GFCI Outlets', type: 'number', required: false },
+    { name: 'ceilingFans', label: 'Number of Ceiling Fans', type: 'number', required: false },
+    { name: 'smartHome', label: 'Smart Home Integration?', type: 'radio', options: ['yes', 'no'], required: false }
+  ],
+
+  plumbing: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: false },
+    { name: 'serviceType', label: 'Service Type', type: 'select', options: ['repipe', 'water_heater', 'fixture', 'general'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'bathrooms', label: 'Number of Bathrooms', type: 'number', required: true },
+    { name: 'accessType', label: 'Access Type', type: 'select', options: ['basement', 'crawlspace', 'slab'], required: false },
+    { name: 'kitchens', label: 'Number of Kitchens', type: 'number', required: false },
+    { name: 'laundryRooms', label: 'Number of Laundry Rooms', type: 'number', required: false },
+    { name: 'heaterType', label: 'Water Heater Type', type: 'select', options: ['tank', 'tankless'], required: false },
+    { name: 'waterHeaterLocation', label: 'Water Heater Location', type: 'select', options: ['garage', 'basement', 'attic', 'closet'], required: false },
+    { name: 'gasLineNeeded', label: 'Gas Line Needed?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'sewerLineType', label: 'Sewer Line Type', type: 'select', options: ['city', 'septic'], required: false },
+    { name: 'mainLineReplacement', label: 'Main Line Replacement?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'garbageDisposal', label: 'Garbage Disposal?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'iceMaker', label: 'Ice Maker Line?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'waterSoftener', label: 'Water Softener?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'fixtures', label: 'Number of Fixtures', type: 'number', required: false }
+  ],
+
+  flooring: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'floorType', label: 'Flooring Type', type: 'select', options: ['hardwood', 'engineered_hardwood', 'laminate', 'tile', 'carpet', 'vinyl', 'lvp'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'rooms', label: 'Number of Rooms', type: 'number', required: false },
+    { name: 'needRemoval', label: 'Remove Existing Flooring?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'stairs', label: 'Include Stairs?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'stairSteps', label: 'Number of Stair Steps', type: 'number', required: false },
+    { name: 'subfloorCondition', label: 'Subfloor Condition', type: 'select', options: ['good', 'needs_repair', 'needs_replacement'], required: false },
+    { name: 'moistureIssues', label: 'Moisture Issues?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'transitionStrips', label: 'Number of Transition Strips', type: 'number', required: false },
+    { name: 'baseboardRemoval', label: 'Remove/Reinstall Baseboard?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'floorHeating', label: 'Radiant Floor Heating?', type: 'radio', options: ['yes', 'no'], required: false }
+  ],
+
+  painting: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'paintType', label: 'Paint Type', type: 'select', options: ['interior', 'exterior', 'both'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'coats', label: 'Number of Coats', type: 'select', options: ['1', '2', '3'], required: false },
+    { name: 'rooms', label: 'Number of Rooms', type: 'number', required: false },
+    { name: 'includeCeilings', label: 'Include Ceilings?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'includeTrim', label: 'Include Trim?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'doorCount', label: 'Number of Doors', type: 'number', required: false },
+    { name: 'windowCount', label: 'Number of Windows', type: 'number', required: false },
+    { name: 'sidingType', label: 'Siding Type (Exterior)', type: 'select', options: ['wood', 'vinyl', 'brick', 'stucco', 'hardie', 'metal'], required: false },
+    { name: 'sidingCondition', label: 'Siding Condition', type: 'select', options: ['excellent', 'good', 'fair', 'poor', 'needs_repair'], required: false },
+    { name: 'cabinetPainting', label: 'Paint Cabinets?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'cabinetCount', label: 'Number of Cabinet Faces', type: 'number', required: false },
+    { name: 'wallCondition', label: 'Wall Condition', type: 'select', options: ['smooth', 'textured', 'damaged'], required: false },
+    { name: 'patchingNeeded', label: 'Patching Needed', type: 'select', options: ['none', 'minor', 'moderate', 'extensive'], required: false },
+    { name: 'powerWashing', label: 'Power Washing (Exterior)?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'leadPaint', label: 'Lead Paint Present (Pre-1978)?', type: 'radio', options: ['yes', 'no', 'unknown'], required: false },
+    { name: 'colorChangeDramatic', label: 'Dramatic Color Change?', type: 'radio', options: ['yes', 'no'], required: false }
+  ],
+
+  general_contracting: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'projectType', label: 'Project Type', type: 'select', options: ['Remodel', 'Addition', 'New Construction', 'Renovation'], required: true },
+    { name: 'projectDetails', label: 'Project Details', type: 'textarea', required: true }
+  ]
+};
+
+
+Also update the renderForm() function to handle radio buttons properly. Find this section (around line 372):
+
+
+if (field.type === 'checkbox') {
+
+REPLACE with:
+
+
+if (field.type === 'radio') {
+  var label = document.createElement('label');
+  label.textContent = field.label + (field.required ? ' *' : '');
+  formGroup.appendChild(label);
+  
+  var radioContainer = document.createElement('div');
+  radioContainer.style.display = 'flex';
+  radioContainer.style.gap = '15px';
+  
+  for (var j = 0; j < field.options.length; j++) {
+    var radioLabel = document.createElement('label');
+    radioLabel.style.display = 'flex';
+    radioLabel.style.alignItems = 'center';
+    radioLabel.style.gap = '5px';
+    
+    var radioInput = document.createElement('input');
+    radioInput.type = 'radio';
+    radioInput.name = field.name;
+    radioInput.value = field.options[j];
+    if (j === 0) radioInput.checked = true; // Default first option
+    
+    radioLabel.appendChild(radioInput);
+    radioLabel.appendChild(document.createTextNode(field.options[j]));
+    radioContainer.appendChild(radioLabel);
+  }
+  
+  formGroup.appendChild(radioContainer);
+} else if (field.type === 'checkbox') {
+
+
+/*var TRADE_FORM_SCHEMA = {
+  roofing: [
   { name: 'name', label: 'Full Name', type: 'text', required: true },
   { name: 'email', label: 'Email', type: 'email', required: true },
   { name: 'phone', label: 'Phone', type: 'tel', required: true },
@@ -399,7 +597,7 @@ var TRADE_FORM_SCHEMA = {
     { name: 'projectType', label: 'Project Type', type: 'select', options: ['Remodel', 'Addition', 'New Construction', 'Renovation'], required: true },
     { name: 'projectDetails', label: 'Project Details', type: 'textarea', required: true }
   ]
-};
+}; */
 
 var selectedTrade = null;
 var map = null;
@@ -445,7 +643,46 @@ function renderForm(trade) {
     var input;
     var helper = helpers[field.name] || {};
     
-    if (field.type === 'checkbox') {
+    /*if (field.type === 'checkbox') {
+      var label = document.createElement('label');
+      input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = field.name;
+      input.id = field.name;
+      input.value = 'yes';
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + field.label));
+      formGroup.appendChild(label);*/
+    if (field.type === 'radio') {
+      var label = document.createElement('label');
+      label.textContent = field.label + (field.required ? ' *' : '');
+      formGroup.appendChild(label);
+      
+      var radioContainer = document.createElement('div');
+      radioContainer.style.display = 'flex';
+      radioContainer.style.gap = '15px';
+      radioContainer.style.marginTop = '8px';
+      
+      for (var j = 0; j < field.options.length; j++) {
+        var radioLabel = document.createElement('label');
+        radioLabel.style.display = 'flex';
+        radioLabel.style.alignItems = 'center';
+        radioLabel.style.gap = '5px';
+        radioLabel.style.fontWeight = 'normal';
+        
+        var radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = field.name;
+        radioInput.value = field.options[j];
+        if (j === 0) radioInput.checked = true;
+        
+        radioLabel.appendChild(radioInput);
+        radioLabel.appendChild(document.createTextNode(field.options[j]));
+        radioContainer.appendChild(radioLabel);
+      }
+      
+      formGroup.appendChild(radioContainer);
+    } else if (field.type === 'checkbox') {
       var label = document.createElement('label');
       input = document.createElement('input');
       input.type = 'checkbox';
@@ -509,7 +746,7 @@ function renderForm(trade) {
     }
     
     container.appendChild(formGroup);
-  }
+  } 
   
   setTimeout(initMap, 100);
 }
