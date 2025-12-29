@@ -664,7 +664,7 @@ const complexityResult = await pool.query(
   
   timeline = '3-5 business days';
   break;
-};}
+};
 
   case 'hvac': {
     const sqft = parseFloat(data.squareFeet) || 2000;
