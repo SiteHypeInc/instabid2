@@ -465,13 +465,6 @@ var TRADE_FORM_SCHEMA = {
 };
 
 
-Also update the renderForm() function to handle radio buttons properly. Find this section (around line 372):
-
-
-if (field.type === 'checkbox') {
-
-REPLACE with:
-
 
 if (field.type === 'radio') {
   var label = document.createElement('label');
