@@ -580,8 +580,15 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   }
   
   // LABOR COST
-  const laborHours = sqft * LABOR_HOURS_PER_SQFT['roofing'] * pitch * complexityMultiplier;
-  laborCost = laborHours * adjustedLaborRate * seasonalMultiplier;
+  // Base hours: 0.06 hrs/sqft for flat roof
+let baseHoursPerSqft = 0.06;
+
+// Pitch adjustment (additive, not multiplicative)
+if (pitch >= 9) baseHoursPerSqft += 0.02;  // steep pitch adds time
+else if (pitch >= 6) baseHoursPerSqft += 0.01;  // moderate pitch
+
+// Calculate labor hours
+const laborHours = sqft * baseHoursPerSqft * complexityMultiplier;
   
   // TEAR-OFF COST (varies by existing roof type)
   const tearOffRates = {
