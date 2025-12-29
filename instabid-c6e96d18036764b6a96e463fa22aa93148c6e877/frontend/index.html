@@ -466,36 +466,6 @@ var TRADE_FORM_SCHEMA = {
 
 
 
-if (field.type === 'radio') {
-  var label = document.createElement('label');
-  label.textContent = field.label + (field.required ? ' *' : '');
-  formGroup.appendChild(label);
-  
-  var radioContainer = document.createElement('div');
-  radioContainer.style.display = 'flex';
-  radioContainer.style.gap = '15px';
-  
-  for (var j = 0; j < field.options.length; j++) {
-    var radioLabel = document.createElement('label');
-    radioLabel.style.display = 'flex';
-    radioLabel.style.alignItems = 'center';
-    radioLabel.style.gap = '5px';
-    
-    var radioInput = document.createElement('input');
-    radioInput.type = 'radio';
-    radioInput.name = field.name;
-    radioInput.value = field.options[j];
-    if (j === 0) radioInput.checked = true; // Default first option
-    
-    radioLabel.appendChild(radioInput);
-    radioLabel.appendChild(document.createTextNode(field.options[j]));
-    radioContainer.appendChild(radioLabel);
-  }
-  
-  formGroup.appendChild(radioContainer);
-} else if (field.type === 'checkbox') {
-
-
 /*var TRADE_FORM_SCHEMA = {
   roofing: [
   { name: 'name', label: 'Full Name', type: 'text', required: true },
