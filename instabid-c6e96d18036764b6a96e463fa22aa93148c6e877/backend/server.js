@@ -589,6 +589,8 @@ else if (pitch >= 6) baseHoursPerSqft += 0.01;  // moderate pitch
 
 // Calculate labor hours
 const laborHours = sqft * baseHoursPerSqft * complexityMultiplier;
+    console.log(`🔧 LABOR DEBUG: sqft=${sqft}, baseHrs=${baseHoursPerSqft}, complexity=${complexityMultiplier}, total=${laborHours}`);
+    
   
   // TEAR-OFF COST (varies by existing roof type)
   const tearOffRates = {
