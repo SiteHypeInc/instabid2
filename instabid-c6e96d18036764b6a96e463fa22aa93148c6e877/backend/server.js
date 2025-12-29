@@ -278,7 +278,10 @@ async function initDatabase() {
             [zip, msaData.metro || null, msaData.state || null]
           );
         }
-        
+        // NEW - Load reference data and trade field definitions
+    const dataLoader = require('./data-loader');
+    await dataLoader.loadReferenceData(pool);
+    await dataLoader.loadTradeFieldDefinitions(pool);
         console.log(`✅ Loaded ${Object.keys(zipData.prefix_map).length} ZIP mappings`);
       }
     }
