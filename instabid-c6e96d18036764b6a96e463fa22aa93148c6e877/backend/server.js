@@ -563,16 +563,15 @@ console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, nu
   materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
   
   // COMPLEXITY MULTIPLIER
-  let complexityMultiplier = 1.0;
     // COMPLEXITY MULTIPLIER
-
-console.log('🎯 Starting complexity: 1.0');
+  let complexityMultiplier = 1.0;
+  console.log('🎯 Starting complexity: 1.0');
   
   if (pitch >= 9) {
     const steepFactor = complexityResult.rows.find(f => f.factor_key === 'steep_pitch');
     if (steepFactor) {
       complexityMultiplier *= parseFloat(steepFactor.multiplier);
-      console.log(`⛰️  Steep pitch applied: ${steepFactor.multiplier}x`);
+      console.log(`⛰️  Steep pitch applied: ${steepFactor.multiplier}x → total now ${complexityMultiplier}`);
     }
   }
   
@@ -580,16 +579,12 @@ console.log('🎯 Starting complexity: 1.0');
     const storyFactor = complexityResult.rows.find(f => f.factor_key === 'multi_story');
     if (storyFactor) {
       complexityMultiplier *= parseFloat(storyFactor.multiplier);
-      console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x`);
+      console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x → total now ${complexityMultiplier}`);
     }
   }
 
-    console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x → total now ${complexityMultiplier}`);
-  }
-}
-
-console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}`);
-  
+  console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}`);
+    
   // LABOR COST
   // Base hours: 0.06 hrs/sqft for flat roof
 let baseHoursPerSqft = 0.06;
