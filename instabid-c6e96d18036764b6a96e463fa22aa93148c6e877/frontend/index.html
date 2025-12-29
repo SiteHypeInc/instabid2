@@ -608,7 +608,7 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
 });
 
 
-function renderForm(trade) {
+/*function renderForm(trade) {
   var container = document.getElementById('dynamicFormFields');
   container.innerHTML = '';
   
@@ -645,7 +645,7 @@ function renderForm(trade) {
       input.value = 'yes';
       label.appendChild(input);
       label.appendChild(document.createTextNode(' ' + field.label));
-      formGroup.appendChild(label);*/
+      formGroup.appendChild(label);
     if (field.type === 'radio') {
       var label = document.createElement('label');
       label.textContent = field.label + (field.required ? ' *' : '');
@@ -742,8 +742,132 @@ function renderForm(trade) {
   } 
   
   setTimeout(initMap, 100);
+}*/
+function renderForm(trade) {
+  var container = document.getElementById('dynamicFormFields');
+  container.innerHTML = '';
+  
+  var schema = TRADE_FORM_SCHEMA[trade];
+  
+  // Field-specific helpers
+  var helpers = {
+    squareFeet: { placeholder: '2000', hint: '' },
+    pitch: { placeholder: '6/12 or 8/12', hint: 'Enter as ratio (e.g., 4/12, 6/12, 9/12)' },
+    material: { placeholder: '2.50', hint: 'Material cost per square foot (e.g., 2.50, 3.75)' },
+    layers: { placeholder: '1', default: '1' },
+    plywoodSqft: { placeholder: '0', default: '0', hint: 'Estimated sqft of plywood decking to replace' },
+    chimneys: { placeholder: '0', default: '0' },
+    valleys: { placeholder: '0', default: '0' },
+    skylights: { placeholder: '0', default: '0', hint: '$300 each for flashing work' },
+    ridgeVentFeet: { placeholder: '0', default: '0', hint: '$10 per linear foot' },
+    stories: { placeholder: '1', default: '1' }
+  };
+  
+  for (var i = 0; i < schema.length; i++) {
+    var field = schema[i];
+    var formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+    
+    var input;
+    var helper = helpers[field.name] || {};
+    
+    if (field.type === 'radio') {
+      var label = document.createElement('label');
+      label.textContent = field.label + (field.required ? ' *' : '');
+      formGroup.appendChild(label);
+      
+      var radioContainer = document.createElement('div');
+      radioContainer.style.display = 'flex';
+      radioContainer.style.gap = '15px';
+      radioContainer.style.marginTop = '8px';
+      
+      for (var j = 0; j < field.options.length; j++) {
+        var radioLabel = document.createElement('label');
+        radioLabel.style.display = 'flex';
+        radioLabel.style.alignItems = 'center';
+        radioLabel.style.gap = '5px';
+        radioLabel.style.fontWeight = 'normal';
+        
+        var radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = field.name;
+        radioInput.value = field.options[j];
+        if (j === 0) radioInput.checked = true;
+        
+        radioLabel.appendChild(radioInput);
+        radioLabel.appendChild(document.createTextNode(field.options[j]));
+        radioContainer.appendChild(radioLabel);
+      }
+      
+      formGroup.appendChild(radioContainer);
+    } else if (field.type === 'checkbox') {
+      var label = document.createElement('label');
+      input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = field.name;
+      input.id = field.name;
+      input.value = 'yes';
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(' ' + field.label));
+      formGroup.appendChild(label);
+    } else {
+      var label = document.createElement('label');
+      label.textContent = field.label + (field.required ? ' *' : '');
+      formGroup.appendChild(label);
+      
+      if (field.type === 'select') {
+        input = document.createElement('select');
+        input.innerHTML = '<option value="">Select...</option>';
+        for (var j = 0; j < field.options.length; j++) {
+          var option = document.createElement('option');
+          option.value = field.options[j];
+          option.textContent = field.options[j];
+          input.appendChild(option);
+        }
+      } else if (field.type === 'textarea') {
+        input = document.createElement('textarea');
+        input.rows = 4;
+      } else {
+        input = document.createElement('input');
+        input.type = field.type;
+        
+        // Add placeholder and default value
+        if (helper.placeholder) {
+          input.placeholder = helper.placeholder;
+        }
+        if (helper.default && !field.required) {
+          input.value = helper.default;
+        }
+        
+        // Add min attribute for number fields
+        if (field.type === 'number' && !field.required) {
+          input.min = '0';
+        }
+      }
+      
+      input.name = field.name;
+      input.id = field.name;
+      input.required = field.required;
+      
+      formGroup.appendChild(input);
+      
+      // Add helper text
+      if (helper.hint) {
+        var small = document.createElement('small');
+        small.textContent = helper.hint;
+        small.style.display = 'block';
+        small.style.marginTop = '5px';
+        small.style.color = '#666';
+        small.style.fontSize = '0.9em';
+        formGroup.appendChild(small);
+      }
+    }
+    
+    container.appendChild(formGroup);
+  }
+  
+  setTimeout(initMap, 100);
 }
-
 
 document.getElementById('photoInput').addEventListener('change', function(e) {
   var files = Array.prototype.slice.call(e.target.files);
