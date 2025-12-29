@@ -417,11 +417,25 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
 });
 
 
-  function renderForm(trade) {
+function renderForm(trade) {
   var container = document.getElementById('dynamicFormFields');
   container.innerHTML = '';
   
   var schema = TRADE_FORM_SCHEMA[trade];
+  
+  // Field-specific helpers
+  var helpers = {
+    squareFeet: { placeholder: '2000', hint: '' },
+    pitch: { placeholder: '6/12 or 8/12', hint: 'Enter as ratio (e.g., 4/12, 6/12, 9/12)' },
+    material: { placeholder: '2.50', hint: 'Material cost per square foot (e.g., 2.50, 3.75)' },
+    layers: { placeholder: '1', default: '1' },
+    plywoodSqft: { placeholder: '0', default: '0', hint: 'Estimated sqft of plywood decking to replace' },
+    chimneys: { placeholder: '0', default: '0' },
+    valleys: { placeholder: '0', default: '0' },
+    skylights: { placeholder: '0', default: '0', hint: '$300 each for flashing work' },
+    ridgeVentFeet: { placeholder: '0', default: '0', hint: '$10 per linear foot' },
+    stories: { placeholder: '1', default: '1' }
+  };
   
   for (var i = 0; i < schema.length; i++) {
     var field = schema[i];
@@ -429,6 +443,7 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
     formGroup.className = 'form-group';
     
     var input;
+    var helper = helpers[field.name] || {};
     
     if (field.type === 'checkbox') {
       var label = document.createElement('label');
@@ -460,6 +475,19 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
       } else {
         input = document.createElement('input');
         input.type = field.type;
+        
+        // Add placeholder and default value
+        if (helper.placeholder) {
+          input.placeholder = helper.placeholder;
+        }
+        if (helper.default && !field.required) {
+          input.value = helper.default;
+        }
+        
+        // Add min attribute for number fields
+        if (field.type === 'number' && !field.required) {
+          input.min = '0';
+        }
       }
       
       input.name = field.name;
@@ -467,6 +495,17 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
       input.required = field.required;
       
       formGroup.appendChild(input);
+      
+      // Add helper text
+      if (helper.hint) {
+        var small = document.createElement('small');
+        small.textContent = helper.hint;
+        small.style.display = 'block';
+        small.style.marginTop = '5px';
+        small.style.color = '#666';
+        small.style.fontSize = '0.9em';
+        formGroup.appendChild(small);
+      }
     }
     
     container.appendChild(formGroup);
@@ -474,6 +513,7 @@ document.getElementById('tradeSelector').addEventListener('change', function() {
   
   setTimeout(initMap, 100);
 }
+
 
 document.getElementById('photoInput').addEventListener('change', function(e) {
   var files = Array.prototype.slice.call(e.target.files);
