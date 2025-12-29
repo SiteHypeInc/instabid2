@@ -530,30 +530,12 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   console.log(`📅 Seasonal multiplier (Month ${currentMonth}): ${seasonalMultiplier}x - ${seasonalNote}`);
 
   // 4. GET COMPLEXITY FACTORS
-  const complexityResult = await pool.query(
-    'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true',
-    [trade]
-  );
 
-  // 3. GET COMPLEXITY FACTORS FROM DATABASE
-let complexityFactors = [];
-
-try {
-  const complexityResult = await pool.query(
-    'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true ORDER BY factor_key',
-    [trade]
-  );
-  complexityFactors = complexityResult.rows;
-  console.log(`🔍 Found ${complexityFactors.length} complexity factors for ${trade}`);
-  console.log('📊 COMPLEXITY FACTORS DATA:', JSON.stringify(complexityFactors, null, 2));
-} catch (err) {
-  console.log(`⚠️  Complexity factors query failed:`, err.message);
-}
+const complexityResult = await pool.query(
+  'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true',
+  [trade]
+);
   
-console.log(`🔍 Found ${complexityResult.rows.length} complexity factors for ${trade}`);
-console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, null, 2));
-  console.log(`🔍 Found ${complexityResult.rows.length} complexity factors for ${trade}`);
-
   //ROOFING
   switch(trade) {
   case 'roofing': {
@@ -574,19 +556,20 @@ console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, nu
   const skylights = parseInt(data.skylights) || 0;
   const ridgeVentFeet = parseFloat(data.ridgeVentFeet) || 0;
   
-  // MATERIAL COST
-  materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
+  console.log(`📐 Roofing calc: ${sqft}sqft, ${pitch}/12 pitch, ${stories} stories`);
   
-  // COMPLEXITY MULTIPLIER
-    // COMPLEXITY MULTIPLIER
- /* let complexityMultiplier = 1.0;
-  console.log('🎯 Starting complexity: 1.0');
+  // MATERIAL COST (no complexity applied to materials)
+  materialCost = sqft * materialCostPerSqFt * regionalMultiplier;
+  console.log(`🧱 Materials: ${sqft} × $${materialCostPerSqFt} × ${regionalMultiplier} = $${materialCost.toFixed(2)}`);
+  
+  // COMPLEXITY MULTIPLIER (only applies to labor)
+  let complexityMultiplier = 1.0;
   
   if (pitch >= 9) {
     const steepFactor = complexityResult.rows.find(f => f.factor_key === 'steep_pitch');
     if (steepFactor) {
       complexityMultiplier *= parseFloat(steepFactor.multiplier);
-      console.log(`⛰️  Steep pitch applied: ${steepFactor.multiplier}x → total now ${complexityMultiplier}`);
+      console.log(`⛰️  Steep pitch: ${steepFactor.multiplier}x`);
     }
   }
   
@@ -594,57 +577,29 @@ console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, nu
     const storyFactor = complexityResult.rows.find(f => f.factor_key === 'multi_story');
     if (storyFactor) {
       complexityMultiplier *= parseFloat(storyFactor.multiplier);
-      console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x → total now ${complexityMultiplier}`);
+      console.log(`🏢 Multi-story: ${storyFactor.multiplier}x`);
     }
   }
-
-  console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}`);
-    */
-// Apply complexity multipliers from database
-let complexityMultiplier = 1.0;
-console.log('🎯 Starting complexity multiplier: 1.0');
-
-complexityFactors.forEach(factor => {
-  if (factor.factor_type === 'multiplier') {
-    let shouldApply = false;
-    
-    if (factor.factor_key === 'steep_pitch' && pitch >= 9) shouldApply = true;
-    if (factor.factor_key === 'multi_story' && stories >= 2) shouldApply = true;
-    
-    if (shouldApply) {
-      const factorValue = parseFloat(factor.multiplier);
-      complexityMultiplier *= factorValue;
-      console.log(`   ✓ Applied: ${factor.factor_label} (${factorValue}x) → running total: ${complexityMultiplier}x`);
-    }
-  }
-});
-
-console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}x`);
-    
-  // LABOR COST
-  // Base hours: 0.06 hrs/sqft for flat roof
-let baseHoursPerSqft = 0.06;
-
-// Pitch adjustment (additive, not multiplicative)
-if (pitch >= 9) baseHoursPerSqft += 0.02;  // steep pitch adds time
-else if (pitch >= 6) baseHoursPerSqft += 0.01;  // moderate pitch
-
-// Calculate labor hours
-const laborHours = sqft * baseHoursPerSqft * complexityMultiplier;
-    console.log(`🔧 LABOR DEBUG: sqft=${sqft}, baseHrs=${baseHoursPerSqft}, complexity=${complexityMultiplier}, total=${laborHours}`);
-    
   
-  // TEAR-OFF COST (varies by existing roof type)
-  const tearOffRates = {
-    'asphalt': 0.50,
-    'tile': 0.85,
-    'metal': 0.65,
-    'wood_shake': 0.75
-  };
+  console.log(`✅ Complexity total: ${complexityMultiplier}x`);
+  
+  // LABOR CALCULATION
+  let baseHoursPerSqft = 0.06;
+  if (pitch >= 9) baseHoursPerSqft += 0.02;
+  else if (pitch >= 6) baseHoursPerSqft += 0.01;
+  
+  const laborHours = sqft * baseHoursPerSqft * complexityMultiplier;
+  laborCost = laborHours * adjustedLaborRate * seasonalMultiplier;
+  
+  console.log(`👷 Labor: ${sqft} × ${baseHoursPerSqft} × ${complexityMultiplier} = ${laborHours.toFixed(1)} hrs`);
+  console.log(`💵 Labor cost: ${laborHours.toFixed(1)} × $${adjustedLaborRate.toFixed(2)} × ${seasonalMultiplier} = $${laborCost.toFixed(2)}`);
+  
+  // TEAR-OFF COST
+  const tearOffRates = { 'asphalt': 0.50, 'tile': 0.85, 'metal': 0.65, 'wood_shake': 0.75 };
   const tearOffRate = tearOffRates[existingRoofType] || 0.50;
   const tearOffCost = layers * sqft * tearOffRate * regionalMultiplier;
   
-  // PLYWOOD DECKING REPLACEMENT
+  // PLYWOOD DECKING
   const plywoodCost = needsPlywood && plywoodSqft > 0 
     ? plywoodSqft * 3.50 * regionalMultiplier 
     : 0;
