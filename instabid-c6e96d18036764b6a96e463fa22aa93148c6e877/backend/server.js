@@ -534,7 +534,9 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
     'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true',
     [trade]
   );
-
+  
+console.log(`🔍 Found ${complexityResult.rows.length} complexity factors for ${trade}`);
+console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, null, 2));
   console.log(`🔍 Found ${complexityResult.rows.length} complexity factors for ${trade}`);
 
   //ROOFING
@@ -562,6 +564,9 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   
   // COMPLEXITY MULTIPLIER
   let complexityMultiplier = 1.0;
+    // COMPLEXITY MULTIPLIER
+
+console.log('🎯 Starting complexity: 1.0');
   
   if (pitch >= 9) {
     const steepFactor = complexityResult.rows.find(f => f.factor_key === 'steep_pitch');
@@ -578,6 +583,12 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x`);
     }
   }
+
+    console.log(`🏢 Multi-story applied: ${storyFactor.multiplier}x → total now ${complexityMultiplier}`);
+  }
+}
+
+console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}`);
   
   // LABOR COST
   // Base hours: 0.06 hrs/sqft for flat roof
