@@ -534,6 +534,21 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
     'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true',
     [trade]
   );
+
+  // 3. GET COMPLEXITY FACTORS FROM DATABASE
+let complexityFactors = [];
+
+try {
+  const complexityResult = await pool.query(
+    'SELECT * FROM complexity_factors WHERE trade = $1 AND is_active = true ORDER BY factor_key',
+    [trade]
+  );
+  complexityFactors = complexityResult.rows;
+  console.log(`🔍 Found ${complexityFactors.length} complexity factors for ${trade}`);
+  console.log('📊 COMPLEXITY FACTORS DATA:', JSON.stringify(complexityFactors, null, 2));
+} catch (err) {
+  console.log(`⚠️  Complexity factors query failed:`, err.message);
+}
   
 console.log(`🔍 Found ${complexityResult.rows.length} complexity factors for ${trade}`);
 console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, null, 2));
@@ -564,7 +579,7 @@ console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, nu
   
   // COMPLEXITY MULTIPLIER
     // COMPLEXITY MULTIPLIER
-  let complexityMultiplier = 1.0;
+ /* let complexityMultiplier = 1.0;
   console.log('🎯 Starting complexity: 1.0');
   
   if (pitch >= 9) {
@@ -584,6 +599,27 @@ console.log('📊 COMPLEXITY FACTORS:', JSON.stringify(complexityResult.rows, nu
   }
 
   console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}`);
+    */
+// Apply complexity multipliers from database
+let complexityMultiplier = 1.0;
+console.log('🎯 Starting complexity multiplier: 1.0');
+
+complexityFactors.forEach(factor => {
+  if (factor.factor_type === 'multiplier') {
+    let shouldApply = false;
+    
+    if (factor.factor_key === 'steep_pitch' && pitch >= 9) shouldApply = true;
+    if (factor.factor_key === 'multi_story' && stories >= 2) shouldApply = true;
+    
+    if (shouldApply) {
+      const factorValue = parseFloat(factor.multiplier);
+      complexityMultiplier *= factorValue;
+      console.log(`   ✓ Applied: ${factor.factor_label} (${factorValue}x) → running total: ${complexityMultiplier}x`);
+    }
+  }
+});
+
+console.log(`✅ FINAL complexity multiplier: ${complexityMultiplier}x`);
     
   // LABOR COST
   // Base hours: 0.06 hrs/sqft for flat roof
