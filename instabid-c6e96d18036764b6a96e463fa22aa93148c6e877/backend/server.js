@@ -619,7 +619,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       let plumbMaterialCost = 0;
       
       if (serviceType === 'repipe') {
-        plumbMaterialCost = sqft * 3 * regionalMultiplier;
+        plumbMaterialCost = sqft * 5.5 * regionalMultiplier;
         plumbLaborHours = sqft * LABOR_HOURS_PER_SQFT['plumbing'];
         lineItems.push({ 
           description: `Whole House Repipe (${sqft} sqft)`, 
