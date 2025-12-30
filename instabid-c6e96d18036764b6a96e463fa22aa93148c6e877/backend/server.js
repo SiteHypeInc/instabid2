@@ -537,7 +537,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
     console.log('✅ Emails sent successfully');
 
     // 7. Return response
-    res.json({
+   /* res.json({
       success: true,
       estimateId,
       estimate: {
@@ -548,7 +548,31 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
         laborHours: estimate.laborHours,
         laborRate: estimate.laborRate
       }
-    });
+    });*/
+    // 7. Return response
+res.json({
+  success: true,
+  estimateId,
+  lineItems: [
+    { description: 'Labor', amount: estimate.laborCost },
+    { description: 'Materials', amount: estimate.materialCost },
+    { description: 'Equipment', amount: estimate.equipmentCost || 0 }
+  ],
+  subtotal: estimate.totalCost,
+  tax: estimate.totalCost * 0.0825,
+  total: estimate.totalCost * 1.0825,
+  msa: finalCity + ', ' + finalState,
+  timeline: Math.ceil(estimate.laborHours / 8) + ' days',
+  // Keep old format for compatibility
+  estimate: {
+    totalCost: estimate.totalCost,
+    laborCost: estimate.laborCost,
+    materialCost: estimate.materialCost,
+    equipmentCost: estimate.equipmentCost || 0,
+    laborHours: estimate.laborHours,
+    laborRate: estimate.laborRate
+  }
+});
 
   } catch (error) {
     console.error('❌ Estimate submission error:', error);
