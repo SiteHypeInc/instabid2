@@ -411,8 +411,9 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
 // ========== END NEW: EMAIL SENDING ==========
 
 // ========== NEW: MAIN ESTIMATE SUBMISSION ENDPOINT ==========
-app.post('/api/estimate', async (req, res) => {
-  console.log('🔵 NEW ESTIMATE REQUEST RECEIVED');
+
+  app.post('/api/estimate', async (req, res) => {
+  console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
   
   try {
     // 1. Extract and normalize field names
