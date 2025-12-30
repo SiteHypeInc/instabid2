@@ -33,7 +33,7 @@ const transporter = nodemailer.createTransport(sgTransport({
 
 // Initialize database tables
 
-async function initDatabase() {
+/*async function initDatabase() {
   try {
     await pool.query(`DROP TABLE IF EXISTS estimates`);
     
@@ -58,6 +58,63 @@ async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    console.log('✅ Database tables initialized');
+  } catch (error) {
+    console.error('❌ Database initialization error:', error);
+  }
+}*/
+async function initDatabase() {
+  try {
+    // Create labor_rates table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS labor_rates (
+        id SERIAL PRIMARY KEY,
+        state VARCHAR(2) NOT NULL,
+        zip_code VARCHAR(10),
+        msa_name VARCHAR(255),
+        hourly_rate DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Insert baseline rates if empty
+    const rateCheck = await pool.query('SELECT COUNT(*) FROM labor_rates');
+    if (parseInt(rateCheck.rows[0].count) === 0) {
+      await pool.query(`
+        INSERT INTO labor_rates (state, zip_code, hourly_rate) VALUES
+        ('WA', '98407', 65.00),
+        ('WA', NULL, 58.00),
+        ('CA', NULL, 75.00),
+        ('TX', NULL, 52.00),
+        ('NY', NULL, 72.00)
+      `);
+    }
+
+    // Drop and recreate estimates table
+    await pool.query(`DROP TABLE IF EXISTS estimates`);
+    
+    await pool.query(`
+      CREATE TABLE estimates (
+        id SERIAL PRIMARY KEY,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_email VARCHAR(255) NOT NULL,
+        customer_phone VARCHAR(50),
+        property_address TEXT NOT NULL,
+        city VARCHAR(100) NOT NULL,
+        state VARCHAR(2) NOT NULL,
+        zip_code VARCHAR(10) NOT NULL,
+        trade VARCHAR(50) NOT NULL,
+        trade_details JSONB,
+        labor_hours DECIMAL(10,2),
+        labor_rate DECIMAL(10,2),
+        labor_cost DECIMAL(10,2),
+        material_cost DECIMAL(10,2),
+        equipment_cost DECIMAL(10,2),
+        total_cost DECIMAL(10,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     console.log('✅ Database tables initialized');
   } catch (error) {
     console.error('❌ Database initialization error:', error);
@@ -115,7 +172,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
 
   switch(trade.toLowerCase()) {
     case 'roofing':
-      const roofArea = parseFloat(data.roofArea) || 0;
+      const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
       const roofComplexity = data.roofComplexity || 'medium';
       const roofPitch = data.roofPitch || 'medium';
       const stories = parseInt(data.stories) || 1;
