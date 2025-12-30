@@ -344,7 +344,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
 
   // Email to customer
   const customerMailOptions = {
-    from: process.env.FROM_EMAIL || 'estimates@instabid.com',
+    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
     to: estimateData.customerEmail,
     subject: `Your ${tradeName} Estimate`,
     html: `
@@ -374,7 +374,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
 
   // Email to contractor
   const contractorMailOptions = {
-    from: process.env.FROM_EMAIL || 'estimates@instabid.com',
+    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
     to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
     subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
     html: `
