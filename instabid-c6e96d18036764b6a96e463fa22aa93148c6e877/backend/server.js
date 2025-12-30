@@ -502,7 +502,7 @@ const values = [
       RETURNING id
     `;
 
-    const values = [
+   /* const values = [
       customerName,
       customerEmail,
       customerPhone || '',
@@ -518,7 +518,7 @@ const values = [
       estimate.materialCost,
       estimate.equipmentCost || 0,
       estimate.totalCost
-    ];
+    ];*/
 
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
