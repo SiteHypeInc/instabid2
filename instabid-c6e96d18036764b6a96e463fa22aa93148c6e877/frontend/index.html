@@ -1064,7 +1064,7 @@ document.getElementById('emailBtn').addEventListener('click', function() {
   
   var self = this;
   
-  fetch('https://roofbid-backend-production.up.railway.app/api/send-estimate-email', {
+  fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(currentEstimateData)
