@@ -415,7 +415,7 @@ app.post('/api/estimate', async (req, res) => {
   console.log('🔵 NEW ESTIMATE REQUEST RECEIVED');
   
   try {
-    const {
+    /*const {
       customerName,
       customerEmail,
       customerPhone,
@@ -425,7 +425,54 @@ app.post('/api/estimate', async (req, res) => {
       zipCode,
       trade,
       ...tradeSpecificFields
-    } = req.body;
+    } = req.body;*/
+    const {
+  customerName,
+  customer_name,
+  customerEmail,
+  customer_email,
+  customerPhone,
+  customer_phone,
+  propertyAddress,
+  address,
+  city,
+  state,
+  zipCode,
+  zip,
+  trade,
+  ...tradeSpecificFields
+} = req.body;
+
+// Use whichever field name was sent
+const finalCustomerName = customerName || customer_name || req.body.name;
+const finalCustomerEmail = customerEmail || customer_email || req.body.email;
+const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
+const finalPropertyAddress = propertyAddress || address || '';
+const finalZipCode = zipCode || zip || '';
+
+console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
+console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
+
+Then change const values = [...] to use the final* variables:
+
+
+const values = [
+  finalCustomerName,
+  finalCustomerEmail,
+  finalCustomerPhone,
+  finalPropertyAddress,
+  city,
+  state,
+  finalZipCode,
+  trade,
+  JSON.stringify(tradeSpecificFields),
+  estimate.laborHours,
+  estimate.laborRate,
+  estimate.laborCost,
+  estimate.materialCost,
+  estimate.equipmentCost || 0,
+  estimate.totalCost
+];
 
     console.log(`📋 Customer: ${customerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${zipCode}`);
