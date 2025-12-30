@@ -415,81 +415,50 @@ app.post('/api/estimate', async (req, res) => {
   console.log('🔵 NEW ESTIMATE REQUEST RECEIVED');
   
   try {
-    /*const {
+    // 1. Extract and normalize field names
+    const {
       customerName,
+      customer_name,
       customerEmail,
+      customer_email,
       customerPhone,
+      customer_phone,
       propertyAddress,
+      address,
       city,
       state,
       zipCode,
+      zip,
       trade,
       ...tradeSpecificFields
-    } = req.body;*/
-    const {
-  customerName,
-  customer_name,
-  customerEmail,
-  customer_email,
-  customerPhone,
-  customer_phone,
-  propertyAddress,
-  address,
-  city,
-  state,
-  zipCode,
-  zip,
-  trade,
-  ...tradeSpecificFields
-} = req.body;
+    } = req.body;
 
-// Use whichever field name was sent
-const finalCustomerName = customerName || customer_name || req.body.name;
-const finalCustomerEmail = customerEmail || customer_email || req.body.email;
-const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
-const finalPropertyAddress = propertyAddress || address || '';
-const finalZipCode = zipCode || zip || '';
+    // Use whichever field name was sent
+    const finalCustomerName = customerName || customer_name || req.body.name;
+    const finalCustomerEmail = customerEmail || customer_email || req.body.email;
+    const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
+    const finalPropertyAddress = propertyAddress || address || '';
+    const finalZipCode = zipCode || zip || '';
 
-console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
-console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
+    console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
+    console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
 
-const values = [
-  finalCustomerName,
-  finalCustomerEmail,
-  finalCustomerPhone,
-  finalPropertyAddress,
-  city,
-  state,
-  finalZipCode,
-  trade,
-  JSON.stringify(tradeSpecificFields),
-  estimate.laborHours,
-  estimate.laborRate,
-  estimate.laborCost,
-  estimate.materialCost,
-  estimate.equipmentCost || 0,
-  estimate.totalCost
-];
-
-    console.log(`📋 Customer: ${customerName}, Trade: ${trade}`);
-    console.log(`📍 Location: ${city}, ${state} ${zipCode}`);
-
-    // Get labor rate for location
-    const hourlyRate = await getHourlyRate(state, zipCode);
+    // 2. Get labor rate for location
+    const hourlyRate = await getHourlyRate(state, finalZipCode);
     console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
     
-    // Calculate estimate using your existing function
+    // 3. Calculate estimate using your existing function
     const estimate = await calculateTradeEstimate(
       trade,
       tradeSpecificFields,
       hourlyRate,
       state,
-      zipCode
+      finalZipCode
     );
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
 
-    // Save to database
+    // 4. Save to database
     const insertQuery = `
       INSERT INTO estimates (
         customer_name, customer_email, customer_phone,
@@ -502,14 +471,14 @@ const values = [
       RETURNING id
     `;
 
-   /* const values = [
-      customerName,
-      customerEmail,
-      customerPhone || '',
-      propertyAddress,
+    const values = [
+      finalCustomerName,
+      finalCustomerEmail,
+      finalCustomerPhone,
+      finalPropertyAddress,
       city,
       state,
-      zipCode,
+      finalZipCode,
       trade,
       JSON.stringify(tradeSpecificFields),
       estimate.laborHours,
@@ -518,23 +487,23 @@ const values = [
       estimate.materialCost,
       estimate.equipmentCost || 0,
       estimate.totalCost
-    ];*/
+    ];
 
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
 
     console.log(`✅ Estimate #${estimateId} saved to database`);
 
-    // Generate PDF
+    // 5. Generate PDF
     const pdfBuffer = await generateEstimatePDF({
       id: estimateId,
-      customerName,
-      customerEmail,
-      customerPhone,
-      propertyAddress,
+      customerName: finalCustomerName,
+      customerEmail: finalCustomerEmail,
+      customerPhone: finalCustomerPhone,
+      propertyAddress: finalPropertyAddress,
       city,
       state,
-      zipCode,
+      zipCode: finalZipCode,
       trade,
       tradeDetails: tradeSpecificFields,
       laborHours: estimate.laborHours,
@@ -547,17 +516,17 @@ const values = [
 
     console.log(`📄 PDF generated for estimate #${estimateId}`);
 
-    // Send emails (customer + contractor)
+    // 6. Send emails (customer + contractor)
     await sendEstimateEmails(
       {
         id: estimateId,
-        customerName,
-        customerEmail,
-        customerPhone,
-        propertyAddress,
+        customerName: finalCustomerName,
+        customerEmail: finalCustomerEmail,
+        customerPhone: finalCustomerPhone,
+        propertyAddress: finalPropertyAddress,
         city,
         state,
-        zipCode,
+        zipCode: finalZipCode,
         trade,
         ...estimate
       },
@@ -566,7 +535,7 @@ const values = [
 
     console.log('✅ Emails sent successfully');
 
-    // Return response
+    // 7. Return response
     res.json({
       success: true,
       estimateId,
@@ -588,9 +557,4 @@ const values = [
     });
   }
 });
-// ========== END NEW: MAIN ESTIMATE ENDPOINT ==========
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
