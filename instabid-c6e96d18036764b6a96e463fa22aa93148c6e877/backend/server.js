@@ -375,7 +375,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
   // Email to contractor
   const contractorMailOptions = {
     from: process.env.FROM_EMAIL || 'estimates@instabid.com',
-    to: process.env.CONTRACTOR_EMAIL || 'john@sitehype.com',
+    to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
     subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
     html: `
       <h2>🔔 New Estimate Request</h2>
