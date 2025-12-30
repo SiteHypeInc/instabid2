@@ -9,6 +9,16 @@ const sgTransport = require('nodemailer-sendgrid-transport');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const fs = require('fs');
 const path = require('path');
+// EMAIL & PDF SETUP
+
+
+// Configure SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('✅ SendGrid configured');
+} else {
+  console.warn('⚠️  SENDGRID_API_KEY not found - emails will not send');
+}
 
 const BLS_API_URL = 'https://api.bls.gov/publicAPI/v2/timeseries/data/';
 const NATIONAL_AVERAGE_WAGE = 33.50;
