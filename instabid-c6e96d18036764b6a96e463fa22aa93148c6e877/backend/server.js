@@ -453,9 +453,6 @@ const finalZipCode = zipCode || zip || '';
 console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
 console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
 
-Then change const values = [...] to use the final* variables:
-
-
 const values = [
   finalCustomerName,
   finalCustomerEmail,
