@@ -96,24 +96,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const tradeData = formBuilder.collectFormData();
         
         // Collect client info
-        /*const clientData = {
+        const clientData = {
             companyName: document.getElementById('companyName').value,
             clientName: document.getElementById('clientName').value,
             clientEmail: document.getElementById('clientEmail').value,
             clientPhone: document.getElementById('clientPhone').value,
             address: document.getElementById('address').value,
             state: document.getElementById('state').value
-        };*/
-        const clientData = {
-    customer_name: document.getElementById('clientName').value,
-    customer_email: document.getElementById('clientEmail').value,
-    customer_phone: document.getElementById('clientPhone').value,
-    address: document.getElementById('address').value,
-    city: '', // Add if you have a city field
-    state: document.getElementById('state').value,
-    zip: '', // Add if you have a zip field
-    trade: tradeData.trade // Make sure trade is included
-};
+        };
+   
         
         // Merge data
         const requestData = { ...tradeData, ...clientData };
