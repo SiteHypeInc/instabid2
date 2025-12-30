@@ -31,10 +31,13 @@ const transporter = nodemailer.createTransport(sgTransport({
 }));
 
 // Initialize database tables
+
 async function initDatabase() {
   try {
+    await pool.query(`DROP TABLE IF EXISTS estimates`);
+    
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS estimates (
+      CREATE TABLE estimates (
         id SERIAL PRIMARY KEY,
         customer_name VARCHAR(255) NOT NULL,
         customer_email VARCHAR(255) NOT NULL,
