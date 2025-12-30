@@ -440,6 +440,9 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
     const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
     const finalPropertyAddress = propertyAddress || address || '';
     const finalZipCode = zipCode || zip || '';
+    const finalCity = req.body.city || 'Unknown';
+    const finalState = req.body.state || 'Unknown';
+    const finalZip = req.body.zip || '';
 
     console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
