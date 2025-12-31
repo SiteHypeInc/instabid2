@@ -400,7 +400,7 @@ async function generateEstimatePDF(estimateData) {
 // ========== END NEW: PDF GENERATION ==========
 
 // ========== NEW: EMAIL SENDING FUNCTION ==========
-async function sendEstimateEmails(estimateData, pdfBuffer) {
+/*async function sendEstimateEmails(estimateData, pdfBuffer) {
   const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
 
   // Email to customer
@@ -464,7 +464,92 @@ async function sendEstimateEmails(estimateData, pdfBuffer) {
   
   await transporter.sendMail(contractorMailOptions);
   console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
+} */
+
+async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
+  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+
+  // Email to customer
+  const customerMailOptions = {
+    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
+    to: estimateData.customerEmail,
+    subject: `Your ${tradeName} Estimate & Contract`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Your Estimate is Ready!</h1>
+        </div>
+        <div style="padding: 20px; background: #f9fafb;">
+          <p>Hi ${estimateData.customerName},</p>
+          <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
+          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
+              Total Estimate: $${estimateData.totalCost.toLocaleString()}
+            </p>
+          </div>
+          <p><strong>Two documents are attached:</strong></p>
+          <ul>
+            <li>Detailed Estimate (PDF)</li>
+            <li>Service Contract (PDF)</li>
+          </ul>
+          <p>Please review both documents. To proceed, sign and return the contract with your 50% deposit.</p>
+          <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
+        </div>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `estimate-${estimateData.id}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      },
+      {
+        filename: `contract-${estimateData.id}.pdf`,
+        content: contractBuffer,
+        contentType: 'application/pdf'
+      }
+    ]
+  };
+
+  // Email to contractor (same changes)
+  const contractorMailOptions = {
+    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
+    to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
+    subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
+    html: `
+      <h2>🔔 New Estimate Request</h2>
+      <p><strong>Customer:</strong> ${estimateData.customerName}</p>
+      <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
+      <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
+      <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
+      <hr>
+      <p><strong>Service:</strong> ${tradeName}</p>
+      <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
+      <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
+      <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
+      <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
+    `,
+    attachments: [
+      {
+        filename: `estimate-${estimateData.id}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      },
+      {
+        filename: `contract-${estimateData.id}.pdf`,
+        content: contractBuffer,
+        contentType: 'application/pdf'
+      }
+    ]
+  };
+
+  await transporter.sendMail(customerMailOptions);
+  console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
+  
+  await transporter.sendMail(contractorMailOptions);
+  console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
 }
+
 // ========== END NEW: EMAIL SENDING ==========
 
 // ========== NEW: MAIN ESTIMATE SUBMISSION ENDPOINT ==========
