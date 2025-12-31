@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InstaBid - Contractor Dashboard</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f5f5f5;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px;
+  border-radius: 12px 12px 0 0;
+}
+
+.header h1 {
+  font-size: 2em;
+  margin-bottom: 5px;
+}
+
+.header p {
+  opacity: 0.9;
+  font-size: 1.1em;
+}
+
+.nav-tabs {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+  padding: 0 20px;
+}
+
+.nav-tab {
+  padding: 15px 25px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: 1em;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.nav-tab:hover {
+  color: #667eea;
+}
+
+.nav-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.content {
+  padding: 30px;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.section-title {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #667eea;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.config-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+.config-card h3 {
+  font-size: 1.2em;
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.config-item:last-child {
+  border-bottom: none;
+}
+
+.config-item label {
+  font-weight: 600;
+  color: #333;
+}
+
+.config-item input {
+  width: 120px;
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.config-item input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.btn-save:hover {
+  opacity: 0.9;
+}
+
+.status-message {
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+  display: none;
+}
+
+.status-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.status-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>⚙️ InstaBid Dashboard</h1>
+    <p>Configure regional multipliers, labor rates, and complexity factors</p>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="roofing">Roofing</button>
+    <button class="nav-tab" data-tab="hvac">HVAC</button>
+    <button class="nav-tab" data-tab="electrical">Electrical</button>
+    <button class="nav-tab" data-tab="plumbing">Plumbing</button>
+    <button class="nav-tab" data-tab="flooring">Flooring</button>
+    <button class="nav-tab" data-tab="painting">Painting</button>
+    <button class="nav-tab" data-tab="regional">Regional</button>
+  </div>
+
+  <div class="content">
+    <!-- ROOFING TAB -->
+    <div class="tab-content active" id="roofing">
+      <h2 class="section-title">Roofing Configuration</h2>
+      
+      <div class="config-grid">
+        <div class="config-card">
+          <h3>Pitch Multipliers</h3>
+          <div class="config-item">
+            <label>3/12 - 4/12:</label>
+            <input type="number" step="0.1" id="pitch_low" value="1.0">
+          </div>
+          <div class="config-item">
+            <label>5/12 - 6/12:</label>
+            <input type="number" step="0.1" id="pitch_med" value="1.2">
+          </div>
+          <div class="config-item">
+            <label>7/12 - 9/12:</label>
+            <input type="number" step="0.1" id="pitch_high" value="1.4">
+          </div>
+          <div class="config-item">
+            <label>10/12+:</label>
+            <input type="number" step="0.1" id="pitch_steep" value="1.8">
+          </div>
+        </div>
+
+        <div class="config-card">
+          <h3>Story Multipliers</h3>
+          <div class="config-item">
+            <label>1 Story:</label>
+            <input type="number" step="0.1" id="story_1" value="1.0">
+          </div>
+          <div class="config-item">
+            <label>2 Story:</label>
+            <input type="number" step="0.1" id="story_2" value="1.3">
+          </div>
+          <div class="config-item">
+            <label>3+ Story:</label>
+            <input type="number" step="0.1" id="story_3" value="1.6">
+          </div>
+        </div>
+
+        <div class="config-card">
+          <h3>Material Costs (per sqft)</h3>
+          <div class="config-item">
+            <label>Asphalt Shingles:</label>
+            <input type="number" step="0.1" id="mat_asphalt" value="2.5">
+          </div>
+          <div class="config-item">
+            <label>Architectural:</label>
+            <input type="number" step="0.1" id="mat_arch" value="3.5">
+          </div>
+          <div class="config-item">
+            <label>Metal:</label>
+            <input type="number" step="0.1" id="mat_metal" value="5.0">
+          </div>
+          <div class="config-item">
+            <label>Tile:</label>
+            <input type="number" step="0.1" id="mat_tile" value="7.0">
+          </div>
+        </div>
+
+        <div class="config-card">
+          <h3>Fixed Costs</h3>
+          <div class="config-item">
+            <label>Tear-Off (per layer):</label>
+            <input type="number" step="50" id="tearoff_cost" value="1500">
+          </div>
+          <div class="config-item">
+            <label>Chimney Flashing:</label>
+            <input type="number" step="50" id="chimney_cost" value="400">
+          </div>
+          <div class="config-item">
+            <label>Skylight:</label>
+            <input type="number" step="50" id="skylight_cost" value="300">
+          </div>
+          <div class="config-item">
+            <label>Ridge Vent (per ft):</label>
+            <input type="number" step="1" id="ridge_cost" value="10">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="saveConfig('roofing')">💾 Save Roofing Config</button>
+      <div class="status-message" id="roofing-status"></div>
+    </div>
+
+    <!-- REGIONAL TAB -->
+    <div class="tab-content" id="regional">
+      <h2 class="section-title">Regional Cost Multipliers</h2>
+      
+      <div class="config-grid">
+        <div class="config-card">
+          <h3>High-Cost Markets</h3>
+          <div class="config-item">
+            <label>California:</label>
+            <input type="number" step="0.05" id="region_CA" value="1.35">
+          </div>
+          <div class="config-item">
+            <label>New York:</label>
+            <input type="number" step="0.05" id="region_NY" value="1.30">
+          </div>
+          <div class="config-item">
+            <label>Massachusetts:</label>
+            <input type="number" step="0.05" id="region_MA" value="1.25">
+          </div>
+        </div>
+
+        <div class="config-card">
+          <h3>Medium-Cost Markets</h3>
+          <div class="config-item">
+            <label>Washington:</label>
+            <input type="number" step="0.05" id="region_WA" value="1.15">
+          </div>
+          <div class="config-item">
+            <label>Oregon:</label>
+            <input type="number" step="0.05" id="region_OR" value="1.10">
+          </div>
+          <div class="config-item">
+            <label>Colorado:</label>
+            <input type="number" step="0.05" id="region_CO" value="1.10">
+          </div>
+        </div>
+
+        <div class="config-card">
+          <h3>Low-Cost Markets</h3>
+          <div class="config-item">
+            <label>Texas:</label>
+            <input type="number" step="0.05" id="region_TX" value="0.95">
+          </div>
+          <div class="config-item">
+            <label>Florida:</label>
+            <input type="number" step="0.05" id="region_FL" value="0.95">
+          </div>
+          <div class="config-item">
+            <label>Georgia:</label>
+            <input type="number" step="0.05" id="region_GA" value="0.90">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="saveConfig('regional')">💾 Save Regional Config</button>
+      <div class="status-message" id="regional-status"></div>
+    </div>
+
+    <!-- Other trade tabs would follow similar pattern -->
+  </div>
+</div>
+
+<script>
+const API_BASE = '[https://roofbid-backend-production.up.railway.app](https://roofbid-backend-production.up.railway.app)';
+
+// Tab switching
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    this.classList.add('active');
+    document.getElementById(this.dataset.tab).classList.add('active');
+  });
+});
+
+// Load config on page load
+window.addEventListener('load', function() {
+  loadConfig('roofing');
+  loadConfig('regional');
+});
+
+function loadConfig(section) {
+  fetch(`${API_BASE}/api/config/${section}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        Object.keys(data.config).forEach(key => {
+          const input = document.getElementById(key);
+          if (input) input.value = data.config[key];
+        });
+      }
+    })
+    .catch(err => console.error('Load error:', err));
+}
+
+function saveConfig(section) {
+  const inputs = document.querySelectorAll(`#${section} input`);
+  const config = {};
+  
+  inputs.forEach(input => {
+    config[input.id] = parseFloat(input.value);
+  });
+  
+  const statusDiv = document.getElementById(`${section}-status`);
+  statusDiv.textContent = '⏳ Saving...';
+  statusDiv.className = 'status-message';
+  statusDiv.style.display = 'block';
+  
+  fetch(`${API_BASE}/api/config/${section}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ config })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      statusDiv.textContent = '✅ Configuration saved successfully!';
+      statusDiv.className = 'status-message success';
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+    } else {
+      throw new Error(data.error);
+    }
+  })
+  .catch(err => {
+    statusDiv.textContent = '❌ Error: ' + err.message;
+    statusDiv.className = 'status-message error';
+  });
+}
+</script>
+
+</body>
+</html>
