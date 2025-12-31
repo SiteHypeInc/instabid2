@@ -1253,7 +1253,7 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   
   console.log('📝 Sending contract request:', payload);
   
-  fetch('[https://roofbid-backend-production.up.railway.app/api/generate-contract',](https://roofbid-backend-production.up.railway.app/api/generate-contract',) {
+  fetch('https://roofbid-backend-production.up.railway.app/api/generate-contract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
