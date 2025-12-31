@@ -1057,7 +1057,7 @@ function initMap() {
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ Calculating...';
   
-  fetch('[https://roofbid-backend-production.up.railway.app/api/estimate',](https://roofbid-backend-production.up.railway.app/api/estimate',) {
+  fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
