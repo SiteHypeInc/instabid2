@@ -1210,7 +1210,7 @@ document.getElementById('emailBtn').addEventListener('click', function() {
   payload.trade = selectedTrade;
   payload.photos = uploadedPhotos;
   
-  fetch('https://roofbid-backend-production.up.railway.app/api/generate-contract', {
+  fetch('https://instabid-backend-production.up.railway.app/api/generate-contract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
