@@ -642,6 +642,51 @@ res.json({
     });
   }
 });
+
+// Standalone PDF generation endpoint (for manual download)
+app.post('/api/generate-pdf', async (req, res) => {
+  try {
+    const data = req.body;
+    
+    // Get labor rate
+    const hourlyRate = await getHourlyRate(data.state, data.zip);
+    
+    // Calculate estimate
+    const estimate = await calculateTradeEstimate(
+      data.trade,
+      data,
+      hourlyRate,
+      data.state,
+      data.zip
+    );
+    
+    // Generate PDF
+    const pdfBuffer = await generateEstimatePDF({
+      id: 'DRAFT',
+      customerName: data.name,
+      customerEmail: data.email,
+      customerPhone: data.phone || '',
+      propertyAddress: data.address,
+      city: data.city,
+      state: data.state,
+      zipCode: data.zip,
+      trade: data.trade,
+      tradeDetails: data,
+      ...estimate
+    });
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="estimate-${data.name.replace(/\s+/g, '-')}.pdf"`);
+    res.send(pdfBuffer);
+    
+    console.log(`📄 PDF downloaded by ${data.name}`);
+    
+  } catch (error) {
+    console.error('❌ PDF generation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
