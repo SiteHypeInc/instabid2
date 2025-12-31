@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-/*const cors = require('cors');*/
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
@@ -8,28 +7,6 @@ const PDFDocument = require('pdfkit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Middleware
-/*app.use(cors({
-  origin: ['https://instabid.info', 'http://instabid.info', 'https://www.instabid.info'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-app.options('*', cors());
-// Additional CORS headers for Railway deployment
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});*/
 
 // Middleware - PERMISSIVE CORS FOR NOW
 app.use((req, res, next) => {
@@ -65,37 +42,6 @@ const transporter = nodemailer.createTransport(sgTransport({
 }));
 
 // Initialize database tables
-
-/*async function initDatabase() {
-  try {
-    await pool.query(`DROP TABLE IF EXISTS estimates`);
-    
-    await pool.query(`
-      CREATE TABLE estimates (
-        id SERIAL PRIMARY KEY,
-        customer_name VARCHAR(255) NOT NULL,
-        customer_email VARCHAR(255) NOT NULL,
-        customer_phone VARCHAR(50),
-        property_address TEXT NOT NULL,
-        city VARCHAR(100) NOT NULL,
-        state VARCHAR(2) NOT NULL,
-        zip_code VARCHAR(10) NOT NULL,
-        trade VARCHAR(50) NOT NULL,
-        trade_details JSONB,
-        labor_hours DECIMAL(10,2),
-        labor_rate DECIMAL(10,2),
-        labor_cost DECIMAL(10,2),
-        material_cost DECIMAL(10,2),
-        equipment_cost DECIMAL(10,2),
-        total_cost DECIMAL(10,2),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('✅ Database tables initialized');
-  } catch (error) {
-    console.error('❌ Database initialization error:', error);
-  }
-}*/
 async function initDatabase() {
   try {
     // Create labor_rates table
@@ -193,7 +139,7 @@ async function getHourlyRate(state, zipCode) {
   }
 }
 
-// ========== TRADE CALCULATION FUNCTION (YOUR EXISTING LOGIC - UNTOUCHED) ==========
+// ========== TRADE CALCULATION FUNCTION ==========
 async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   console.log(`🔧 Starting estimate calculation for ${trade}`);
   console.log(`📍 Location: ${state}, ${msa}`);
@@ -211,39 +157,31 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       const stories = parseInt(data.stories) || 1;
       const existingRoofType = data.existingRoofType || '';
 
-      // Base hours per 100 sqft
       let baseHoursPer100 = 2.5;
       
-      // Complexity adjustment
       if (roofComplexity === 'low') baseHoursPer100 *= 0.8;
       if (roofComplexity === 'high') baseHoursPer100 *= 1.4;
       
-      // Pitch adjustment
       if (roofPitch === 'low') baseHoursPer100 *= 0.9;
       if (roofPitch === 'steep') baseHoursPer100 *= 1.3;
       
-      // Story adjustment
       if (stories === 2) baseHoursPer100 *= 1.15;
       if (stories >= 3) baseHoursPer100 *= 1.3;
 
       laborHours = (roofArea / 100) * baseHoursPer100;
-
-      // Material cost (asphalt shingles baseline)
       materialCost = roofArea * 3.50;
 
-      // Tear-off cost if replacing
       if (existingRoofType !== '' && existingRoofType !== 'none') {
         laborHours += (roofArea / 100) * 1.2;
-        materialCost += roofArea * 0.50; // Disposal
+        materialCost += roofArea * 0.50;
       }
 
-      // Regional cost adjustment
       const highCostStates = ['CA', 'NY', 'MA', 'WA', 'CT'];
       if (highCostStates.includes(state)) {
         materialCost *= 1.35;
       }
 
-      equipmentCost = 350; // Dumpster, safety equipment
+      equipmentCost = 350;
       break;
 
     case 'hvac':
@@ -265,7 +203,6 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
         if (efficiency === 'high') materialCost += 2000;
       }
 
-      // Size adjustment
       if (squareFootage > 2000) {
         materialCost *= 1.25;
         laborHours *= 1.15;
@@ -371,7 +308,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   };
 }
 
-// ========== NEW: PDF GENERATION FUNCTION ==========
+// ========== PDF GENERATION FUNCTION ==========
 async function generateEstimatePDF(estimateData) {
   return new Promise((resolve, reject) => {
     try {
@@ -430,75 +367,102 @@ async function generateEstimatePDF(estimateData) {
     }
   });
 }
-// ========== END NEW: PDF GENERATION ==========
 
-// ========== NEW: EMAIL SENDING FUNCTION ==========
-/*async function sendEstimateEmails(estimateData, pdfBuffer) {
-  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+// ========== CONTRACT GENERATION FUNCTION ==========
+async function generateContract(estimateData) {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks = [];
 
-  // Email to customer
-  const customerMailOptions = {
-    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
-    to: estimateData.customerEmail,
-    subject: `Your ${tradeName} Estimate`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0;">Your Estimate is Ready!</h1>
-        </div>
-        <div style="padding: 20px; background: #f9fafb;">
-          <p>Hi ${estimateData.customerName},</p>
-          <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
-          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
-              Total Estimate: $${estimateData.totalCost.toLocaleString()}
-            </p>
-          </div>
-          <p>Please see the attached PDF for complete details.</p>
-          <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
-        </div>
-      </div>
-    `,
-    attachments: [{
-      filename: `estimate-${estimateData.id}.pdf`,
-      content: pdfBuffer,
-      contentType: 'application/pdf'
-    }]
-  };
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
 
-  // Email to contractor
-  const contractorMailOptions = {
-    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
-    to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
-    subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
-    html: `
-      <h2>🔔 New Estimate Request</h2>
-      <p><strong>Customer:</strong> ${estimateData.customerName}</p>
-      <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
-      <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
-      <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
-      <hr>
-      <p><strong>Service:</strong> ${tradeName}</p>
-      <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
-      <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
-      <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
-      <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
-    `,
-    attachments: [{
-      filename: `estimate-${estimateData.id}.pdf`,
-      content: pdfBuffer,
-      contentType: 'application/pdf'
-    }]
-  };
+      // Header
+      doc.fontSize(20).fillColor('#2563eb').text('SERVICE AGREEMENT', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(10).fillColor('#666').text(`Contract #${estimateData.id}`, { align: 'center' });
+      doc.fontSize(10).fillColor('#666').text(new Date().toLocaleDateString(), { align: 'center' });
+      doc.moveDown(2);
 
-  // Send both emails
-  await transporter.sendMail(customerMailOptions);
-  console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
-  
-  await transporter.sendMail(contractorMailOptions);
-  console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
-} */
+      // Parties
+      doc.fontSize(12).fillColor('#000').text('PARTIES', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      doc.text('This agreement is entered into between:');
+      doc.moveDown(0.5);
+      doc.text(`CONTRACTOR: InstaBid Inc.`);
+      doc.text(`Email: ${process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com'}`);
+      doc.moveDown(0.5);
+      doc.text(`CLIENT: ${estimateData.customerName}`);
+      doc.text(`Address: ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}`);
+      doc.text(`Email: ${estimateData.customerEmail}`);
+      if (estimateData.customerPhone) doc.text(`Phone: ${estimateData.customerPhone}`);
+      doc.moveDown(2);
 
+      // Scope of Work
+      doc.fontSize(12).fillColor('#000').text('SCOPE OF WORK', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+      doc.text(`Contractor agrees to provide ${tradeName} services at the property address listed above.`);
+      doc.moveDown(2);
+
+      // Payment Terms
+      doc.fontSize(12).fillColor('#000').text('PAYMENT TERMS', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      doc.text(`Total Contract Price: $${estimateData.totalCost.toLocaleString()}`);
+      doc.moveDown(0.5);
+      doc.text('Payment Schedule:');
+      doc.text(`• Deposit (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon signing`);
+      doc.text(`• Final Payment (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon completion`);
+      doc.moveDown(2);
+
+      // Terms & Conditions
+      doc.fontSize(12).fillColor('#000').text('TERMS & CONDITIONS', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(9);
+      
+      const terms = [
+        '1. TIMELINE: Work will commence within 14 days of deposit receipt. Estimated completion: ' + (Math.ceil(estimateData.laborHours / 8)) + ' business days.',
+        '2. WARRANTY: All work is warranted for 1 year from completion date against defects in workmanship.',
+        '3. PERMITS: Contractor will obtain all necessary permits. Costs included in estimate.',
+        '4. CHANGES: Any changes to scope must be agreed upon in writing and may affect total cost.',
+        '5. CANCELLATION: Client may cancel within 3 days of signing for full refund of deposit.',
+        '6. LIABILITY: Contractor maintains liability insurance and workers compensation coverage.',
+        '7. DISPUTES: Any disputes will be resolved through binding arbitration in contractor\'s jurisdiction.'
+      ];
+
+      terms.forEach(term => {
+        doc.text(term, { align: 'left' });
+        doc.moveDown(0.3);
+      });
+
+      doc.moveDown(2);
+
+      // Signatures
+      doc.fontSize(12).fillColor('#000').text('SIGNATURES', { underline: true });
+      doc.moveDown(1);
+      
+      doc.fontSize(10);
+      doc.text('CONTRACTOR: ________________________     Date: __________');
+      doc.moveDown(2);
+      doc.text('CLIENT: ________________________     Date: __________');
+      doc.moveDown(2);
+      
+      doc.fontSize(8).fillColor('#999');
+      doc.text('By signing, both parties agree to the terms outlined in this contract.', { align: 'center' });
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// ========== EMAIL SENDING FUNCTION ==========
 async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
   const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
 
@@ -544,7 +508,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
     ]
   };
 
-  // Email to contractor (same changes)
+  // Email to contractor
   const contractorMailOptions = {
     from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
     to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
@@ -583,15 +547,11 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
   console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
 }
 
-// ========== END NEW: EMAIL SENDING ==========
-
-// ========== NEW: MAIN ESTIMATE SUBMISSION ENDPOINT ==========
-
-  app.post('/api/estimate', async (req, res) => {
+// ========== MAIN ESTIMATE SUBMISSION ENDPOINT ==========
+app.post('/api/estimate', async (req, res) => {
   console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
   
   try {
-    // 1. Extract and normalize field names
     const {
       customerName,
       customer_name,
@@ -609,7 +569,6 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
       ...tradeSpecificFields
     } = req.body;
 
-    // Use whichever field name was sent
     const finalCustomerName = customerName || customer_name || req.body.name;
     const finalCustomerEmail = customerEmail || customer_email || req.body.email;
     const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
@@ -617,16 +576,13 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
     const finalZipCode = zipCode || zip || '';
     const finalCity = req.body.city || 'Unknown';
     const finalState = req.body.state || 'Unknown';
-    const finalZip = req.body.zip || '';
 
     console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
 
-    // 2. Get labor rate for location
     const hourlyRate = await getHourlyRate(state, finalZipCode);
     console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
     
-    // 3. Calculate estimate using your existing function
     const estimate = await calculateTradeEstimate(
       trade,
       tradeSpecificFields,
@@ -637,7 +593,6 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
 
-    // 4. Save to database
     const insertQuery = `
       INSERT INTO estimates (
         customer_name, customer_email, customer_phone,
@@ -673,7 +628,6 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
 
     console.log(`✅ Estimate #${estimateId} saved to database`);
 
-    // 5. Generate PDF
     const pdfBuffer = await generateEstimatePDF({
       id: estimateId,
       customerName: finalCustomerName,
@@ -693,9 +647,8 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
       totalCost: estimate.totalCost
     });
 
-        console.log(`📄 PDF generated for estimate #${estimateId}`);
+    console.log(`📄 PDF generated for estimate #${estimateId}`);
 
-    // Generate Contract
     const contractBuffer = await generateContract({
       id: estimateId,
       customerName: finalCustomerName,
@@ -716,101 +669,6 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
 
     console.log(`📝 Contract generated for estimate #${estimateId}`);
 
-    async function generateContract(estimateData) {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ margin: 50 });
-      const chunks = [];
-
-      doc.on('data', chunk => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
-
-      // Header
-      doc.fontSize(20).fillColor('#2563eb').text('SERVICE AGREEMENT', { align: 'center' });
-      doc.moveDown(0.5);
-      doc.fontSize(10).fillColor('#666').text(`Contract #${estimateData.id}`, { align: 'center' });
-      doc.fontSize(10).fillColor('#666').text(new Date().toLocaleDateString(), { align: 'center' });
-      doc.moveDown(2);
-
-      // Parties
-      doc.fontSize(12).fillColor('#000').text('PARTIES', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text('This agreement is entered into between:');
-      doc.moveDown(0.5);
-      doc.text(`CONTRACTOR: InstaBid Inc.`);
-      doc.text(`Email: ${process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com'}`);
-      doc.moveDown(0.5);
-      doc.text(`CLIENT: ${estimateData.customerName}`);
-      doc.text(`Address: ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}`);
-      doc.text(`Email: ${estimateData.customerEmail}`);
-      if (estimateData.customerPhone) doc.text(`Phone: ${estimateData.customerPhone}`);
-      doc.moveDown(2);
-
-      // Scope of Work
-      doc.fontSize(12).fillColor('#000').text('SCOPE OF WORK', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-      doc.text(`Contractor agrees to provide ${tradeName} services at the property address listed above.`);
-      doc.moveDown(2);
-
-      // Payment Terms
-      doc.fontSize(12).fillColor('#000').text('PAYMENT TERMS', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text(`Total Contract Price: $${estimateData.totalCost.toLocaleString()}`);
-      doc.moveDown(0.5);
-      doc.text('Payment Schedule:');
-      doc.text(`• Deposit (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon signing`);
-      doc.text(`• Final Payment (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon completion`);
-      doc.moveDown(2);
-
-      // Terms & Conditions
-      doc.fontSize(12).fillColor('#000').text('TERMS & CONDITIONS', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(9);
-      
-      const terms = [
-        '1. TIMELINE: Work will commence within 14 days of deposit receipt. Estimated completion: ' + (Math.ceil(estimateData.laborHours / 8)) + ' business days.',
-        '2. WARRANTY: All work is warranted for 1 year from completion date against defects in workmanship.',
-        '3. PERMITS: Contractor will obtain all necessary permits. Costs included in estimate.',
-        '4. CHANGES: Any changes to scope must be agreed upon in writing and may affect total cost.',
-        '5. CANCELLATION: Client may cancel within 3 days of signing for full refund of deposit.',
-        '6. LIABILITY: Contractor maintains liability insurance and workers compensation coverage.',
-        '7. DISPUTES: Any disputes will be resolved through binding arbitration in contractor\'s jurisdiction.'
-      ];
-
-      terms.forEach(term => {
-        doc.text(term, { align: 'left' });
-        doc.moveDown(0.3);
-      });
-
-      doc.moveDown(2);
-
-      // Signatures
-      doc.fontSize(12).fillColor('#000').text('SIGNATURES', { underline: true });
-      doc.moveDown(1);
-      
-      doc.fontSize(10);
-      doc.text('CONTRACTOR: ________________________     Date: __________');
-      doc.moveDown(2);
-      doc.text('CLIENT: ________________________     Date: __________');
-      doc.moveDown(2);
-      
-      doc.fontSize(8).fillColor('#999');
-      doc.text('By signing, both parties agree to the terms outlined in this contract.', { align: 'center' });
-
-      doc.end();
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-
-    // 6. Send emails (customer + contractor)
     await sendEstimateEmails(
       {
         id: estimateId,
@@ -828,10 +686,19 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
       contractBuffer
     );
 
-    // 7. Return response
-   /* res.json({
+    res.json({
       success: true,
       estimateId,
+      lineItems: [
+        { description: 'Labor', amount: estimate.laborCost },
+        { description: 'Materials', amount: estimate.materialCost },
+        { description: 'Equipment', amount: estimate.equipmentCost || 0 }
+      ],
+      subtotal: estimate.totalCost,
+      tax: estimate.totalCost * 0.0825,
+      total: estimate.totalCost * 1.0825,
+      msa: finalCity + ', ' + finalState,
+      timeline: Math.ceil(estimate.laborHours / 8) + ' days',
       estimate: {
         totalCost: estimate.totalCost,
         laborCost: estimate.laborCost,
@@ -840,31 +707,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
         laborHours: estimate.laborHours,
         laborRate: estimate.laborRate
       }
-    });*/
-    // 7. Return response
-res.json({
-  success: true,
-  estimateId,
-  lineItems: [
-    { description: 'Labor', amount: estimate.laborCost },
-    { description: 'Materials', amount: estimate.materialCost },
-    { description: 'Equipment', amount: estimate.equipmentCost || 0 }
-  ],
-  subtotal: estimate.totalCost,
-  tax: estimate.totalCost * 0.0825,
-  total: estimate.totalCost * 1.0825,
-  msa: finalCity + ', ' + finalState,
-  timeline: Math.ceil(estimate.laborHours / 8) + ' days',
-  // Keep old format for compatibility
-  estimate: {
-    totalCost: estimate.totalCost,
-    laborCost: estimate.laborCost,
-    materialCost: estimate.materialCost,
-    equipmentCost: estimate.equipmentCost || 0,
-    laborHours: estimate.laborHours,
-    laborRate: estimate.laborRate
-  }
-});
+    });
 
   } catch (error) {
     console.error('❌ Estimate submission error:', error);
@@ -875,15 +718,13 @@ res.json({
   }
 });
 
-// Standalone PDF generation endpoint (for manual download)
+// Standalone PDF generation endpoint
 app.post('/api/generate-pdf', async (req, res) => {
   try {
     const data = req.body;
     
-    // Get labor rate
     const hourlyRate = await getHourlyRate(data.state, data.zip);
     
-    // Calculate estimate
     const estimate = await calculateTradeEstimate(
       data.trade,
       data,
@@ -892,7 +733,6 @@ app.post('/api/generate-pdf', async (req, res) => {
       data.zip
     );
     
-    // Generate PDF
     const pdfBuffer = await generateEstimatePDF({
       id: 'DRAFT',
       customerName: data.name,
@@ -919,111 +759,15 @@ app.post('/api/generate-pdf', async (req, res) => {
   }
 });
 
-// ========== CONTRACT GENERATION FUNCTION ==========
-/*async function generateContract(estimateData) {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ margin: 50 });
-      const chunks = [];
-
-      doc.on('data', chunk => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
-
-      // Header
-      doc.fontSize(20).fillColor('#2563eb').text('SERVICE AGREEMENT', { align: 'center' });
-      doc.moveDown(0.5);
-      doc.fontSize(10).fillColor('#666').text(`Contract #${estimateData.id}`, { align: 'center' });
-      doc.fontSize(10).fillColor('#666').text(new Date().toLocaleDateString(), { align: 'center' });
-      doc.moveDown(2);
-
-      // Parties
-      doc.fontSize(12).fillColor('#000').text('PARTIES', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text('This agreement is entered into between:');
-      doc.moveDown(0.5);
-      doc.text(`CONTRACTOR: InstaBid Inc.`);
-      doc.text(`Email: ${process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com'}`);
-      doc.moveDown(0.5);
-      doc.text(`CLIENT: ${estimateData.customerName}`);
-      doc.text(`Address: ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}`);
-      doc.text(`Email: ${estimateData.customerEmail}`);
-      if (estimateData.customerPhone) doc.text(`Phone: ${estimateData.customerPhone}`);
-      doc.moveDown(2);
-
-      // Scope of Work
-      doc.fontSize(12).fillColor('#000').text('SCOPE OF WORK', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-      doc.text(`Contractor agrees to provide ${tradeName} services at the property address listed above.`);
-      doc.moveDown(2);
-
-      // Payment Terms
-      doc.fontSize(12).fillColor('#000').text('PAYMENT TERMS', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text(`Total Contract Price: $${estimateData.totalCost.toLocaleString()}`);
-      doc.moveDown(0.5);
-      doc.text('Payment Schedule:');
-      doc.text(`• Deposit (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon signing`);
-      doc.text(`• Final Payment (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon completion`);
-      doc.moveDown(2);
-
-      // Terms & Conditions
-      doc.fontSize(12).fillColor('#000').text('TERMS & CONDITIONS', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(9);
-      
-      const terms = [
-        '1. TIMELINE: Work will commence within 14 days of deposit receipt. Estimated completion: ' + (Math.ceil(estimateData.laborHours / 8)) + ' business days.',
-        '2. WARRANTY: All work is warranted for 1 year from completion date against defects in workmanship.',
-        '3. PERMITS: Contractor will obtain all necessary permits. Costs included in estimate.',
-        '4. CHANGES: Any changes to scope must be agreed upon in writing and may affect total cost.',
-        '5. CANCELLATION: Client may cancel within 3 days of signing for full refund of deposit.',
-        '6. LIABILITY: Contractor maintains liability insurance and workers compensation coverage.',
-        '7. DISPUTES: Any disputes will be resolved through binding arbitration in contractor\'s jurisdiction.'
-      ];
-
-      terms.forEach(term => {
-        doc.text(term, { align: 'left' });
-        doc.moveDown(0.3);
-      });
-
-      doc.moveDown(2);
-
-      // Signatures
-      doc.fontSize(12).fillColor('#000').text('SIGNATURES', { underline: true });
-      doc.moveDown(1);
-      
-      doc.fontSize(10);
-      doc.text('CONTRACTOR: ________________________     Date: __________');
-      doc.moveDown(2);
-      doc.text('CLIENT: ________________________     Date: __________');
-      doc.moveDown(2);
-      
-      doc.fontSize(8).fillColor('#999');
-      doc.text('By signing, both parties agree to the terms outlined in this contract.', { align: 'center' });
-
-      doc.end();
-    } catch (error) {
-      reject(error);
-    }
-  });
-}*/
-
-// Standalone Contract generation endpoint (for manual download)
+// Standalone Contract generation endpoint
 app.post('/api/generate-contract', async (req, res) => {
   try {
     console.log('📝 Contract request received:', req.body);
     
     const data = req.body;
     
-    // Get labor rate
     const hourlyRate = await getHourlyRate(data.state, data.zip);
     
-    // Calculate estimate
     const estimate = await calculateTradeEstimate(
       data.trade,
       data,
@@ -1032,7 +776,6 @@ app.post('/api/generate-contract', async (req, res) => {
       data.zip
     );
     
-    // Generate Contract
     const contractBuffer = await generateContract({
       id: 'DRAFT',
       customerName: data.name,
@@ -1061,11 +804,7 @@ app.post('/api/generate-contract', async (req, res) => {
   }
 });
 
-// ========== END CONTRACT GENERATION ==========
-
-
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
