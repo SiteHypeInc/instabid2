@@ -345,7 +345,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let equipmentCost = 0;
 
   switch(trade.toLowerCase()) {
-    case 'roofing':
+    /*case 'roofing':
       const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
       const roofComplexity = data.roofComplexity || 'medium';
       const roofPitch = data.roofPitch || 'medium';
@@ -378,7 +378,100 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
 
       equipmentCost = 350;
       break;
+      */
 
+    case 'roofing':
+  const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
+  const roofComplexity = data.roofComplexity || 'medium';
+  const roofPitch = data.roofPitch || 'medium';
+  const stories = data.stories || '1';
+  const material = data.material || 'asphalt';
+  const existingRoofType = data.existingRoofType || '';
+  const tearOffLayers = parseInt(data.tearOffLayers) || 0;
+  const plywoodSheets = parseInt(data.plywoodSheets) || 0;
+  const chimneys = parseInt(data.chimneys) || 0;
+  const valleys = parseInt(data.valleys) || 0;
+  const skylights = parseInt(data.skylights) || 0;
+  const ridgeVentFeet = parseInt(data.ridgeVentFeet) || 0;
+
+  // Base labor calculation (keep your existing logic for now)
+  let baseHoursPer100 = 2.5;
+  
+  if (roofComplexity === 'low') baseHoursPer100 *= 0.8;
+  if (roofComplexity === 'high') baseHoursPer100 *= 1.4;
+  
+  // Pitch multiplier (uses contractor override or default)
+  let pitchMultiplier = 1.0;
+  switch(roofPitch) {
+    case 'low': pitchMultiplier = getPrice('roofing', 'pitch_low'); break;
+    case 'medium': pitchMultiplier = getPrice('roofing', 'pitch_med'); break;
+    case 'high': pitchMultiplier = getPrice('roofing', 'pitch_high'); break;
+    case 'steep': pitchMultiplier = getPrice('roofing', 'pitch_steep'); break;
+  }
+  
+  // Story multiplier (uses contractor override or default)
+  let storyMultiplier = 1.0;
+  switch(stories) {
+    case '1': storyMultiplier = getPrice('roofing', 'story_1'); break;
+    case '2': storyMultiplier = getPrice('roofing', 'story_2'); break;
+    case '3+': storyMultiplier = getPrice('roofing', 'story_3'); break;
+    default: storyMultiplier = getPrice('roofing', 'story_1');
+  }
+  
+  baseHoursPer100 *= pitchMultiplier * storyMultiplier;
+  
+  laborHours = (roofArea / 100) * baseHoursPer100;
+  
+  // Material cost (uses contractor override or default)
+  let materialCostPerSqft = 0;
+  switch(material) {
+    case 'asphalt': materialCostPerSqft = getPrice('roofing', 'mat_asphalt'); break;
+    case 'architectural': materialCostPerSqft = getPrice('roofing', 'mat_arch'); break;
+    case 'metal': materialCostPerSqft = getPrice('roofing', 'mat_metal'); break;
+    case 'tile': materialCostPerSqft = getPrice('roofing', 'mat_tile'); break;
+    case 'slate': materialCostPerSqft = getPrice('roofing', 'mat_slate'); break;
+    default: materialCostPerSqft = getPrice('roofing', 'mat_asphalt');
+  }
+  
+  materialCost = roofArea * materialCostPerSqft;
+  
+  // Additional costs (all use contractor overrides or defaults)
+  let additionalCosts = 0;
+  
+  if (tearOffLayers > 0) {
+    additionalCosts += getPrice('roofing', 'tearoff_cost') * tearOffLayers;
+    laborHours += (roofArea / 100) * 1.2;
+  }
+  
+  if (plywoodSheets > 0) {
+    additionalCosts += plywoodSheets * getPrice('roofing', 'plywood_cost');
+  }
+  
+  if (chimneys > 0) {
+    additionalCosts += getPrice('roofing', 'chimney_cost') * chimneys;
+  }
+  
+  if (valleys > 0) {
+    additionalCosts += valleys * getPrice('roofing', 'valley_cost');
+  }
+  
+  if (skylights > 0) {
+    additionalCosts += getPrice('roofing', 'skylight_cost') * skylights;
+  }
+  
+  if (ridgeVentFeet > 0) {
+    additionalCosts += ridgeVentFeet * getPrice('roofing', 'ridge_cost');
+  }
+  
+  materialCost += additionalCosts;
+  
+  // Regional multiplier (uses contractor override or default)
+  const regionalMultiplier = getPrice('regional', `region_${state}`) || getPrice('regional', 'region_default');
+  materialCost *= regionalMultiplier;
+
+  equipmentCost = 350;
+  break;
+      
     case 'hvac':
       const systemType = data.systemType || 'furnace';
       const squareFootage = parseFloat(data.squareFootage) || 0;
