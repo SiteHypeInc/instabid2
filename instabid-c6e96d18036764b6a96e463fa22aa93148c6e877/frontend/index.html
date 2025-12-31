@@ -1199,7 +1199,7 @@ document.getElementById('emailBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   alert('Contract generation coming soon!');
 });*/
-  document.getElementById('contractBtn').addEventListener('click', function() {
+ /* document.getElementById('contractBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   
   this.disabled = true;
@@ -1238,6 +1238,70 @@ document.getElementById('emailBtn').addEventListener('click', function() {
     self.disabled = false;
     self.textContent = '📝 Contract';
   });
+}); */
+  // Standalone Contract generation endpoint
+app.post('/api/generate-contract', async (req, res) => {
+  try {
+    console.log('📝 Contract request received:', req.body);
+    
+    const data = req.body;
+    
+    // Normalize field names (handle both formats)
+    const finalName = data.name || data.customerName || '';
+    const finalEmail = data.email || data.customerEmail || '';
+    const finalPhone = data.phone || data.customerPhone || '';
+    const finalAddress = data.address || data.propertyAddress || '';
+    const finalCity = data.city || '';
+    const finalState = data.state || '';
+    const finalZip = data.zip || data.zipCode || '';
+    const finalTrade = data.trade || '';
+    
+    console.log(`📋 Generating contract for: ${finalName}, ${finalTrade}`);
+    
+    // Get labor rate
+    const hourlyRate = await getHourlyRate(finalState, finalZip);
+    
+    // Calculate estimate
+    const estimate = await calculateTradeEstimate(
+      finalTrade,
+      data,
+      hourlyRate,
+      finalState,
+      finalZip
+    );
+    
+    // Generate Contract
+    const contractBuffer = await generateContract({
+      id: 'DRAFT',
+      customerName: finalName,
+      customerEmail: finalEmail,
+      customerPhone: finalPhone,
+      propertyAddress: finalAddress,
+      city: finalCity,
+      state: finalState,
+      zipCode: finalZip,
+      trade: finalTrade,
+      laborHours: estimate.laborHours,
+      laborRate: estimate.laborRate,
+      laborCost: estimate.laborCost,
+      materialCost: estimate.materialCost,
+      equipmentCost: estimate.equipmentCost || 0,
+      totalCost: estimate.totalCost
+    });
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="contract-${finalName.replace(/\s+/g, '-')}.pdf"`);
+    res.send(contractBuffer);
+    
+    console.log(`✅ Contract downloaded by ${finalName}`);
+    
+  } catch (error) {
+    console.error('❌ Contract generation error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
 });
 </script>
 
