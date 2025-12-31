@@ -100,6 +100,201 @@ async function initDatabase() {
   }
 }
 
+// ============================================
+// BASE PRICING DATABASE (BLS + Market Research)
+// Contractor overrides applied via dashboard
+// ============================================
+const DEFAULT_PRICING = {
+  roofing: {
+    // Pitch multipliers
+    pitch_low: 1.0,
+    pitch_med: 1.2,
+    pitch_high: 1.4,
+    pitch_steep: 1.8,
+    // Story multipliers
+    story_1: 1.0,
+    story_2: 1.3,
+    story_3: 1.6,
+    // Material costs (per sqft)
+    mat_asphalt: 2.5,
+    mat_arch: 3.5,
+    mat_metal: 5.0,
+    mat_tile: 7.0,
+    mat_slate: 12.0,
+    // Fixed costs
+    tearoff_cost: 1500,
+    plywood_cost: 4.5,
+    chimney_cost: 400,
+    valley_cost: 8,
+    skylight_cost: 300,
+    ridge_cost: 10
+  },
+  
+  hvac: {
+    // Home size multipliers
+    hvac_size_small: 0.9,
+    hvac_size_med: 1.0,
+    hvac_size_large: 1.2,
+    hvac_size_xlarge: 1.4,
+    // Unit costs
+    hvac_furnace: 3500,
+    hvac_ac: 4000,
+    hvac_heatpump: 5500,
+    hvac_minisplit: 2500,
+    // Additional costs
+    hvac_duct: 15,
+    hvac_thermostat: 350,
+    hvac_handler: 1200,
+    // Complexity multipliers
+    hvac_standard: 1.0,
+    hvac_moderate: 1.2,
+    hvac_complex: 1.5
+  },
+  
+  electrical: {
+    // Panel & service
+    elec_panel_100: 1800,
+    elec_panel_200: 2500,
+    elec_subpanel: 1200,
+    // Fixtures & devices
+    elec_outlet: 125,
+    elec_switch: 110,
+    elec_fixture: 150,
+    elec_fan: 200,
+    elec_gfci: 175,
+    // Specialty work
+    elec_ev: 1200,
+    elec_generator: 1500,
+    elec_hottub: 800,
+    // Labor rates
+    elec_labor_std: 85,
+    elec_labor_complex: 110
+  },
+  
+  plumbing: {
+    // Fixtures
+    plumb_toilet: 350,
+    plumb_sink: 400,
+    plumb_shower: 1200,
+    plumb_tub: 1500,
+    plumb_dishwasher: 300,
+    // Water systems
+    plumb_heater_tank: 1800,
+    plumb_heater_tankless: 3200,
+    plumb_sump: 850,
+    plumb_softener: 1400,
+    // Pipes & drains
+    plumb_pipe_repair: 45,
+    plumb_pipe_replace: 75,
+    plumb_drain: 250,
+    plumb_sewer: 125,
+    // Labor rates
+    plumb_labor_std: 95,
+    plumb_labor_emerg: 140
+  },
+  
+  flooring: {
+    // Material costs (per sqft)
+    floor_carpet: 3.5,
+    floor_vinyl: 4.0,
+    floor_laminate: 4.5,
+    floor_hardwood_eng: 8.0,
+    floor_hardwood_solid: 12.0,
+    floor_tile_ceramic: 6.0,
+    floor_tile_porcelain: 8.5,
+    // Installation labor (per sqft)
+    floor_labor_carpet: 1.5,
+    floor_labor_vinyl: 2.0,
+    floor_labor_hardwood: 4.0,
+    floor_labor_tile: 5.0,
+    // Prep & extras
+    floor_subfloor: 3.0,
+    floor_removal: 1.5,
+    floor_underlay: 0.75,
+    floor_baseboard: 4.0,
+    // Complexity multipliers
+    floor_standard: 1.0,
+    floor_moderate: 1.2,
+    floor_complex: 1.5
+  },
+  
+  painting: {
+    // Interior rates (per sqft)
+    paint_int_walls_1: 1.5,
+    paint_int_walls_2: 2.5,
+    paint_int_ceiling: 2.0,
+    paint_int_trim: 1.75,
+    paint_int_door: 75,
+    paint_int_cabinet: 35,
+    // Exterior rates (per sqft)
+    paint_ext_siding_1: 2.0,
+    paint_ext_siding_2: 3.5,
+    paint_ext_trim: 2.5,
+    paint_ext_deck: 2.25,
+    paint_ext_fence: 3.0,
+    // Prep & specialty
+    paint_prep: 1.0,
+    paint_primer: 0.75,
+    paint_wallpaper: 1.5,
+    paint_texture: 3.0,
+    // Complexity multipliers
+    paint_standard: 1.0,
+    paint_moderate: 1.25,
+    paint_complex: 1.5
+  },
+  
+  regional: {
+    // High-cost markets
+    region_CA: 1.35,
+    region_NY: 1.30,
+    region_MA: 1.25,
+    region_HI: 1.40,
+    // Medium-cost markets
+    region_WA: 1.15,
+    region_OR: 1.10,
+    region_CO: 1.10,
+    region_IL: 1.08,
+    region_VA: 1.05,
+    // Low-cost markets
+    region_TX: 0.95,
+    region_FL: 0.95,
+    region_GA: 0.90,
+    region_OH: 0.92,
+    region_TN: 0.88,
+    region_AL: 0.85,
+    // Default
+    region_default: 1.00
+  }
+};
+
+// ============================================
+// CONTRACTOR OVERRIDES
+// ============================================
+let configData = {
+  roofing: {},
+  hvac: {},
+  electrical: {},
+  plumbing: {},
+  flooring: {},
+  painting: {},
+  regional: {}
+};
+
+// ============================================
+// PRICING HELPER FUNCTION
+// Returns contractor override OR default value
+// ============================================
+function getPrice(trade, key) {
+  // Check if contractor overrode this value
+  if (configData[trade] && configData[trade][key] !== undefined) {
+    console.log(`📝 Using contractor override: ${trade}.${key} = ${configData[trade][key]}`);
+    return configData[trade][key];
+  }
+  
+  // Fall back to default pricing
+  return DEFAULT_PRICING[trade]?.[key];
+}
+
 initDatabase();
 
 app.get('/', (req, res) => {
@@ -808,8 +1003,8 @@ app.post('/api/generate-contract', async (req, res) => {
 // DASHBOARD CONFIGURATION ENDPOINTS
 // ============================================
 
-let configData = {
-  roofing: {
+/*let configData = {
+    roofing: {
     pitch_low: 1.0, pitch_med: 1.2, pitch_high: 1.4, pitch_steep: 1.8,
     story_1: 1.0, story_2: 1.3, story_3: 1.6,
     mat_asphalt: 2.5, mat_arch: 3.5, mat_metal: 5.0, mat_tile: 7.0, mat_slate: 12.0,
@@ -856,13 +1051,43 @@ let configData = {
     region_TX: 0.95, region_FL: 0.95, region_GA: 0.90, region_OH: 0.92, region_TN: 0.88, region_AL: 0.85,
     region_default: 1.00
   }
-};
+};*/
 
-app.get('/api/config/:section', (req, res) => {
+  // ============================================
+// DASHBOARD CONFIGURATION ENDPOINTS
+// ============================================
+
+
+/*app.get('/api/config/:section', (req, res) => {
   const section = req.params.section;
   res.json({
     success: true,
     config: configData[section] || {}
+  });
+});*/
+
+// GET config for dashboard - merges defaults + overrides
+app.get('/api/config/:section', (req, res) => {
+  const section = req.params.section;
+  
+  if (!DEFAULT_PRICING[section]) {
+    return res.status(404).json({ 
+      success: false, 
+      error: 'Section not found' 
+    });
+  }
+  
+  // Merge: defaults first, then contractor overrides
+  const merged = {
+    ...DEFAULT_PRICING[section],
+    ...(configData[section] || {})
+  };
+  
+  res.json({
+    success: true,
+    config: merged,
+    overrides: Object.keys(configData[section] || {}),
+    overrideCount: Object.keys(configData[section] || {}).length
   });
 });
 
@@ -871,16 +1096,40 @@ app.put('/api/config/:section', (req, res) => {
   const { config } = req.body;
   
   if (!config) {
-    return res.status(400).json({ success: false, error: 'No config provided' });
+    return res.status(400).json({ 
+      success: false, 
+      error: 'No config provided' 
+    });
   }
   
-  configData[section] = { ...configData[section], ...config };
+  if (!DEFAULT_PRICING[section]) {
+    return res.status(404).json({ 
+      success: false, 
+      error: 'Section not found' 
+    });
+  }
   
-  console.log(`✅ Dashboard updated ${section} config`);
+  // Only store overrides (values different from defaults)
+  const overrides = {};
+  Object.keys(config).forEach(key => {
+    const value = parseFloat(config[key]);
+    const defaultValue = DEFAULT_PRICING[section][key];
+    
+    if (!isNaN(value) && value !== defaultValue) {
+      overrides[key] = value;
+    }
+  });
+  
+  configData[section] = overrides;
+  
+  console.log(`✅ Contractor overrides for ${section}:`, overrides);
+  console.log(`📊 Override count: ${Object.keys(overrides).length} of ${Object.keys(DEFAULT_PRICING[section]).length} values`);
   
   res.json({
     success: true,
-    message: `${section} configuration updated`
+    message: `${section} configuration updated`,
+    overrideCount: Object.keys(overrides).length,
+    totalFields: Object.keys(DEFAULT_PRICING[section]).length
   });
 });
 
