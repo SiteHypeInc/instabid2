@@ -804,6 +804,71 @@ app.post('/api/generate-contract', async (req, res) => {
   }
 });
 
+// ============================================
+// DASHBOARD CONFIGURATION ENDPOINTS
+// ============================================
+
+// Configuration storage (in-memory for now, move to DB later)
+let configData = {
+  roofing: {
+    pitch_low: 1.0,
+    pitch_med: 1.2,
+    pitch_high: 1.4,
+    pitch_steep: 1.8,
+    story_1: 1.0,
+    story_2: 1.3,
+    story_3: 1.6,
+    mat_asphalt: 2.5,
+    mat_arch: 3.5,
+    mat_metal: 5.0,
+    mat_tile: 7.0,
+    tearoff_cost: 1500,
+    chimney_cost: 400,
+    skylight_cost: 300,
+    ridge_cost: 10
+  },
+  regional: {
+    region_CA: 1.35,
+    region_NY: 1.30,
+    region_MA: 1.25,
+    region_WA: 1.15,
+    region_OR: 1.10,
+    region_CO: 1.10,
+    region_TX: 0.95,
+    region_FL: 0.95,
+    region_GA: 0.90
+  }
+};
+
+// GET config for dashboard
+app.get('/api/config/:section', (req, res) => {
+  const section = req.params.section;
+  res.json({
+    success: true,
+    config: configData[section] || {}
+  });
+});
+
+// UPDATE config from dashboard
+app.put('/api/config/:section', (req, res) => {
+  const section = req.params.section;
+  const { config } = req.body;
+  
+  configData[section] = config;
+  
+  console.log(`✅ Dashboard updated ${section} config:`, config);
+  
+  res.json({
+    success: true,
+    message: `${section} configuration updated`
+  });
+});
+
+// ============================================
+// END DASHBOARD ENDPOINTS
+// ============================================
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
