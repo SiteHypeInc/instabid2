@@ -1053,6 +1053,9 @@ function initMap() {
   // STORE THE ORIGINAL FORM DATA (NOT THE RESPONSE!)
    
   currentEstimateData = Object.assign({}, data);
+    // ADD THESE TWO LINES:
+data.trade = selectedTrade;
+data.photos = uploadedPhotos;
 
   var submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
