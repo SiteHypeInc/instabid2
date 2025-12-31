@@ -1195,9 +1195,49 @@ document.getElementById('emailBtn').addEventListener('click', function() {
   });
 });
 
-document.getElementById('contractBtn').addEventListener('click', function() {
+/*document.getElementById('contractBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   alert('Contract generation coming soon!');
+});*/
+  document.getElementById('contractBtn').addEventListener('click', function() {
+  if (!currentEstimateData) return;
+  
+  this.disabled = true;
+  this.textContent = '⏳ Generating...';
+  
+  var self = this;
+  var payload = Object.assign({}, currentEstimateData);
+  payload.trade = selectedTrade;
+  payload.photos = uploadedPhotos;
+  
+  fetch('https://roofbid-backend-production.up.railway.app/api/generate-contract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(response) {
+    if (!response.ok) throw new Error('Contract generation failed');
+    return response.blob();
+  })
+  .then(function(blob) {
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'contract-' + (currentEstimateData.name || 'customer').replace(/\s+/g, '-') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    self.disabled = false;
+    self.textContent = '📝 Contract';
+    alert('✅ Contract downloaded!');
+  })
+  .catch(function(error) {
+    alert('❌ Contract error: ' + error.message);
+    self.disabled = false;
+    self.textContent = '📝 Contract';
+  });
 });
 </script>
 
