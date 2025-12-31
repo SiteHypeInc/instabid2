@@ -1150,9 +1150,49 @@ document.getElementById('emailBtn').addEventListener('click', function() {
   });
 });
 
-document.getElementById('pdfBtn').addEventListener('click', function() {
+/*document.getElementById('pdfBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   alert('PDF generation coming soon!');
+});*/
+  document.getElementById('pdfBtn').addEventListener('click', function() {
+  if (!currentEstimateData) return;
+  
+  this.disabled = true;
+  this.textContent = '⏳ Generating...';
+  
+  var self = this;
+  var payload = Object.assign({}, currentEstimateData);
+  payload.trade = selectedTrade;
+  payload.photos = uploadedPhotos;
+  
+  fetch('https://roofbid-backend-production.up.railway.app/api/generate-pdf', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(response) {
+    if (!response.ok) throw new Error('PDF generation failed');
+    return response.blob();
+  })
+  .then(function(blob) {
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'estimate-' + (currentEstimateData.name || 'customer').replace(/\s+/g, '-') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    self.disabled = false;
+    self.textContent = '📄 PDF';
+    alert('✅ PDF downloaded!');
+  })
+  .catch(function(error) {
+    alert('❌ PDF error: ' + error.message);
+    self.disabled = false;
+    self.textContent = '📄 PDF';
+  });
 });
 
 document.getElementById('contractBtn').addEventListener('click', function() {
