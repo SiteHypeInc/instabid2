@@ -687,6 +687,102 @@ app.post('/api/generate-pdf', async (req, res) => {
   }
 });
 
+// ========== CONTRACT GENERATION FUNCTION ==========
+async function generateContract(estimateData) {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks = [];
+
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      // Header
+      doc.fontSize(20).fillColor('#2563eb').text('SERVICE AGREEMENT', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(10).fillColor('#666').text(`Contract #${estimateData.id}`, { align: 'center' });
+      doc.fontSize(10).fillColor('#666').text(new Date().toLocaleDateString(), { align: 'center' });
+      doc.moveDown(2);
+
+      // Parties
+      doc.fontSize(12).fillColor('#000').text('PARTIES', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      doc.text('This agreement is entered into between:');
+      doc.moveDown(0.5);
+      doc.text(`CONTRACTOR: InstaBid Inc.`);
+      doc.text(`Email: ${process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com'}`);
+      doc.moveDown(0.5);
+      doc.text(`CLIENT: ${estimateData.customerName}`);
+      doc.text(`Address: ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}`);
+      doc.text(`Email: ${estimateData.customerEmail}`);
+      if (estimateData.customerPhone) doc.text(`Phone: ${estimateData.customerPhone}`);
+      doc.moveDown(2);
+
+      // Scope of Work
+      doc.fontSize(12).fillColor('#000').text('SCOPE OF WORK', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+      doc.text(`Contractor agrees to provide ${tradeName} services at the property address listed above.`);
+      doc.moveDown(2);
+
+      // Payment Terms
+      doc.fontSize(12).fillColor('#000').text('PAYMENT TERMS', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      doc.text(`Total Contract Price: $${estimateData.totalCost.toLocaleString()}`);
+      doc.moveDown(0.5);
+      doc.text('Payment Schedule:');
+      doc.text(`• Deposit (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon signing`);
+      doc.text(`• Final Payment (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon completion`);
+      doc.moveDown(2);
+
+      // Terms & Conditions
+      doc.fontSize(12).fillColor('#000').text('TERMS & CONDITIONS', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(9);
+      
+      const terms = [
+        '1. TIMELINE: Work will commence within 14 days of deposit receipt. Estimated completion: ' + (Math.ceil(estimateData.laborHours / 8)) + ' business days.',
+        '2. WARRANTY: All work is warranted for 1 year from completion date against defects in workmanship.',
+        '3. PERMITS: Contractor will obtain all necessary permits. Costs included in estimate.',
+        '4. CHANGES: Any changes to scope must be agreed upon in writing and may affect total cost.',
+        '5. CANCELLATION: Client may cancel within 3 days of signing for full refund of deposit.',
+        '6. LIABILITY: Contractor maintains liability insurance and workers compensation coverage.',
+        '7. DISPUTES: Any disputes will be resolved through binding arbitration in contractor\'s jurisdiction.'
+      ];
+
+      terms.forEach(term => {
+        doc.text(term, { align: 'left' });
+        doc.moveDown(0.3);
+      });
+
+      doc.moveDown(2);
+
+      // Signatures
+      doc.fontSize(12).fillColor('#000').text('SIGNATURES', { underline: true });
+      doc.moveDown(1);
+      
+      doc.fontSize(10);
+      doc.text('CONTRACTOR: ________________________     Date: __________');
+      doc.moveDown(2);
+      doc.text('CLIENT: ________________________     Date: __________');
+      doc.moveDown(2);
+      
+      doc.fontSize(8).fillColor('#999');
+      doc.text('By signing, both parties agree to the terms outlined in this contract.', { align: 'center' });
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+// ========== END CONTRACT GENERATION ==========
+
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
