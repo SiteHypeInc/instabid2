@@ -964,7 +964,7 @@ function initMap() {
     data[key] = value;
   }); */
 
-  document.getElementById('estimateForm').addEventListener('submit', function(e) {
+  /*document.getElementById('estimateForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
   var formData = new FormData(e.target);
@@ -1021,7 +1021,7 @@ function initMap() {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Get Instant Estimate';
   });
-});
+});*/
 
 /*function displayResults(result) {
   var breakdown = document.getElementById('costBreakdown');
@@ -1029,6 +1029,62 @@ function initMap() {
   
   document.getElementById('resultSection').classList.add('active');
 }*/
+
+  document.getElementById('estimateForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  var formData = new FormData(e.target);
+  var data = {};
+  
+  // Handle regular fields
+  formData.forEach(function(value, key) {
+    data[key] = value;
+  });
+  
+  // Handle unchecked checkboxes (they don't appear in FormData)
+  var checkboxes = e.target.querySelectorAll('input[type="checkbox"]');
+  for (var i = 0; i < checkboxes.length; i++) {
+    var cb = checkboxes[i];
+    if (!data[cb.name]) {
+      data[cb.name] = cb.checked ? 'yes' : 'no';
+    }
+  }
+
+  // STORE THE ORIGINAL FORM DATA (NOT THE RESPONSE!)
+  currentEstimateData = Object.assign({}, data);
+
+  var submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ Calculating...';
+  
+  fetch('[https://roofbid-backend-production.up.railway.app/api/estimate',](https://roofbid-backend-production.up.railway.app/api/estimate',) {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(function(response) {
+    console.log('Response received:', response);
+    return response.json().then(function(result) {
+      console.log('Parsed JSON:', result);
+      return { ok: response.ok, result: result };
+    });
+  })
+  .then(function(data) {
+    if (data.ok) {
+      // DON'T OVERWRITE currentEstimateData HERE!
+      displayResults(data.result);
+    } else {
+      showError(data.result.error || 'Failed to calculate estimate');
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Get Instant Estimate';
+  })
+  .catch(function(error) {
+    showError('Network error: ' + error.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Get Instant Estimate';
+  });
+});
 
 function displayResults(result) {
   var breakdown = document.getElementById('costBreakdown');
