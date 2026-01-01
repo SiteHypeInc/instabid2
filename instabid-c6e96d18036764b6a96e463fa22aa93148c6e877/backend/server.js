@@ -846,7 +846,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
 }
 
 // ========== MAIN ESTIMATE SUBMISSION ENDPOINT ==========
-app.post('/api/estimate', async (req, res) => {
+/*app.post('/api/estimate', async (req, res) => {
   console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
   
   try {
@@ -1098,6 +1098,184 @@ app.post('/api/generate-contract', async (req, res) => {
     res.status(500).json({ 
       success: false,
       error: error.message 
+    });
+  }
+}); */
+
+app.post('/api/estimate', async (req, res) => {
+  console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const {
+      customerName,
+      customer_name,
+      customerEmail,
+      customer_email,
+      customerPhone,
+      customer_phone,
+      propertyAddress,
+      address,
+      city,
+      state,
+      zipCode,
+      zip,
+      trade,
+      ...tradeSpecificFields
+    } = req.body;
+
+    const finalCustomerName = customerName || customer_name || req.body.name;
+    const finalCustomerEmail = customerEmail || customer_email || req.body.email;
+    const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
+    const finalPropertyAddress = propertyAddress || address || '';
+    const finalZipCode = zipCode || zip || '';
+    const finalCity = req.body.city || 'Unknown';
+    const finalState = req.body.state || 'Unknown';
+
+    console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
+    console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
+
+    const hourlyRate = await getHourlyRate(state, finalZipCode);
+    console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
+    
+    const estimate = await calculateTradeEstimate(
+      trade,
+      tradeSpecificFields,
+      hourlyRate,
+      state,
+      finalZipCode
+    );
+
+    console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
+
+    const insertQuery = `
+      INSERT INTO estimates (
+        customer_name, customer_email, customer_phone,
+        property_address, city, state, zip_code,
+        trade, trade_details,
+        labor_hours, labor_rate, labor_cost,
+        material_cost, equipment_cost, total_cost,
+        created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      RETURNING id
+    `;
+
+    const values = [
+      finalCustomerName,
+      finalCustomerEmail,
+      finalCustomerPhone,
+      finalPropertyAddress,
+      city,
+      state,
+      finalZipCode,
+      trade,
+      JSON.stringify(tradeSpecificFields),
+      estimate.laborHours,
+      estimate.laborRate,
+      estimate.laborCost,
+      estimate.materialCost,
+      estimate.equipmentCost || 0,
+      estimate.totalCost
+    ];
+
+    const result = await pool.query(insertQuery, values);
+    const estimateId = result.rows[0].id;
+
+    console.log(`✅ Estimate #${estimateId} saved to database`);
+
+    const pdfBuffer = await generateEstimatePDF({
+      id: estimateId,
+      customerName: finalCustomerName,
+      customerEmail: finalCustomerEmail,
+      customerPhone: finalCustomerPhone,
+      propertyAddress: finalPropertyAddress,
+      city,
+      state,
+      zipCode: finalZipCode,
+      trade,
+      tradeDetails: tradeSpecificFields,
+      laborHours: estimate.laborHours,
+      laborRate: estimate.laborRate,
+      laborCost: estimate.laborCost,
+      materialCost: estimate.materialCost,
+      equipmentCost: estimate.equipmentCost || 0,
+      totalCost: estimate.totalCost
+    });
+
+    console.log(`📄 PDF generated for estimate #${estimateId}`);
+
+    const contractBuffer = await generateContract({
+      id: estimateId,
+      customerName: finalCustomerName,
+      customerEmail: finalCustomerEmail,
+      customerPhone: finalCustomerPhone,
+      propertyAddress: finalPropertyAddress,
+      city,
+      state,
+      zipCode: finalZipCode,
+      trade,
+      laborHours: estimate.laborHours,
+      laborRate: estimate.laborRate,
+      laborCost: estimate.laborCost,
+      materialCost: estimate.materialCost,
+      equipmentCost: estimate.equipmentCost || 0,
+      totalCost: estimate.totalCost
+    });
+
+    console.log(`📝 Contract generated for estimate #${estimateId}`);
+
+    // SEND RESPONSE TO FRONTEND IMMEDIATELY
+    res.json({
+      success: true,
+      estimateId,
+      lineItems: [
+        { description: 'Labor', amount: estimate.laborCost },
+        { description: 'Materials', amount: estimate.materialCost },
+        { description: 'Equipment', amount: estimate.equipmentCost || 0 }
+      ],
+      subtotal: estimate.totalCost,
+      tax: estimate.totalCost * 0.0825,
+      total: estimate.totalCost * 1.0825,
+      msa: finalCity + ', ' + finalState,
+      timeline: Math.ceil(estimate.laborHours / 8) + ' days',
+      estimate: {
+        totalCost: estimate.totalCost,
+        laborCost: estimate.laborCost,
+        materialCost: estimate.materialCost,
+        equipmentCost: estimate.equipmentCost || 0,
+        laborHours: estimate.laborHours,
+        laborRate: estimate.laborRate
+      }
+    });
+
+    console.log('✅ Response sent to frontend - customer sees estimate NOW');
+
+    // Send emails in background (non-blocking)
+    sendEstimateEmails(
+      {
+        id: estimateId,
+        customerName: finalCustomerName,
+        customerEmail: finalCustomerEmail,
+        customerPhone: finalCustomerPhone,
+        propertyAddress: finalPropertyAddress,
+        city,
+        state,
+        zipCode: finalZipCode,
+        trade,
+        ...estimate
+      },
+      pdfBuffer,
+      contractBuffer
+    ).catch(err => {
+      console.error('❌ Email sending failed (non-blocking):', err.message);
+    });
+
+    console.log('📧 Emails queued for background delivery');
+
+  } catch (error) {
+    console.error('❌ Estimate submission error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
