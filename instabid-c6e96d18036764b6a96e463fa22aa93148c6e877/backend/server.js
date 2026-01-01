@@ -310,6 +310,7 @@ app.get('/', (req, res) => {
 });
 
 // ========== LABOR RATE LOOKUP ==========
+
 async function getHourlyRate(state, zipCode) {
   try {
     const result = await pool.query(
@@ -346,42 +347,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let equipmentCost = 0;
 
   switch(trade.toLowerCase()) {
-    /*case 'roofing':
-      const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
-      const roofComplexity = data.roofComplexity || 'medium';
-      const roofPitch = data.roofPitch || 'medium';
-      const stories = parseInt(data.stories) || 1;
-      const existingRoofType = data.existingRoofType || '';
-
-      let baseHoursPer100 = 2.5;
-      
-      if (roofComplexity === 'low') baseHoursPer100 *= 0.8;
-      if (roofComplexity === 'high') baseHoursPer100 *= 1.4;
-      
-      if (roofPitch === 'low') baseHoursPer100 *= 0.9;
-      if (roofPitch === 'steep') baseHoursPer100 *= 1.3;
-      
-      if (stories === 2) baseHoursPer100 *= 1.15;
-      if (stories >= 3) baseHoursPer100 *= 1.3;
-
-      laborHours = (roofArea / 100) * baseHoursPer100;
-      materialCost = roofArea * 3.50;
-
-      if (existingRoofType !== '' && existingRoofType !== 'none') {
-        laborHours += (roofArea / 100) * 1.2;
-        materialCost += roofArea * 0.50;
-      }
-
-      const highCostStates = ['CA', 'NY', 'MA', 'WA', 'CT'];
-      if (highCostStates.includes(state)) {
-        materialCost *= 1.35;
-      }
-
-      equipmentCost = 350;
-      break;
-      */
-
-    case 'roofing':
+  case 'roofing':
   const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
   const roofComplexity = data.roofComplexity || 'medium';
   const roofPitch = data.roofPitch || 'medium';
@@ -623,6 +589,8 @@ return {
   equipmentCost: parseFloat(equipmentCost.toFixed(2)),
   totalCost: parseFloat(totalCost.toFixed(2))
 };
+}  
+  
 // ========== PDF GENERATION FUNCTION ==========
 async function generateEstimatePDF(estimateData) {
   return new Promise((resolve, reject) => {
