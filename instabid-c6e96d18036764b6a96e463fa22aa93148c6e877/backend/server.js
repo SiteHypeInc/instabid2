@@ -1416,6 +1416,237 @@ app.put('/api/config/:section', (req, res) => {
   });
 });
 
+// ========== STANDALONE EMAIL ENDPOINT ==========
+app.post('/api/send-estimate-email', async (req, res) => {
+  try {
+    console.log('📧 Email resend request:', req.body);
+    
+    const { estimateId } = req.body;
+    
+    if (!estimateId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Estimate ID required' 
+      });
+    }
+    
+    // Fetch estimate from database
+    const result = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [estimateId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Estimate not found' 
+      });
+    }
+    
+    const estimate = result.rows[0];
+    
+    // Regenerate PDFs
+    const pdfBuffer = await generateEstimatePDF({
+      id: estimate.id,
+      customerName: estimate.customer_name,
+      customerEmail: estimate.customer_email,
+      customerPhone: estimate.customer_phone,
+      propertyAddress: estimate.property_address,
+      city: estimate.city,
+      state: estimate.state,
+      zipCode: estimate.zip_code,
+      trade: estimate.trade,
+      tradeDetails: estimate.trade_details,
+      laborHours: parseFloat(estimate.labor_hours),
+      laborRate: parseFloat(estimate.labor_rate),
+      laborCost: parseFloat(estimate.labor_cost),
+      materialCost: parseFloat(estimate.material_cost),
+      equipmentCost: parseFloat(estimate.equipment_cost),
+      totalCost: parseFloat(estimate.total_cost)
+    });
+    
+    const contractBuffer = await generateContract({
+      id: estimate.id,
+      customerName: estimate.customer_name,
+      customerEmail: estimate.customer_email,
+      customerPhone: estimate.customer_phone,
+      propertyAddress: estimate.property_address,
+      city: estimate.city,
+      state: estimate.state,
+      zipCode: estimate.zip_code,
+      trade: estimate.trade,
+      laborHours: parseFloat(estimate.labor_hours),
+      laborRate: parseFloat(estimate.labor_rate),
+      laborCost: parseFloat(estimate.labor_cost),
+      materialCost: parseFloat(estimate.material_cost),
+      equipmentCost: parseFloat(estimate.equipment_cost),
+      totalCost: parseFloat(estimate.total_cost)
+    });
+    
+    // Send emails
+    await sendEstimateEmails(
+      {
+        id: estimate.id,
+        customerName: estimate.customer_name,
+        customerEmail: estimate.customer_email,
+        customerPhone: estimate.customer_phone,
+        propertyAddress: estimate.property_address,
+        city: estimate.city,
+        state: estimate.state,
+        zipCode: estimate.zip_code,
+        trade: estimate.trade,
+        laborHours: parseFloat(estimate.labor_hours),
+        laborRate: parseFloat(estimate.labor_rate),
+        laborCost: parseFloat(estimate.labor_cost),
+        materialCost: parseFloat(estimate.material_cost),
+        equipmentCost: parseFloat(estimate.equipment_cost),
+        totalCost: parseFloat(estimate.total_cost)
+      },
+      pdfBuffer,
+      contractBuffer
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Emails sent successfully' 
+    });
+    
+  } catch (error) {
+    console.error('❌ Email resend error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ========== STANDALONE PDF DOWNLOAD ENDPOINT ==========
+app.post('/api/generate-pdf', async (req, res) => {
+  try {
+    console.log('📄 PDF download request:', req.body);
+    
+    const { estimateId } = req.body;
+    
+    if (!estimateId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Estimate ID required' 
+      });
+    }
+    
+    // Fetch estimate from database
+    const result = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [estimateId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Estimate not found' 
+      });
+    }
+    
+    const estimate = result.rows[0];
+    
+    const pdfBuffer = await generateEstimatePDF({
+      id: estimate.id,
+      customerName: estimate.customer_name,
+      customerEmail: estimate.customer_email,
+      customerPhone: estimate.customer_phone,
+      propertyAddress: estimate.property_address,
+      city: estimate.city,
+      state: estimate.state,
+      zipCode: estimate.zip_code,
+      trade: estimate.trade,
+      tradeDetails: estimate.trade_details,
+      laborHours: parseFloat(estimate.labor_hours),
+      laborRate: parseFloat(estimate.labor_rate),
+      laborCost: parseFloat(estimate.labor_cost),
+      materialCost: parseFloat(estimate.material_cost),
+      equipmentCost: parseFloat(estimate.equipment_cost),
+      totalCost: parseFloat(estimate.total_cost)
+    });
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="estimate-${estimate.id}.pdf"`);
+    res.send(pdfBuffer);
+    
+    console.log(`✅ PDF downloaded for estimate #${estimate.id}`);
+    
+  } catch (error) {
+    console.error('❌ PDF generation error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ========== STANDALONE CONTRACT DOWNLOAD ENDPOINT ==========
+app.post('/api/generate-contract', async (req, res) => {
+  try {
+    console.log('📝 Contract download request:', req.body);
+    
+    const { estimateId } = req.body;
+    
+    if (!estimateId) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Estimate ID required' 
+      });
+    }
+    
+    // Fetch estimate from database
+    const result = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [estimateId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Estimate not found' 
+      });
+    }
+    
+    const estimate = result.rows[0];
+    
+    const contractBuffer = await generateContract({
+      id: estimate.id,
+      customerName: estimate.customer_name,
+      customerEmail: estimate.customer_email,
+      customerPhone: estimate.customer_phone,
+      propertyAddress: estimate.property_address,
+      city: estimate.city,
+      state: estimate.state,
+      zipCode: estimate.zip_code,
+      trade: estimate.trade,
+      laborHours: parseFloat(estimate.labor_hours),
+      laborRate: parseFloat(estimate.labor_rate),
+      laborCost: parseFloat(estimate.labor_cost),
+      materialCost: parseFloat(estimate.material_cost),
+      equipmentCost: parseFloat(estimate.equipment_cost),
+      totalCost: parseFloat(estimate.total_cost)
+    });
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="contract-${estimate.id}.pdf"`);
+    res.send(contractBuffer);
+    
+    console.log(`✅ Contract downloaded for estimate #${estimate.id}`);
+    
+  } catch (error) {
+    console.error('❌ Contract generation error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+
+
 // ============================================
 // END DASHBOARD ENDPOINTS
 // ============================================
