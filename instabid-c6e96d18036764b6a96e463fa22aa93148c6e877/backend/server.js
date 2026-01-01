@@ -335,6 +335,7 @@ async function getHourlyRate(state, zipCode) {
 }
 
 // ========== TRADE CALCULATION FUNCTION ==========
+
 async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   console.log(`🔧 Starting estimate calculation for ${trade}`);
   console.log(`📍 Location: ${state}, ${msa}`);
@@ -466,8 +467,14 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   materialCost += additionalCosts;
   
   // Regional multiplier (uses contractor override or default)
-  const regionalMultiplier = getPrice('regional', `region_${state}`) || getPrice('regional', 'region_default');
-  materialCost *= regionalMultiplier;
+      // Material costs set directly in dashboard - no regional adjustment
+// Contractors know their local supplier pricing better than any multiplier
+ materialCost += additionalCosts;
+
+
+
+equipmentCost = 350;
+break;
 
   equipmentCost = 350;
   break;
@@ -581,7 +588,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
       equipmentCost = 100;
   }
 
-  const laborCost = laborHours * hourlyRate;
+/*  const laborCost = laborHours * hourlyRate;
   const totalCost = laborCost + materialCost + equipmentCost;
 
   console.log(`✅ Calculation complete: $${totalCost.toFixed(2)}`);
@@ -594,8 +601,28 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
     equipmentCost: parseFloat(equipmentCost.toFixed(2)),
     totalCost: parseFloat(totalCost.toFixed(2))
   };
-}
+}*/
+// Apply regional multiplier to LABOR ONLY
+const regionalMultiplier = getPrice('regional', `region_${state}`) || getPrice('regional', 'region_default');
+const laborCost = laborHours * hourlyRate * regionalMultiplier;
 
+const totalCost = laborCost + materialCost + equipmentCost;
+
+console.log(`✅ ${trade.toUpperCase()} estimate complete for ${state}:`);
+console.log(`   Labor: ${laborHours}hrs × $${hourlyRate}/hr × ${regionalMultiplier.toFixed(2)}x regional = $${laborCost.toFixed(2)}`);
+console.log(`   Materials: $${materialCost.toFixed(2)} (set in dashboard, no regional adjustment)`);
+console.log(`   Equipment: $${equipmentCost.toFixed(2)}`);
+console.log(`   TOTAL: $${totalCost.toFixed(2)}`);
+
+return {
+  laborHours: parseFloat(laborHours.toFixed(2)),
+  laborRate: hourlyRate,
+  regionalMultiplier: regionalMultiplier,
+  laborCost: parseFloat(laborCost.toFixed(2)),
+  materialCost: parseFloat(materialCost.toFixed(2)),
+  equipmentCost: parseFloat(equipmentCost.toFixed(2)),
+  totalCost: parseFloat(totalCost.toFixed(2))
+};
 // ========== PDF GENERATION FUNCTION ==========
 async function generateEstimatePDF(estimateData) {
   return new Promise((resolve, reject) => {
@@ -632,24 +659,31 @@ async function generateEstimatePDF(estimateData) {
       doc.moveDown(2);
 
       // Cost Breakdown
-      doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
-      doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
-      doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
-      doc.moveDown(1);
+    // Cost Breakdown
+doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
+doc.moveDown(0.5);
+doc.fontSize(10);
+doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
+doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
+doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
+doc.moveDown(0.5);
 
-      // Total
-      doc.fontSize(16).fillColor('#2563eb');
-      doc.text(`TOTAL ESTIMATE: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
-      doc.moveDown(2);
+// Subtotal
+doc.fontSize(12).fillColor('#000');
+doc.text(`Subtotal: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
 
-      // Footer
-      doc.fontSize(8).fillColor('#999');
-      doc.text('This estimate is valid for 30 days. Final costs may vary based on site conditions.', { align: 'center' });
+// Tax (8.25% - make configurable later)
+const taxRate = 0.0825;
+const taxAmount = estimateData.totalCost * taxRate;
+doc.text(`Tax (${(taxRate * 100).toFixed(2)}%): $${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
 
-      doc.end();
+doc.moveDown(0.5);
+
+// Total with tax
+const totalWithTax = estimateData.totalCost + taxAmount;
+doc.fontSize(16).fillColor('#2563eb');
+doc.text(`TOTAL ESTIMATE: $${totalWithTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
+doc.moveDown(2);
     } catch (error) {
       reject(error);
     }
@@ -699,14 +733,22 @@ async function generateContract(estimateData) {
 
       // Payment Terms
       doc.fontSize(12).fillColor('#000').text('PAYMENT TERMS', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text(`Total Contract Price: $${estimateData.totalCost.toLocaleString()}`);
-      doc.moveDown(0.5);
-      doc.text('Payment Schedule:');
-      doc.text(`• Deposit (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon signing`);
-      doc.text(`• Final Payment (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon completion`);
-      doc.moveDown(2);
+doc.moveDown(0.5);
+doc.fontSize(10);
+
+const taxRate = 0.0825;
+const taxAmount = estimateData.totalCost * taxRate;
+const totalWithTax = estimateData.totalCost + taxAmount;
+
+doc.text(`Subtotal: $${estimateData.totalCost.toLocaleString()}`);
+doc.text(`Tax (${(taxRate * 100).toFixed(2)}%): $${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+doc.text(`Total Contract Price: $${totalWithTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+doc.moveDown(0.5);
+doc.text('Payment Schedule:');
+doc.text(`• Deposit (50%): $${(totalWithTax * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} - Due upon signing`);
+doc.text(`• Final Payment (50%): $${(totalWithTax * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} - Due upon completion`);
+doc.moveDown(2);
+
 
       // Terms & Conditions
       doc.fontSize(12).fillColor('#000').text('TERMS & CONDITIONS', { underline: true });
