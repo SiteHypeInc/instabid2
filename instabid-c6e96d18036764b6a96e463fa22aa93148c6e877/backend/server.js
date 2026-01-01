@@ -627,31 +627,33 @@ async function generateEstimatePDF(estimateData) {
       doc.moveDown(2);
 
       // Cost Breakdown
-    // Cost Breakdown
-doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
-doc.moveDown(0.5);
-doc.fontSize(10);
-doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
-doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
-doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
-doc.moveDown(0.5);
+      doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
+      doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
+      doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
+      doc.moveDown(0.5);
 
-// Subtotal
-doc.fontSize(12).fillColor('#000');
-doc.text(`Subtotal: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
+      // Subtotal
+      doc.fontSize(12).fillColor('#000');
+      doc.text(`Subtotal: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
 
-// Tax (8.25% - make configurable later)
-const taxRate = 0.0825;
-const taxAmount = estimateData.totalCost * taxRate;
-doc.text(`Tax (${(taxRate * 100).toFixed(2)}%): $${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
+      // Tax
+      const taxRate = 0.0825;
+      const taxAmount = estimateData.totalCost * taxRate;
+      doc.text(`Tax (${(taxRate * 100).toFixed(2)}%): $${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
 
-doc.moveDown(0.5);
+      doc.moveDown(0.5);
 
-// Total with tax
-const totalWithTax = estimateData.totalCost + taxAmount;
-doc.fontSize(16).fillColor('#2563eb');
-doc.text(`TOTAL ESTIMATE: $${totalWithTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
-doc.moveDown(2);
+      // Total with tax
+      const totalWithTax = estimateData.totalCost + taxAmount;
+      doc.fontSize(16).fillColor('#2563eb');
+      doc.text(`TOTAL ESTIMATE: $${totalWithTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
+      
+      // FINALIZE THE PDF
+      doc.end();
+      
     } catch (error) {
       reject(error);
     }
