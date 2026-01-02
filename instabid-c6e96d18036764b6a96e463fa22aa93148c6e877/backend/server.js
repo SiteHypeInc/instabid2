@@ -1266,6 +1266,55 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// Email link version - redirects to Stripe checkout
+app.get('/api/create-checkout-session-email', async (req, res) => {
+  const { estimateId } = req.query;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [estimateId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('Estimate not found');
+    }
+
+    const estimate = result.rows[0];
+    const totalAmount = parseFloat(estimate.total_cost);
+    const depositAmount = Math.round(totalAmount * 0.30 * 100);
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `${estimate.trade} Project Deposit`,
+            description: `30% deposit for estimate #${estimateId} - ${estimate.customer_name}`,
+          },
+          unit_amount: depositAmount,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/schedule?session_id={CHECKOUT_SESSION_ID}&estimate_id=${estimateId}`,
+      cancel_url: `${process.env.FRONTEND_URL}/?cancelled=true`,
+      metadata: {
+        estimate_id: estimateId,
+        contractor_id: estimate.contractor_id || 1,
+        deposit_amount: (depositAmount / 100).toFixed(2),
+      },
+    });
+
+    // Redirect to Stripe checkout
+    res.redirect(session.url);
+  } catch (error) {
+    console.error('❌ Stripe checkout error:', error);
+    res.status(500).send('Failed to create checkout session');
+  }
+});
+
 // ========== EMAIL SENDING FUNCTION ==========
 async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
   const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
