@@ -1389,6 +1389,7 @@ document.getElementById('contractBtn').addEventListener('click', function() {
 });
 
   // Email button handler
+// Email button handler
 document.getElementById('emailBtn').addEventListener('click', function() {
   if (!currentEstimateData || !currentEstimateData.estimateId) {
     alert('❌ No estimate found. Please submit the form first.');
@@ -1404,9 +1405,10 @@ document.getElementById('emailBtn').addEventListener('click', function() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-  estimateId: currentEstimateData.estimateId,
-  trade: currentEstimateData.trade  // ← This should work now
-})
+      estimateId: currentEstimateData.estimateId,
+      trade: currentEstimateData.trade
+    })
+  })  // ← ADD THIS CLOSING PARENTHESIS AND BRACE
   .then(function(response) {
     return response.json().then(function(result) {
       return { ok: response.ok, result: result };
