@@ -345,42 +345,8 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let equipmentCost = 0;
 
   switch(trade.toLowerCase()) {
-    /*case 'roofing':
-      const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
-      const roofComplexity = data.roofComplexity || 'medium';
-      const roofPitch = data.roofPitch || 'medium';
-      const stories = parseInt(data.stories) || 1;
-      const existingRoofType = data.existingRoofType || '';
 
-      let baseHoursPer100 = 2.5;
-      
-      if (roofComplexity === 'low') baseHoursPer100 *= 0.8;
-      if (roofComplexity === 'high') baseHoursPer100 *= 1.4;
-      
-      if (roofPitch === 'low') baseHoursPer100 *= 0.9;
-      if (roofPitch === 'steep') baseHoursPer100 *= 1.3;
-      
-      if (stories === 2) baseHoursPer100 *= 1.15;
-      if (stories >= 3) baseHoursPer100 *= 1.3;
-
-      laborHours = (roofArea / 100) * baseHoursPer100;
-      materialCost = roofArea * 3.50;
-
-      if (existingRoofType !== '' && existingRoofType !== 'none') {
-        laborHours += (roofArea / 100) * 1.2;
-        materialCost += roofArea * 0.50;
-      }
-
-      const highCostStates = ['CA', 'NY', 'MA', 'WA', 'CT'];
-      if (highCostStates.includes(state)) {
-        materialCost *= 1.35;
-      }
-
-      equipmentCost = 350;
-      break;
-      */
-
-    case 'roofing':
+  case 'roofing':
   const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
   const roofComplexity = data.roofComplexity || 'medium';
   const roofPitch = data.roofPitch || 'medium';
@@ -1091,73 +1057,6 @@ app.post('/api/generate-contract', async (req, res) => {
     });
   }
 });
-
-// ============================================
-// DASHBOARD CONFIGURATION ENDPOINTS
-// ============================================
-
-/*let configData = {
-    roofing: {
-    pitch_low: 1.0, pitch_med: 1.2, pitch_high: 1.4, pitch_steep: 1.8,
-    story_1: 1.0, story_2: 1.3, story_3: 1.6,
-    mat_asphalt: 2.5, mat_arch: 3.5, mat_metal: 5.0, mat_tile: 7.0, mat_slate: 12.0,
-    tearoff_cost: 1500, plywood_cost: 4.5, chimney_cost: 400, valley_cost: 8,
-    skylight_cost: 300, ridge_cost: 10
-  },
-  hvac: {
-    hvac_size_small: 0.9, hvac_size_med: 1.0, hvac_size_large: 1.2, hvac_size_xlarge: 1.4,
-    hvac_furnace: 3500, hvac_ac: 4000, hvac_heatpump: 5500, hvac_minisplit: 2500,
-    hvac_duct: 15, hvac_thermostat: 350, hvac_handler: 1200,
-    hvac_standard: 1.0, hvac_moderate: 1.2, hvac_complex: 1.5
-  },
-  electrical: {
-    elec_panel_100: 1800, elec_panel_200: 2500, elec_subpanel: 1200,
-    elec_outlet: 125, elec_switch: 110, elec_fixture: 150, elec_fan: 200, elec_gfci: 175,
-    elec_ev: 1200, elec_generator: 1500, elec_hottub: 800,
-    elec_labor_std: 85, elec_labor_complex: 110
-  },
-  plumbing: {
-    plumb_toilet: 350, plumb_sink: 400, plumb_shower: 1200, plumb_tub: 1500, plumb_dishwasher: 300,
-    plumb_heater_tank: 1800, plumb_heater_tankless: 3200, plumb_sump: 850, plumb_softener: 1400,
-    plumb_pipe_repair: 45, plumb_pipe_replace: 75, plumb_drain: 250, plumb_sewer: 125,
-    plumb_labor_std: 95, plumb_labor_emerg: 140
-  },
-  flooring: {
-    floor_carpet: 3.5, floor_vinyl: 4.0, floor_laminate: 4.5,
-    floor_hardwood_eng: 8.0, floor_hardwood_solid: 12.0,
-    floor_tile_ceramic: 6.0, floor_tile_porcelain: 8.5,
-    floor_labor_carpet: 1.5, floor_labor_vinyl: 2.0, floor_labor_hardwood: 4.0, floor_labor_tile: 5.0,
-    floor_subfloor: 3.0, floor_removal: 1.5, floor_underlay: 0.75, floor_baseboard: 4.0,
-    floor_standard: 1.0, floor_moderate: 1.2, floor_complex: 1.5
-  },
-  painting: {
-    paint_int_walls_1: 1.5, paint_int_walls_2: 2.5, paint_int_ceiling: 2.0,
-    paint_int_trim: 1.75, paint_int_door: 75, paint_int_cabinet: 35,
-    paint_ext_siding_1: 2.0, paint_ext_siding_2: 3.5, paint_ext_trim: 2.5,
-    paint_ext_deck: 2.25, paint_ext_fence: 3.0,
-    paint_prep: 1.0, paint_primer: 0.75, paint_wallpaper: 1.5, paint_texture: 3.0,
-    paint_standard: 1.0, paint_moderate: 1.25, paint_complex: 1.5
-  },
-  regional: {
-    region_CA: 1.35, region_NY: 1.30, region_MA: 1.25, region_HI: 1.40,
-    region_WA: 1.15, region_OR: 1.10, region_CO: 1.10, region_IL: 1.08, region_VA: 1.05,
-    region_TX: 0.95, region_FL: 0.95, region_GA: 0.90, region_OH: 0.92, region_TN: 0.88, region_AL: 0.85,
-    region_default: 1.00
-  }
-};*/
-
-  // ============================================
-// DASHBOARD CONFIGURATION ENDPOINTS
-// ============================================
-
-
-/*app.get('/api/config/:section', (req, res) => {
-  const section = req.params.section;
-  res.json({
-    success: true,
-    config: configData[section] || {}
-  });
-});*/
 
 // GET config for dashboard - merges defaults + overrides
 app.get('/api/config/:section', (req, res) => {
