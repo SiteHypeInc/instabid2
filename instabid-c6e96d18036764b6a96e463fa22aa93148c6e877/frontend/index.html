@@ -1388,6 +1388,46 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   });
 });
 
+  // Email button handler
+document.getElementById('emailBtn').addEventListener('click', function() {
+  if (!currentEstimateData || !currentEstimateData.estimateId) {
+    alert('❌ No estimate found. Please submit the form first.');
+    return;
+  }
+  
+  this.disabled = true;
+  this.textContent = '⏳ Sending...';
+  
+  var self = this;
+  
+  fetch('https://roofbid-backend-production.up.railway.app/api/send-estimate-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      estimateId: currentEstimateData.estimateId 
+    })
+  })
+  .then(function(response) {
+    return response.json().then(function(result) {
+      return { ok: response.ok, result: result };
+    });
+  })
+  .then(function(data) {
+    if (data.ok) {
+      alert('✅ Email sent successfully!');
+    } else {
+      alert('❌ Failed to send email: ' + (data.result.error || 'Unknown error'));
+    }
+    self.disabled = false;
+    self.textContent = '📧 Email';
+  })
+  .catch(function(error) {
+    alert('❌ Network error: ' + error.message);
+    self.disabled = false;
+    self.textContent = '📧 Email';
+  });
+});
+
 </script>
 
 </body>
