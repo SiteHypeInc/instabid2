@@ -1404,7 +1404,8 @@ document.getElementById('emailBtn').addEventListener('click', function() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-      estimateId: currentEstimateData.estimateId 
+      estimateId: currentEstimateData.estimateId,
+      trade: selectedTrade  // ← ADD THIS LINE
     })
   })
   .then(function(response) {
