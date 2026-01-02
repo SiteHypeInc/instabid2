@@ -1232,10 +1232,11 @@ function showError(message) {
   .then(function(data) {
     if (data.ok) {
       // ✅ NOW STORE THE ESTIMATE ID FROM THE RESPONSE
-      currentEstimateData = {
-        estimateId: data.result.estimateId,  // ← THIS IS THE KEY PART
-        ...data.result.estimate
-      };
+      currentEstimateData = Object.assign({}, data.result.estimate, {
+  estimateId: data.result.estimateId,
+  trade: selectedTrade
+});
+
       
       displayResults(data.result);
     } else {
