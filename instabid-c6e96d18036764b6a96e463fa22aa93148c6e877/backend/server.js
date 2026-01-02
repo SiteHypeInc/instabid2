@@ -1266,58 +1266,101 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-// Email to customer
-const customerMailOptions = {
-  from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
-  to: estimateData.customerEmail,
-  subject: `Your ${tradeName} Estimate & Contract`,
-  html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-        <h1 style="margin: 0;">Your Estimate is Ready!</h1>
-      </div>
-      <div style="padding: 20px; background: #f9fafb;">
-        <p>Hi ${estimateData.customerName},</p>
-        <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
-        <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
-            Total Estimate: $${estimateData.totalCost.toLocaleString()}
-          </p>
+// ========== EMAIL SENDING FUNCTION ==========
+async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
+  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+
+  // Email to customer
+  const customerMailOptions = {
+    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
+    to: estimateData.customerEmail,
+    subject: `Your ${tradeName} Estimate & Contract`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">Your Estimate is Ready!</h1>
         </div>
-        <p><strong>Two documents are attached:</strong></p>
-        <ul>
-          <li>Detailed Estimate (PDF)</li>
-          <li>Service Contract (PDF)</li>
-        </ul>
-        
-        <!-- STRIPE PAYMENT BUTTON -->
-        <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
-          <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
-          <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
-          <a href="${process.env.BACKEND_URL || '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
-             style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
-                    text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-            💳 Pay Deposit & Schedule Start Date
-          </a>
+        <div style="padding: 20px; background: #f9fafb;">
+          <p>Hi ${estimateData.customerName},</p>
+          <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
+          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
+              Total Estimate: $${estimateData.totalCost.toLocaleString()}
+            </p>
+          </div>
+          <p><strong>Two documents are attached:</strong></p>
+          <ul>
+            <li>Detailed Estimate (PDF)</li>
+            <li>Service Contract (PDF)</li>
+          </ul>
+          
+          <!-- STRIPE PAYMENT BUTTON -->
+          <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
+            <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
+            <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
+            <a href="${process.env.BACKEND_URL || '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
+               style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
+                      text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              💳 Pay Deposit & Schedule Start Date
+            </a>
+          </div>
+          
+          <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
         </div>
-        
-        <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
       </div>
-    </div>
-  `,
-  attachments: [
-    {
-      filename: `estimate-${estimateData.id}.pdf`,
-      content: pdfBuffer,
-      contentType: 'application/pdf'
-    },
-    {
-      filename: `contract-${estimateData.id}.pdf`,
-      content: contractBuffer,
-      contentType: 'application/pdf'
-    }
-  ]
-};
+    `,
+    attachments: [
+      {
+        filename: `estimate-${estimateData.id}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      },
+      {
+        filename: `contract-${estimateData.id}.pdf`,
+        content: contractBuffer,
+        contentType: 'application/pdf'
+      }
+    ]
+  };
+
+  // Email to contractor
+  const contractorMailOptions = {
+    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
+    to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
+    subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
+    html: `
+      <h2>🔔 New Estimate Request</h2>
+      <p><strong>Customer:</strong> ${estimateData.customerName}</p>
+      <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
+      <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
+      <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
+      <hr>
+      <p><strong>Service:</strong> ${tradeName}</p>
+      <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
+      <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
+      <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
+      <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
+    `,
+    attachments: [
+      {
+        filename: `estimate-${estimateData.id}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      },
+      {
+        filename: `contract-${estimateData.id}.pdf`,
+        content: contractBuffer,
+        contentType: 'application/pdf'
+      }
+    ]
+  };
+
+  await transporter.sendMail(customerMailOptions);
+  console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
+  
+  await transporter.sendMail(contractorMailOptions);
+  console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
+}
 
 // Stripe webhook
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
