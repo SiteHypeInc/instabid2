@@ -1147,11 +1147,19 @@ app.post('/api/generate-contract', async (req, res) => {
 };*/
 
 // ========== STANDALONE EMAIL RESEND ENDPOINT ==========
+// ========== STANDALONE EMAIL RESEND ENDPOINT ==========
 app.post('/api/send-estimate-email', async (req, res) => {
   try {
-    console.log('📧 Email resend request:', req.body);
+    console.log('📧 Email resend request:', JSON.stringify(req.body, null, 2));
     
-    const { estimateId } = req.body;
+    let estimateId = req.body.estimateId;
+    
+    // Handle if frontend sent entire estimate object instead of just ID
+    if (typeof estimateId === 'object' && estimateId !== null) {
+      estimateId = estimateId.id || estimateId.estimateId;
+    }
+    
+    console.log('📧 Extracted estimateId:', estimateId);
     
     if (!estimateId) {
       return res.status(400).json({ 
@@ -1174,6 +1182,8 @@ app.post('/api/send-estimate-email', async (req, res) => {
     }
     
     const estimate = result.rows[0];
+    
+    console.log(`✅ Found estimate #${estimate.id} for ${estimate.customer_name}`);
     
     // Regenerate PDFs
     const pdfBuffer = await generateEstimatePDF({
@@ -1213,6 +1223,8 @@ app.post('/api/send-estimate-email', async (req, res) => {
       totalCost: parseFloat(estimate.total_cost)
     });
     
+    console.log('📄 PDFs regenerated, sending emails...');
+    
     // Send emails
     await sendEstimateEmails(
       {
@@ -1235,6 +1247,8 @@ app.post('/api/send-estimate-email', async (req, res) => {
       pdfBuffer,
       contractBuffer
     );
+    
+    console.log('✅ Emails sent successfully!');
     
     res.json({ 
       success: true, 
