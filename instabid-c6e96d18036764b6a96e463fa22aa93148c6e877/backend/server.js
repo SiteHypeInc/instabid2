@@ -1129,6 +1129,168 @@ app.put('/api/config/:section', (req, res) => {
 // END DASHBOARD ENDPOINTS
 // ============================================
 
+// ============================================
+// STRIPE INTEGRATION
+// ============================================
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Create checkout session
+app.post('/api/create-checkout-session', async (req, res) => {
+  const { estimateId } = req.body;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [estimateId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Estimate not found' });
+    }
+
+    const estimate = result.rows[0];
+    const totalAmount = parseFloat(estimate.total_cost);
+    const depositAmount = Math.round(totalAmount * 0.30 * 100); // 30% in cents
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `${estimate.trade} Project Deposit`,
+            description: `30% deposit for estimate #${estimateId} - ${estimate.customer_name}`,
+          },
+          unit_amount: depositAmount,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/schedule?session_id={CHECKOUT_SESSION_ID}&estimate_id=${estimateId}`,
+      cancel_url: `${process.env.FRONTEND_URL}/?cancelled=true`,
+      metadata: {
+        estimate_id: estimateId,
+        contractor_id: estimate.contractor_id || 1,
+        deposit_amount: (depositAmount / 100).toFixed(2),
+      },
+    });
+
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (error) {
+    console.error('❌ Stripe checkout error:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+// Stripe webhook
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('⚠️ Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const { estimate_id, contractor_id, deposit_amount } = session.metadata;
+
+    await pool.query(
+      `INSERT INTO scheduled_jobs 
+       (estimate_id, contractor_id, payment_status, deposit_amount, stripe_session_id, stripe_payment_intent)
+       VALUES ($1, $2, 'deposit_paid', $3, $4, $5)`,
+      [estimate_id, contractor_id, deposit_amount, session.id, session.payment_intent]
+    );
+
+    console.log(`✅ Deposit received for estimate #${estimate_id}`);
+  }
+
+  res.json({ received: true });
+});
+
+// Get contractor availability
+app.get('/api/availability/:contractorId', async (req, res) => {
+  const { contractorId } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT available_date, slots_available, slots_booked 
+       FROM availability 
+       WHERE contractor_id = $1 
+       AND available_date >= CURRENT_DATE
+       AND slots_booked < slots_available
+       ORDER BY available_date`,
+      [contractorId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error fetching availability:', error);
+    res.status(500).json({ error: 'Failed to fetch availability' });
+  }
+});
+
+// Book start date
+app.post('/api/book-date', async (req, res) => {
+  const { estimateId, startDate } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE scheduled_jobs 
+       SET start_date = $1, updated_at = NOW()
+       WHERE estimate_id = $2
+       RETURNING *`,
+      [startDate, estimateId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Scheduled job not found' });
+    }
+
+    const job = result.rows[0];
+
+    await pool.query(
+      `UPDATE availability 
+       SET slots_booked = slots_booked + 1
+       WHERE contractor_id = $1 AND available_date = $2`,
+      [job.contractor_id, startDate]
+    );
+
+    res.json({ success: true, job });
+  } catch (error) {
+    console.error('❌ Error booking date:', error);
+    res.status(500).json({ error: 'Failed to book date' });
+  }
+});
+
+// Update contractor tax rate
+app.post('/api/update-tax-rate', async (req, res) => {
+  const { contractorId, taxRate } = req.body;
+
+  try {
+    await pool.query(
+      'UPDATE contractors SET tax_rate = $1 WHERE id = $2',
+      [taxRate, contractorId]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error updating tax rate:', error);
+    res.status(500).json({ error: 'Failed to update tax rate' });
+  }
+});
+
+// ============================================
+// END STRIPE INTEGRATION
+// ============================================
+
 
 // Start server
 app.listen(PORT, () => {
