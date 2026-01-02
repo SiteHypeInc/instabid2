@@ -310,7 +310,6 @@ app.get('/', (req, res) => {
 });
 
 // ========== LABOR RATE LOOKUP ==========
-
 async function getHourlyRate(state, zipCode) {
   try {
     const result = await pool.query(
@@ -336,7 +335,6 @@ async function getHourlyRate(state, zipCode) {
 }
 
 // ========== TRADE CALCULATION FUNCTION ==========
-
 async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   console.log(`🔧 Starting estimate calculation for ${trade}`);
   console.log(`📍 Location: ${state}, ${msa}`);
@@ -347,7 +345,42 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let equipmentCost = 0;
 
   switch(trade.toLowerCase()) {
-  case 'roofing':
+    /*case 'roofing':
+      const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
+      const roofComplexity = data.roofComplexity || 'medium';
+      const roofPitch = data.roofPitch || 'medium';
+      const stories = parseInt(data.stories) || 1;
+      const existingRoofType = data.existingRoofType || '';
+
+      let baseHoursPer100 = 2.5;
+      
+      if (roofComplexity === 'low') baseHoursPer100 *= 0.8;
+      if (roofComplexity === 'high') baseHoursPer100 *= 1.4;
+      
+      if (roofPitch === 'low') baseHoursPer100 *= 0.9;
+      if (roofPitch === 'steep') baseHoursPer100 *= 1.3;
+      
+      if (stories === 2) baseHoursPer100 *= 1.15;
+      if (stories >= 3) baseHoursPer100 *= 1.3;
+
+      laborHours = (roofArea / 100) * baseHoursPer100;
+      materialCost = roofArea * 3.50;
+
+      if (existingRoofType !== '' && existingRoofType !== 'none') {
+        laborHours += (roofArea / 100) * 1.2;
+        materialCost += roofArea * 0.50;
+      }
+
+      const highCostStates = ['CA', 'NY', 'MA', 'WA', 'CT'];
+      if (highCostStates.includes(state)) {
+        materialCost *= 1.35;
+      }
+
+      equipmentCost = 350;
+      break;
+      */
+
+    case 'roofing':
   const roofArea = parseFloat(data.squareFeet || data.roofArea) || 0;
   const roofComplexity = data.roofComplexity || 'medium';
   const roofPitch = data.roofPitch || 'medium';
@@ -433,14 +466,8 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   materialCost += additionalCosts;
   
   // Regional multiplier (uses contractor override or default)
-      // Material costs set directly in dashboard - no regional adjustment
-// Contractors know their local supplier pricing better than any multiplier
- materialCost += additionalCosts;
-
-
-
-equipmentCost = 350;
-break;
+  const regionalMultiplier = getPrice('regional', `region_${state}`) || getPrice('regional', 'region_default');
+  materialCost *= regionalMultiplier;
 
   equipmentCost = 350;
   break;
@@ -554,7 +581,7 @@ break;
       equipmentCost = 100;
   }
 
-/*  const laborCost = laborHours * hourlyRate;
+  const laborCost = laborHours * hourlyRate;
   const totalCost = laborCost + materialCost + equipmentCost;
 
   console.log(`✅ Calculation complete: $${totalCost.toFixed(2)}`);
@@ -567,30 +594,8 @@ break;
     equipmentCost: parseFloat(equipmentCost.toFixed(2)),
     totalCost: parseFloat(totalCost.toFixed(2))
   };
-}*/
-// Apply regional multiplier to LABOR ONLY
-const regionalMultiplier = getPrice('regional', `region_${state}`) || getPrice('regional', 'region_default');
-const laborCost = laborHours * hourlyRate * regionalMultiplier;
+}
 
-const totalCost = laborCost + materialCost + equipmentCost;
-
-console.log(`✅ ${trade.toUpperCase()} estimate complete for ${state}:`);
-console.log(`   Labor: ${laborHours}hrs × $${hourlyRate}/hr × ${regionalMultiplier.toFixed(2)}x regional = $${laborCost.toFixed(2)}`);
-console.log(`   Materials: $${materialCost.toFixed(2)} (set in dashboard, no regional adjustment)`);
-console.log(`   Equipment: $${equipmentCost.toFixed(2)}`);
-console.log(`   TOTAL: $${totalCost.toFixed(2)}`);
-
-return {
-  laborHours: parseFloat(laborHours.toFixed(2)),
-  laborRate: hourlyRate,
-  regionalMultiplier: regionalMultiplier,
-  laborCost: parseFloat(laborCost.toFixed(2)),
-  materialCost: parseFloat(materialCost.toFixed(2)),
-  equipmentCost: parseFloat(equipmentCost.toFixed(2)),
-  totalCost: parseFloat(totalCost.toFixed(2))
-};
-}  
-  
 // ========== PDF GENERATION FUNCTION ==========
 async function generateEstimatePDF(estimateData) {
   return new Promise((resolve, reject) => {
@@ -633,27 +638,18 @@ async function generateEstimatePDF(estimateData) {
       doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
       doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
       doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
-      doc.moveDown(0.5);
+      doc.moveDown(1);
 
-      // Subtotal
-      doc.fontSize(12).fillColor('#000');
-      doc.text(`Subtotal: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
-
-      // Tax
-      const taxRate = 0.0825;
-      const taxAmount = estimateData.totalCost * taxRate;
-      doc.text(`Tax (${(taxRate * 100).toFixed(2)}%): $${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
-
-      doc.moveDown(0.5);
-
-      // Total with tax
-      const totalWithTax = estimateData.totalCost + taxAmount;
+      // Total
       doc.fontSize(16).fillColor('#2563eb');
-      doc.text(`TOTAL ESTIMATE: $${totalWithTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, { align: 'right' });
-      
-      // FINALIZE THE PDF
+      doc.text(`TOTAL ESTIMATE: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
+      doc.moveDown(2);
+
+      // Footer
+      doc.fontSize(8).fillColor('#999');
+      doc.text('This estimate is valid for 30 days. Final costs may vary based on site conditions.', { align: 'center' });
+
       doc.end();
-      
     } catch (error) {
       reject(error);
     }
@@ -703,22 +699,14 @@ async function generateContract(estimateData) {
 
       // Payment Terms
       doc.fontSize(12).fillColor('#000').text('PAYMENT TERMS', { underline: true });
-doc.moveDown(0.5);
-doc.fontSize(10);
-
-const taxRate = 0.0825;
-const taxAmount = estimateData.totalCost * taxRate;
-const totalWithTax = estimateData.totalCost + taxAmount;
-
-doc.text(`Subtotal: $${estimateData.totalCost.toLocaleString()}`);
-doc.text(`Tax (${(taxRate * 100).toFixed(2)}%): $${taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-doc.text(`Total Contract Price: $${totalWithTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-doc.moveDown(0.5);
-doc.text('Payment Schedule:');
-doc.text(`• Deposit (50%): $${(totalWithTax * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} - Due upon signing`);
-doc.text(`• Final Payment (50%): $${(totalWithTax * 0.5).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} - Due upon completion`);
-doc.moveDown(2);
-
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      doc.text(`Total Contract Price: $${estimateData.totalCost.toLocaleString()}`);
+      doc.moveDown(0.5);
+      doc.text('Payment Schedule:');
+      doc.text(`• Deposit (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon signing`);
+      doc.text(`• Final Payment (50%): $${(estimateData.totalCost * 0.5).toLocaleString()} - Due upon completion`);
+      doc.moveDown(2);
 
       // Terms & Conditions
       doc.fontSize(12).fillColor('#000').text('TERMS & CONDITIONS', { underline: true });
@@ -848,7 +836,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
 }
 
 // ========== MAIN ESTIMATE SUBMISSION ENDPOINT ==========
-/*app.post('/api/estimate', async (req, res) => {
+app.post('/api/estimate', async (req, res) => {
   console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
   
   try {
@@ -1102,184 +1090,6 @@ app.post('/api/generate-contract', async (req, res) => {
       error: error.message 
     });
   }
-}); */
-
-app.post('/api/estimate', async (req, res) => {
-  console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
-  
-  try {
-    const {
-      customerName,
-      customer_name,
-      customerEmail,
-      customer_email,
-      customerPhone,
-      customer_phone,
-      propertyAddress,
-      address,
-      city,
-      state,
-      zipCode,
-      zip,
-      trade,
-      ...tradeSpecificFields
-    } = req.body;
-
-    const finalCustomerName = customerName || customer_name || req.body.name;
-    const finalCustomerEmail = customerEmail || customer_email || req.body.email;
-    const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
-    const finalPropertyAddress = propertyAddress || address || '';
-    const finalZipCode = zipCode || zip || '';
-    const finalCity = req.body.city || 'Unknown';
-    const finalState = req.body.state || 'Unknown';
-
-    console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
-    console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
-
-    const hourlyRate = await getHourlyRate(state, finalZipCode);
-    console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
-    
-    const estimate = await calculateTradeEstimate(
-      trade,
-      tradeSpecificFields,
-      hourlyRate,
-      state,
-      finalZipCode
-    );
-
-    console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
-
-    const insertQuery = `
-      INSERT INTO estimates (
-        customer_name, customer_email, customer_phone,
-        property_address, city, state, zip_code,
-        trade, trade_details,
-        labor_hours, labor_rate, labor_cost,
-        material_cost, equipment_cost, total_cost,
-        created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
-      RETURNING id
-    `;
-
-    const values = [
-      finalCustomerName,
-      finalCustomerEmail,
-      finalCustomerPhone,
-      finalPropertyAddress,
-      city,
-      state,
-      finalZipCode,
-      trade,
-      JSON.stringify(tradeSpecificFields),
-      estimate.laborHours,
-      estimate.laborRate,
-      estimate.laborCost,
-      estimate.materialCost,
-      estimate.equipmentCost || 0,
-      estimate.totalCost
-    ];
-
-    const result = await pool.query(insertQuery, values);
-    const estimateId = result.rows[0].id;
-
-    console.log(`✅ Estimate #${estimateId} saved to database`);
-
-    const pdfBuffer = await generateEstimatePDF({
-      id: estimateId,
-      customerName: finalCustomerName,
-      customerEmail: finalCustomerEmail,
-      customerPhone: finalCustomerPhone,
-      propertyAddress: finalPropertyAddress,
-      city,
-      state,
-      zipCode: finalZipCode,
-      trade,
-      tradeDetails: tradeSpecificFields,
-      laborHours: estimate.laborHours,
-      laborRate: estimate.laborRate,
-      laborCost: estimate.laborCost,
-      materialCost: estimate.materialCost,
-      equipmentCost: estimate.equipmentCost || 0,
-      totalCost: estimate.totalCost
-    });
-
-    console.log(`📄 PDF generated for estimate #${estimateId}`);
-
-    const contractBuffer = await generateContract({
-      id: estimateId,
-      customerName: finalCustomerName,
-      customerEmail: finalCustomerEmail,
-      customerPhone: finalCustomerPhone,
-      propertyAddress: finalPropertyAddress,
-      city,
-      state,
-      zipCode: finalZipCode,
-      trade,
-      laborHours: estimate.laborHours,
-      laborRate: estimate.laborRate,
-      laborCost: estimate.laborCost,
-      materialCost: estimate.materialCost,
-      equipmentCost: estimate.equipmentCost || 0,
-      totalCost: estimate.totalCost
-    });
-
-    console.log(`📝 Contract generated for estimate #${estimateId}`);
-
-    // SEND RESPONSE TO FRONTEND IMMEDIATELY
-    res.json({
-      success: true,
-      estimateId,
-      lineItems: [
-        { description: 'Labor', amount: estimate.laborCost },
-        { description: 'Materials', amount: estimate.materialCost },
-        { description: 'Equipment', amount: estimate.equipmentCost || 0 }
-      ],
-      subtotal: estimate.totalCost,
-      tax: estimate.totalCost * 0.0825,
-      total: estimate.totalCost * 1.0825,
-      msa: finalCity + ', ' + finalState,
-      timeline: Math.ceil(estimate.laborHours / 8) + ' days',
-      estimate: {
-        totalCost: estimate.totalCost,
-        laborCost: estimate.laborCost,
-        materialCost: estimate.materialCost,
-        equipmentCost: estimate.equipmentCost || 0,
-        laborHours: estimate.laborHours,
-        laborRate: estimate.laborRate
-      }
-    });
-
-    console.log('✅ Response sent to frontend - customer sees estimate NOW');
-
-    // Send emails in background (non-blocking)
-    sendEstimateEmails(
-      {
-        id: estimateId,
-        customerName: finalCustomerName,
-        customerEmail: finalCustomerEmail,
-        customerPhone: finalCustomerPhone,
-        propertyAddress: finalPropertyAddress,
-        city,
-        state,
-        zipCode: finalZipCode,
-        trade,
-        ...estimate
-      },
-      pdfBuffer,
-      contractBuffer
-    ).catch(err => {
-      console.error('❌ Email sending failed (non-blocking):', err.message);
-    });
-
-    console.log('📧 Emails queued for background delivery');
-
-  } catch (error) {
-    console.error('❌ Estimate submission error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
 });
 
 // ============================================
@@ -1415,237 +1225,6 @@ app.put('/api/config/:section', (req, res) => {
     totalFields: Object.keys(DEFAULT_PRICING[section]).length
   });
 });
-
-// ========== STANDALONE EMAIL ENDPOINT ==========
-app.post('/api/send-estimate-email', async (req, res) => {
-  try {
-    console.log('📧 Email resend request:', req.body);
-    
-    const { estimateId } = req.body;
-    
-    if (!estimateId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Estimate ID required' 
-      });
-    }
-    
-    // Fetch estimate from database
-    const result = await pool.query(
-      'SELECT * FROM estimates WHERE id = $1',
-      [estimateId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Estimate not found' 
-      });
-    }
-    
-    const estimate = result.rows[0];
-    
-    // Regenerate PDFs
-    const pdfBuffer = await generateEstimatePDF({
-      id: estimate.id,
-      customerName: estimate.customer_name,
-      customerEmail: estimate.customer_email,
-      customerPhone: estimate.customer_phone,
-      propertyAddress: estimate.property_address,
-      city: estimate.city,
-      state: estimate.state,
-      zipCode: estimate.zip_code,
-      trade: estimate.trade,
-      tradeDetails: estimate.trade_details,
-      laborHours: parseFloat(estimate.labor_hours),
-      laborRate: parseFloat(estimate.labor_rate),
-      laborCost: parseFloat(estimate.labor_cost),
-      materialCost: parseFloat(estimate.material_cost),
-      equipmentCost: parseFloat(estimate.equipment_cost),
-      totalCost: parseFloat(estimate.total_cost)
-    });
-    
-    const contractBuffer = await generateContract({
-      id: estimate.id,
-      customerName: estimate.customer_name,
-      customerEmail: estimate.customer_email,
-      customerPhone: estimate.customer_phone,
-      propertyAddress: estimate.property_address,
-      city: estimate.city,
-      state: estimate.state,
-      zipCode: estimate.zip_code,
-      trade: estimate.trade,
-      laborHours: parseFloat(estimate.labor_hours),
-      laborRate: parseFloat(estimate.labor_rate),
-      laborCost: parseFloat(estimate.labor_cost),
-      materialCost: parseFloat(estimate.material_cost),
-      equipmentCost: parseFloat(estimate.equipment_cost),
-      totalCost: parseFloat(estimate.total_cost)
-    });
-    
-    // Send emails
-    await sendEstimateEmails(
-      {
-        id: estimate.id,
-        customerName: estimate.customer_name,
-        customerEmail: estimate.customer_email,
-        customerPhone: estimate.customer_phone,
-        propertyAddress: estimate.property_address,
-        city: estimate.city,
-        state: estimate.state,
-        zipCode: estimate.zip_code,
-        trade: estimate.trade,
-        laborHours: parseFloat(estimate.labor_hours),
-        laborRate: parseFloat(estimate.labor_rate),
-        laborCost: parseFloat(estimate.labor_cost),
-        materialCost: parseFloat(estimate.material_cost),
-        equipmentCost: parseFloat(estimate.equipment_cost),
-        totalCost: parseFloat(estimate.total_cost)
-      },
-      pdfBuffer,
-      contractBuffer
-    );
-    
-    res.json({ 
-      success: true, 
-      message: 'Emails sent successfully' 
-    });
-    
-  } catch (error) {
-    console.error('❌ Email resend error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// ========== STANDALONE PDF DOWNLOAD ENDPOINT ==========
-app.post('/api/generate-pdf', async (req, res) => {
-  try {
-    console.log('📄 PDF download request:', req.body);
-    
-    const { estimateId } = req.body;
-    
-    if (!estimateId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Estimate ID required' 
-      });
-    }
-    
-    // Fetch estimate from database
-    const result = await pool.query(
-      'SELECT * FROM estimates WHERE id = $1',
-      [estimateId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Estimate not found' 
-      });
-    }
-    
-    const estimate = result.rows[0];
-    
-    const pdfBuffer = await generateEstimatePDF({
-      id: estimate.id,
-      customerName: estimate.customer_name,
-      customerEmail: estimate.customer_email,
-      customerPhone: estimate.customer_phone,
-      propertyAddress: estimate.property_address,
-      city: estimate.city,
-      state: estimate.state,
-      zipCode: estimate.zip_code,
-      trade: estimate.trade,
-      tradeDetails: estimate.trade_details,
-      laborHours: parseFloat(estimate.labor_hours),
-      laborRate: parseFloat(estimate.labor_rate),
-      laborCost: parseFloat(estimate.labor_cost),
-      materialCost: parseFloat(estimate.material_cost),
-      equipmentCost: parseFloat(estimate.equipment_cost),
-      totalCost: parseFloat(estimate.total_cost)
-    });
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="estimate-${estimate.id}.pdf"`);
-    res.send(pdfBuffer);
-    
-    console.log(`✅ PDF downloaded for estimate #${estimate.id}`);
-    
-  } catch (error) {
-    console.error('❌ PDF generation error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// ========== STANDALONE CONTRACT DOWNLOAD ENDPOINT ==========
-app.post('/api/generate-contract', async (req, res) => {
-  try {
-    console.log('📝 Contract download request:', req.body);
-    
-    const { estimateId } = req.body;
-    
-    if (!estimateId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Estimate ID required' 
-      });
-    }
-    
-    // Fetch estimate from database
-    const result = await pool.query(
-      'SELECT * FROM estimates WHERE id = $1',
-      [estimateId]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Estimate not found' 
-      });
-    }
-    
-    const estimate = result.rows[0];
-    
-    const contractBuffer = await generateContract({
-      id: estimate.id,
-      customerName: estimate.customer_name,
-      customerEmail: estimate.customer_email,
-      customerPhone: estimate.customer_phone,
-      propertyAddress: estimate.property_address,
-      city: estimate.city,
-      state: estimate.state,
-      zipCode: estimate.zip_code,
-      trade: estimate.trade,
-      laborHours: parseFloat(estimate.labor_hours),
-      laborRate: parseFloat(estimate.labor_rate),
-      laborCost: parseFloat(estimate.labor_cost),
-      materialCost: parseFloat(estimate.material_cost),
-      equipmentCost: parseFloat(estimate.equipment_cost),
-      totalCost: parseFloat(estimate.total_cost)
-    });
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="contract-${estimate.id}.pdf"`);
-    res.send(contractBuffer);
-    
-    console.log(`✅ Contract downloaded for estimate #${estimate.id}`);
-    
-  } catch (error) {
-    console.error('❌ Contract generation error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-
 
 // ============================================
 // END DASHBOARD ENDPOINTS
