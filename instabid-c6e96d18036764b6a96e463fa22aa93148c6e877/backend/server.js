@@ -70,7 +70,7 @@ async function initDatabase() {
     }
 
     // Drop and recreate estimates table
-    await pool.query(`DROP TABLE IF EXISTS estimates`);
+   /* await pool.query(`DROP TABLE IF EXISTS estimates`);
     
     await pool.query(`
       CREATE TABLE estimates (
@@ -92,7 +92,37 @@ async function initDatabase() {
         total_cost DECIMAL(10,2),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `);
+    `);*/
+
+    // Create estimates table if it doesn't exist
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS estimates (
+    id SERIAL PRIMARY KEY,
+    customer_name VARCHAR(255) NOT NULL,
+    customer_email VARCHAR(255) NOT NULL,
+    customer_phone VARCHAR(50),
+    property_address TEXT NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(2) NOT NULL,
+    zip_code VARCHAR(10) NOT NULL,
+    trade VARCHAR(50) NOT NULL,
+    trade_details JSONB,
+    labor_hours DECIMAL(10,2),
+    labor_rate DECIMAL(10,2),
+    labor_cost DECIMAL(10,2),
+    material_cost DECIMAL(10,2),
+    equipment_cost DECIMAL(10,2),
+    total_cost DECIMAL(10,2),
+    contractor_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Add contractor_id column if it doesn't exist
+await pool.query(`
+  ALTER TABLE estimates 
+  ADD COLUMN IF NOT EXISTS contractor_id INT
+`);
     
     console.log('✅ Database tables initialized');
   } catch (error) {
