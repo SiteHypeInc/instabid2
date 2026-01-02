@@ -1030,7 +1030,7 @@ function initMap() {
   document.getElementById('resultSection').classList.add('active');
 }*/
 
-/*  document.getElementById('estimateForm').addEventListener('submit', function(e) {
+  document.getElementById('estimateForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
   var formData = new FormData(e.target);
@@ -1048,14 +1048,14 @@ function initMap() {
     if (!data[cb.name]) {
       data[cb.name] = cb.checked ? 'yes' : 'no';
     }
-  }*/
+  }
 
   // STORE THE ORIGINAL FORM DATA (NOT THE RESPONSE!)
    
-/*  currentEstimateData = Object.assign({}, data);
+  currentEstimateData = Object.assign({}, data);
     // ADD THESE TWO LINES:
 data.trade = selectedTrade;
-data.photos = uploadedPhotos;*/
+data.photos = uploadedPhotos;
 
   var submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
@@ -1116,7 +1116,7 @@ function showError(message) {
   }, 5000);
 }
 
-/*document.getElementById('emailBtn').addEventListener('click', function() {
+document.getElementById('emailBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   
   this.disabled = true;
@@ -1148,110 +1148,7 @@ function showError(message) {
     self.disabled = false;
     self.textContent = '📧 Email';
   });
-}); */
-
-/*document.getElementById('emailBtn').addEventListener('click', function() {
-  if (!currentEstimateData || !currentEstimateData.estimateId) {
-    alert('❌ No estimate found. Please submit the form first.');
-    return;
-  }
-  
-  this.disabled = true;
-  this.textContent = '⏳ Sending...';
-  
-  var self = this;
-  
-  fetch('https://roofbid-backend-production.up.railway.app/api/send-estimate-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      estimateId: currentEstimateData.estimateId 
-    })
-  })
-  .then(function(response) {
-    return response.json().then(function(result) {
-      return { ok: response.ok, result: result };
-    });
-  })
-  .then(function(data) {
-    if (data.ok) {
-      alert('✅ Email sent successfully!');
-    } else {
-      alert('❌ Failed to send email: ' + (data.result.error || 'Unknown error'));
-    }
-    self.disabled = false;
-    self.textContent = '📧 Email';
-  })
-  .catch(function(error) {
-    alert('❌ Network error: ' + error.message);
-    self.disabled = false;
-    self.textContent = '📧 Email';
-  });
-});*/
-
-  document.getElementById('estimateForm').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  var formData = new FormData(e.target);
-  var data = {};
-  
-  // Handle regular fields
-  formData.forEach(function(value, key) {
-    data[key] = value;
-  });
-  
-  // Handle unchecked checkboxes (they don't appear in FormData)
-  var checkboxes = e.target.querySelectorAll('input[type="checkbox"]');
-  for (var i = 0; i < checkboxes.length; i++) {
-    var cb = checkboxes[i];
-    if (!data[cb.name]) {
-      data[cb.name] = cb.checked ? 'yes' : 'no';
-    }
-  }
-
-  // Add trade and photos to the data being submitted
-  data.trade = selectedTrade;
-  data.photos = uploadedPhotos;
-
-  var submitBtn = document.getElementById('submitBtn');
-  submitBtn.disabled = true;
-  submitBtn.textContent = '⏳ Calculating...';
-  
-  fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  .then(function(response) {
-    console.log('Response received:', response);
-    return response.json().then(function(result) {
-      console.log('Parsed JSON:', result);
-      return { ok: response.ok, result: result };
-    });
-  })
-  .then(function(data) {
-    if (data.ok) {
-      // ✅ NOW STORE THE ESTIMATE ID FROM THE RESPONSE
-      currentEstimateData = Object.assign({}, data.result.estimate, {
-  estimateId: data.result.estimateId,
-  trade: selectedTrade
 });
-
-      
-      displayResults(data.result);
-    } else {
-      showError(data.result.error || 'Failed to calculate estimate');
-    }
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Get Instant Estimate';
-  })
-  .catch(function(error) {
-    showError('Network error: ' + error.message);
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Get Instant Estimate';
-  });
-});
-  
 
 /*document.getElementById('pdfBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
@@ -1386,48 +1283,6 @@ document.getElementById('contractBtn').addEventListener('click', function() {
     alert('❌ Contract error: ' + error.message);
     self.disabled = false;
     self.textContent = '📝 Contract';
-  });
-});
-
-  // Email button handler
-// Email button handler
-document.getElementById('emailBtn').addEventListener('click', function() {
-  if (!currentEstimateData || !currentEstimateData.estimateId) {
-    alert('❌ No estimate found. Please submit the form first.');
-    return;
-  }
-  
-  this.disabled = true;
-  this.textContent = '⏳ Sending...';
-  
-  var self = this;
-  
-  fetch('https://roofbid-backend-production.up.railway.app/api/send-estimate-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      estimateId: currentEstimateData.estimateId,
-      trade: currentEstimateData.trade
-    })
-  })  // ← ADD THIS CLOSING PARENTHESIS AND BRACE
-  .then(function(response) {
-    return response.json().then(function(result) {
-      return { ok: response.ok, result: result };
-    });
-  })
-  .then(function(data) {
-    if (data.ok) {
-      alert('✅ Email sent successfully!');
-    } else {
-      alert('❌ Failed to send email: ' + (data.result.error || 'Unknown error'));
-    }
-    self.disabled = false;
-    self.textContent = '📧 Email';
-  })
-  .catch(function(error) {
-    alert('❌ Network error: ' + error.message);
-    self.disabled = false;
-    self.textContent = '📧 Email';
   });
 });
 
