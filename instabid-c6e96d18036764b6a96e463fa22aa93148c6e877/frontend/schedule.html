@@ -271,45 +271,56 @@ var availableDates = [];
 // **SET TO false FOR PRODUCTION**
 var TEST_MODE = true;
 
+console.log('Script loaded, TEST_MODE =', TEST_MODE);
+
 var urlParams = new URLSearchParams(window.location.search);
 var sessionId = urlParams.get('session_id');
 estimateId = urlParams.get('estimate_id');
 
+console.log('URL params:', sessionId, estimateId);
+
 if (TEST_MODE && !sessionId) {
   sessionId = 'test_session_' + Date.now();
   estimateId = '1';
-  console.log('🧪 TEST MODE ACTIVE');
+  console.log('🧪 TEST MODE ACTIVE - using mock values');
 }
 
 function init() {
+  console.log('init() called');
+  
   if (!sessionId || !estimateId) {
+    console.error('Missing session or estimate ID');
     showError('Missing payment session information. Please contact support.');
     return;
   }
 
   if (TEST_MODE) {
-  document.getElementById('estimateInfo').innerHTML = 
-    '<div class="info-row">' +
-    '<span class="info-label">Project Type:</span>' +
-    '<span class="info-value">Roofing (TEST MODE)</span>' +
-    '</div>' +
-    '<div class="info-row">' +
-    '<span class="info-label">Total Amount:</span>' +
-    '<span class="info-value">$25,000</span>' +
-    '</div>' +
-    '<div class="info-row">' +
-    '<span class="info-label">Deposit Paid:</span>' +
-    '<span class="info-value">$7,500</span>' +
-    '</div>';
+    console.log('Running TEST_MODE branch');
+    
+    document.getElementById('estimateInfo').innerHTML = 
+      '<div class="info-row">' +
+      '<span class="info-label">Project Type:</span>' +
+      '<span class="info-value">Roofing (TEST MODE)</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Total Amount:</span>' +
+      '<span class="info-value">$25,000</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Deposit Paid:</span>' +
+      '<span class="info-value">$7,500</span>' +
+      '</div>';
 
-  // These are BLOCKED dates (contractor unavailable)
-  availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
-  
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
-  renderCalendar();
-  return;
-}
+    availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
+    
+    console.log('Hiding loading, showing content');
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    
+    console.log('Calling renderCalendar()');
+    renderCalendar();
+    return;
+  }
 
   fetch(BACKEND_URL + '/api/verify-payment?session_id=' + sessionId)
     .then(function(response) {
@@ -366,7 +377,14 @@ function loadAvailability() {
 }
 
 function renderCalendar() {
+  console.log('renderCalendar() called, availableDates =', availableDates);
+  
   var calendar = document.getElementById('calendar');
+  if (!calendar) {
+    console.error('Calendar element not found!');
+    return;
+  }
+  
   calendar.innerHTML = '';
 
   var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -380,16 +398,14 @@ function renderCalendar() {
   var today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  // Start from today's day of week
   var startDayOfWeek = today.getDay();
+  console.log('Today is day', startDayOfWeek, 'of week');
   
-  // Add empty cells for days before today in the current week
   for (var i = 0; i < startDayOfWeek; i++) {
     var empty = document.createElement('div');
     calendar.appendChild(empty);
   }
 
-  // Generate 60 days starting from today
   for (var i = 0; i < 60; i++) {
     var date = new Date(today);
     date.setDate(today.getDate() + i);
@@ -417,6 +433,8 @@ function renderCalendar() {
 
     calendar.appendChild(dayElement);
   }
+  
+  console.log('Calendar rendered with', calendar.children.length, 'cells');
 }
 
 function selectDate(dateStr, element) {
@@ -520,6 +538,7 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+console.log('About to call init()');
 init();
 </script>
 
