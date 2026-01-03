@@ -201,7 +201,7 @@ body {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-  .btn-cancel {
+.btn-cancel {
   background: #dc3545;
   color: white;
   border: none;
@@ -218,7 +218,7 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
-  
+
 .status-message {
   padding: 15px;
   border-radius: 6px;
@@ -271,7 +271,6 @@ body {
     <p>Manage pricing, regional adjustments, company profile, and contracts</p>
   </div>
 
-  <!-- MAIN TABS -->
   <div class="main-tabs">
     <button class="main-tab active" data-main="price-adjustments">💰 Price Adjustments</button>
     <button class="main-tab" data-main="estimate-tracker">📊 Estimate Tracker</button>
@@ -281,12 +280,8 @@ body {
 
   <div class="content">
     
-    <!-- ========================================= -->
-    <!-- PRICE ADJUSTMENTS TAB -->
-    <!-- ========================================= -->
     <div class="main-content active" id="price-adjustments">
       
-      <!-- Sub-tabs for trades -->
       <div class="sub-tabs">
         <button class="sub-tab active" data-sub="roofing">🏠 Roofing</button>
         <button class="sub-tab" data-sub="hvac">❄️ HVAC</button>
@@ -297,7 +292,6 @@ body {
         <button class="sub-tab" data-sub="regional">🗺️ Regional</button>
       </div>
 
-      <!-- ROOFING -->
       <div class="sub-content active" id="roofing">
         <h2 class="section-title">Roofing Configuration</h2>
         
@@ -395,7 +389,6 @@ body {
         <div class="status-message" id="roofing-status"></div>
       </div>
 
-      <!-- HVAC -->
       <div class="sub-content" id="hvac">
         <h2 class="section-title">HVAC Configuration</h2>
         
@@ -477,7 +470,6 @@ body {
         <div class="status-message" id="hvac-status"></div>
       </div>
 
-      <!-- ELECTRICAL -->
       <div class="sub-content" id="electrical">
         <h2 class="section-title">Electrical Configuration</h2>
         
@@ -555,7 +547,6 @@ body {
         <div class="status-message" id="electrical-status"></div>
       </div>
 
-      <!-- PLUMBING -->
       <div class="sub-content" id="plumbing">
         <h2 class="section-title">Plumbing Configuration</h2>
         
@@ -641,7 +632,6 @@ body {
         <div class="status-message" id="plumbing-status"></div>
       </div>
 
-      <!-- FLOORING -->
       <div class="sub-content" id="flooring">
         <h2 class="section-title">Flooring Configuration</h2>
         
@@ -739,7 +729,6 @@ body {
         <div class="status-message" id="flooring-status"></div>
       </div>
 
-      <!-- PAINTING -->
       <div class="sub-content" id="painting">
         <h2 class="section-title">Painting Configuration</h2>
         
@@ -837,7 +826,6 @@ body {
         <div class="status-message" id="painting-status"></div>
       </div>
 
-      <!-- REGIONAL -->
       <div class="sub-content" id="regional">
         <h2 class="section-title">Regional Cost Multipliers</h2>
         
@@ -934,170 +922,50 @@ body {
 
     </div>
 
-<!-- ========================================= -->
-<!-- ESTIMATE TRACKER TAB -->
-<!-- ========================================= -->
- <div class="main-content" id="estimate-tracker">
-  <h2 class="section-title">📊 Estimate Tracker</h2>
-  
-  <!-- Google Calendar Sync Section -->
-  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
-    <h3>📅 Google Calendar Integration</h3>
-    
-    <div id="calendarStatusBox">
-  <!-- Not Connected State -->
-  <div id="notConnected" style="display: none;">
-    <p style="margin-bottom: 15px; color: #666;">
-      Connect your Google Calendar to automatically block out busy dates for customer scheduling.
-    </p>
-    <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
-      🔗 Connect Google Calendar
-    </button>
-  </div>
-
-  <!-- Connected State -->
-  <div id="connected" style="display: none;">
-    <p style="color: #28a745; margin-bottom: 10px;">
-      ✅ <span id="connectedEmail"></span>
-    </p>
-    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
-      Last synced: <span id="lastSync">Never</span>
-    </p>
-    <button class="btn-save" onclick="syncCalendar()" style="margin-right: 10px;">
-      🔄 Sync Now
-    </button>
-    <button class="btn-cancel" onclick="disconnectCalendar()">
-      ❌ Disconnect
-    </button>
-  </div>
-</div>
-
-<script>
-// Get contractor ID from session/localStorage (adjust based on your auth system)
-function getContractorId() {
-  return localStorage.getItem('contractor_id') || '1';
-}
-
-async function connectGoogleCalendar() {
-  try {
-    const contractorId = getContractorId();
-    const res = await fetch('https://roofbid-backend-production.up.railway.app/api/google/auth-url?contractor_id=' + contractorId);
-    const data = await res.json();
-    
-    const popup = window.open(data.auth_url, 'google-auth', 'width=500,height=600');
-    
-    const timer = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(timer);
-        checkCalendarStatus();
-      }
-    }, 500);
-  } catch (err) {
-    alert('Error connecting to Google: ' + err.message);
-  }
-}
-
-async function syncCalendar() {
-  try {
-    const contractorId = getContractorId();
-    const res = await fetch('https://roofbid-backend-production.up.railway.app/api/google/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contractor_id: contractorId })
-    });
-    const data = await res.json();
-    alert('Synced! Blocked ' + (data.blocked_dates ? data.blocked_dates.length : 0) + ' dates');
-    checkCalendarStatus();
-  } catch (err) {
-    alert('Sync failed: ' + err.message);
-  }
-}
-
-async function disconnectCalendar() {
-  if (!confirm('Disconnect Google Calendar?')) return;
-  
-  try {
-    const contractorId = getContractorId();
-    await fetch('https://roofbid-backend-production.up.railway.app/api/google/disconnect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contractor_id: contractorId })
-    });
-    checkCalendarStatus();
-  } catch (err) {
-    alert('Disconnect failed: ' + err.message);
-  }
-}
-
-async function checkCalendarStatus() {
-  try {
-    const contractorId = getContractorId();
-    const res = await fetch('https://roofbid-backend-production.up.railway.app/api/google/status?contractor_id=' + contractorId);
-    const data = await res.json();
-    
-    if (data.connected) {
-      document.getElementById('notConnected').style.display = 'none';
-      document.getElementById('connected').style.display = 'block';
-      document.getElementById('connectedEmail').textContent = data.email;
-      document.getElementById('lastSync').textContent = data.last_sync || 'Never';
-    } else {
-      document.getElementById('notConnected').style.display = 'block';
-      document.getElementById('connected').style.display = 'none';
-    }
-  } catch (err) {
-    document.getElementById('notConnected').style.display = 'block';
-    document.getElementById('connected').style.display = 'none';
-  }
-}
-
-checkCalendarStatus();
-</script>
+    <div class="main-content" id="estimate-tracker">
+      <h2 class="section-title">📊 Estimate Tracker</h2>
       
-      <!-- Connected State (hidden initially) -->
-      <div id="connected" style="display: none;">
-        <div style="background: #d4edda; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #c3e6cb;">
-          <p style="color: #155724; margin: 0;">
-            ✅ <strong>Calendar Connected:</strong> <span id="connectedEmail"></span>
-          </p>
-          <p style="color: #155724; margin: 5px 0 0 0; font-size: 0.9em;">
-            Last synced: <span id="lastSyncTime">Never</span>
-          </p>
-        </div>
+      <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+        <h3>📅 Google Calendar Integration</h3>
         
-        <div style="display: flex; gap: 10px;">
-          <button class="btn-save" onclick="syncCalendar()" style="margin-top: 0; background: #28a745;">
-            🔄 Sync Now
-          </button>
-          <button class="btn-save" onclick="disconnectCalendar()" style="margin-top: 0; background: #dc3545;">
-            ❌ Disconnect
-          </button>
-        </div>
-        
-        <div id="blockedDatesSection" style="margin-top: 20px; display: none;">
-          <h4 style="color: #333; margin-bottom: 10px;">Blocked Dates from Calendar:</h4>
-          <div id="blockedDatesList" style="background: #f8f9fa; padding: 15px; border-radius: 6px; max-height: 200px; overflow-y: auto;">
-            <!-- Dates will be populated here -->
+        <div id="calendarStatusBox">
+          <div id="notConnected" style="display: none;">
+            <p style="margin-bottom: 15px; color: #666;">
+              Connect your Google Calendar to automatically block out busy dates for customer scheduling.
+            </p>
+            <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
+              🔗 Connect Google Calendar
+            </button>
           </div>
+
+          <div id="connected" style="display: none;">
+            <p style="color: #28a745; margin-bottom: 10px;">
+              ✅ <span id="connectedEmail"></span>
+            </p>
+            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+              Last synced: <span id="lastSync">Never</span>
+            </p>
+            <button class="btn-save" onclick="syncCalendar()" style="margin-right: 10px;">
+              🔄 Sync Now
+            </button>
+            <button class="btn-cancel" onclick="disconnectCalendar()">
+              ❌ Disconnect
+            </button>
+          </div>
+        </div>
+        
+        <div class="status-message" id="calendar-status"></div>
+      </div>
+      
+      <div class="config-card" style="max-width: 100%;">
+        <h3>📋 Recent Estimates</h3>
+        <div class="placeholder-content">
+          <p>View all estimates, track status, conversion rates</p>
+          <p style="margin-top: 20px; color: #667eea; font-weight: 600;">Coming Soon</p>
         </div>
       </div>
     </div>
-    
-    <div class="status-message" id="calendar-status"></div>
-  </div>
-  
-  <!-- Estimate List (Coming Soon) -->
-  <div class="config-card" style="max-width: 100%;">
-    <h3>📋 Recent Estimates</h3>
-    <div class="placeholder-content">
-      <p>View all estimates, track status, conversion rates</p>
-      <p style="margin-top: 20px; color: #667eea; font-weight: 600;">Coming Soon</p>
-    </div>
-  </div>
-</div>-->
 
-    <!-- ========================================= -->
-    <!-- COMPANY PROFILE TAB -->
-    <!-- ========================================= -->
     <div class="main-content" id="company-profile">
       <div class="placeholder-content">
         <h2>🏢 Company Profile</h2>
@@ -1106,9 +974,6 @@ checkCalendarStatus();
       </div>
     </div>
 
-    <!-- ========================================= -->
-    <!-- CONTRACTS TAB -->
-    <!-- ========================================= -->
     <div class="main-content" id="contracts">
       <div class="placeholder-content">
         <h2>📄 Contract Templates</h2>
@@ -1123,7 +988,6 @@ checkCalendarStatus();
 <script>
 const API_BASE = 'https://roofbid-backend-production.up.railway.app';
 
-// Main tab switching
 document.querySelectorAll('.main-tab').forEach(tab => {
   tab.addEventListener('click', function() {
     document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
@@ -1134,7 +998,6 @@ document.querySelectorAll('.main-tab').forEach(tab => {
   });
 });
 
-// Sub-tab switching
 document.querySelectorAll('.sub-tab').forEach(tab => {
   tab.addEventListener('click', function() {
     document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
@@ -1143,15 +1006,14 @@ document.querySelectorAll('.sub-tab').forEach(tab => {
     this.classList.add('active');
     document.getElementById(this.dataset.sub).classList.add('active');
     
-    // Load config when switching to a trade tab
     loadConfig(this.dataset.sub);
   });
 });
 
-// Load config on page load
 window.addEventListener('load', function() {
   loadConfig('roofing');
   loadConfig('regional');
+  checkCalendarStatus();
 });
 
 function loadConfig(section) {
@@ -1205,161 +1067,81 @@ function saveConfig(section) {
   });
 }
 
-  // ========================================
-// GOOGLE CALENDAR FUNCTIONS
-// ========================================
-
-// Check calendar connection status on load
-function checkCalendarStatus() {
-  fetch(`${API_BASE}/api/google/status`, {
-    credentials: 'include'
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.connected) {
-      showConnectedState(data.email, data.last_sync, data.blocked_dates);
-    }
-  })
-  .catch(err => console.error('Calendar status check failed:', err));
+function getContractorId() {
+  return localStorage.getItem('contractor_id') || '1';
 }
 
-function connectGoogleCalendar() {
-  const statusDiv = document.getElementById('calendar-status');
-  statusDiv.textContent = '⏳ Opening Google authorization...';
-  statusDiv.className = 'status-message';
-  statusDiv.style.display = 'block';
-  
-  fetch(`${API_BASE}/api/google/auth-url`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.auth_url) {
-        // Open OAuth in popup
-        const width = 600;
-        const height = 700;
-        const left = (screen.width - width) / 2;
-        const top = (screen.height - height) / 2;
-        
-        const popup = window.open(
-          data.auth_url,
-          'Google Calendar Authorization',
-          `width=${width},height=${height},left=${left},top=${top}`
-        );
-        
-        // Poll for completion
-        const checkPopup = setInterval(() => {
-          if (popup.closed) {
-            clearInterval(checkPopup);
-            checkCalendarStatus();
-            statusDiv.style.display = 'none';
-          }
-        }, 500);
-      } else {
-        throw new Error('Failed to get authorization URL');
+async function connectGoogleCalendar() {
+  try {
+    const contractorId = getContractorId();
+    const res = await fetch(`${API_BASE}/api/google/auth-url?contractor_id=${contractorId}`);
+    const data = await res.json();
+    
+    const popup = window.open(data.auth_url, 'google-auth', 'width=500,height=600');
+    
+    const timer = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(timer);
+        checkCalendarStatus();
       }
-    })
-    .catch(err => {
-      statusDiv.textContent = '❌ Error: ' + err.message;
-      statusDiv.className = 'status-message error';
+    }, 500);
+  } catch (err) {
+    alert('Error connecting to Google: ' + err.message);
+  }
+}
+
+async function syncCalendar() {
+  try {
+    const contractorId = getContractorId();
+    const res = await fetch(`${API_BASE}/api/google/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractor_id: contractorId })
     });
+    const data = await res.json();
+    alert('Synced! Blocked ' + (data.blocked_dates ? data.blocked_dates.length : 0) + ' dates');
+    checkCalendarStatus();
+  } catch (err) {
+    alert('Sync failed: ' + err.message);
+  }
 }
 
-function syncCalendar() {
-  const statusDiv = document.getElementById('calendar-status');
-  statusDiv.textContent = '⏳ Syncing calendar...';
-  statusDiv.className = 'status-message';
-  statusDiv.style.display = 'block';
+async function disconnectCalendar() {
+  if (!confirm('Disconnect Google Calendar?')) return;
   
-  fetch(`${API_BASE}/api/google/sync`, {
-    method: 'POST',
-    credentials: 'include'
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      statusDiv.textContent = '✅ Calendar synced successfully!';
-      statusDiv.className = 'status-message success';
-      document.getElementById('lastSyncTime').textContent = new Date().toLocaleString();
-      
-      if (data.blocked_dates && data.blocked_dates.length > 0) {
-        displayBlockedDates(data.blocked_dates);
-      }
-      
-      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+  try {
+    const contractorId = getContractorId();
+    await fetch(`${API_BASE}/api/google/disconnect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractor_id: contractorId })
+    });
+    checkCalendarStatus();
+  } catch (err) {
+    alert('Disconnect failed: ' + err.message);
+  }
+}
+
+async function checkCalendarStatus() {
+  try {
+    const contractorId = getContractorId();
+    const res = await fetch(`${API_BASE}/api/google/status?contractor_id=${contractorId}`);
+    const data = await res.json();
+    
+    if (data.connected) {
+      document.getElementById('notConnected').style.display = 'none';
+      document.getElementById('connected').style.display = 'block';
+      document.getElementById('connectedEmail').textContent = data.email;
+      document.getElementById('lastSync').textContent = data.last_sync || 'Never';
     } else {
-      throw new Error(data.error || 'Sync failed');
-    }
-  })
-  .catch(err => {
-    statusDiv.textContent = '❌ Error: ' + err.message;
-    statusDiv.className = 'status-message error';
-  });
-}
-
-function disconnectCalendar() {
-  if (!confirm('Are you sure you want to disconnect Google Calendar?')) return;
-  
-  const statusDiv = document.getElementById('calendar-status');
-  statusDiv.textContent = '⏳ Disconnecting...';
-  statusDiv.className = 'status-message';
-  statusDiv.style.display = 'block';
-  
-  fetch(`${API_BASE}/api/google/disconnect`, {
-    method: 'POST',
-    credentials: 'include'
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
       document.getElementById('notConnected').style.display = 'block';
       document.getElementById('connected').style.display = 'none';
-      statusDiv.textContent = '✅ Calendar disconnected';
-      statusDiv.className = 'status-message success';
-      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
-    } else {
-      throw new Error(data.error || 'Disconnect failed');
     }
-  })
-  .catch(err => {
-    statusDiv.textContent = '❌ Error: ' + err.message;
-    statusDiv.className = 'status-message error';
-  });
-}
-
-function showConnectedState(email, lastSync, blockedDates) {
-  document.getElementById('notConnected').style.display = 'none';
-  document.getElementById('connected').style.display = 'block';
-  document.getElementById('connectedEmail').textContent = email;
-  
-  if (lastSync) {
-    document.getElementById('lastSyncTime').textContent = new Date(lastSync).toLocaleString();
-  }
-  
-  if (blockedDates && blockedDates.length > 0) {
-    displayBlockedDates(blockedDates);
+  } catch (err) {
+    document.getElementById('notConnected').style.display = 'block';
+    document.getElementById('connected').style.display = 'none';
   }
 }
-
-function displayBlockedDates(dates) {
-  const section = document.getElementById('blockedDatesSection');
-  const list = document.getElementById('blockedDatesList');
-  
-  if (dates.length === 0) {
-    list.innerHTML = '<p style="color: #666; margin: 0;">No blocked dates found</p>';
-  } else {
-    list.innerHTML = dates
-      .sort()
-      .map(date => `<div style="padding: 5px 0; border-bottom: 1px solid #ddd;">📅 ${new Date(date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</div>`)
-      .join('');
-  }
-  
-  section.style.display = 'block';
-}
-
-// Check status on page load
-window.addEventListener('load', function() {
-  checkCalendarStatus();
-});
-  
 </script>
 
 </body>
