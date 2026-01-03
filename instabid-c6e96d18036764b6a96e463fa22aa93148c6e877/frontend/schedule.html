@@ -358,12 +358,49 @@ function loadAvailability() {
     });
 }
 
+var currentMonth = new Date();
+currentMonth.setDate(1);
+currentMonth.setHours(0, 0, 0, 0);
+
 function renderCalendar() {
   var calendar = document.getElementById('calendar');
   if (!calendar) return;
   
   calendar.innerHTML = '';
 
+  // Month/Year header with navigation
+  var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  var headerRow = document.createElement('div');
+  headerRow.style.cssText = 'grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 8px;';
+  
+  var prevBtn = document.createElement('button');
+  prevBtn.innerHTML = '&#8592;';
+  prevBtn.style.cssText = 'background: #6366f1; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;';
+  prevBtn.onclick = function() {
+    currentMonth.setMonth(currentMonth.getMonth() - 1);
+    renderCalendar();
+  };
+  
+  var monthTitle = document.createElement('h2');
+  monthTitle.textContent = monthNames[currentMonth.getMonth()] + ' ' + currentMonth.getFullYear();
+  monthTitle.style.cssText = 'margin: 0; font-size: 20px; color: #1f2937; font-weight: 600;';
+  
+  var nextBtn = document.createElement('button');
+  nextBtn.innerHTML = '&#8594;';
+  nextBtn.style.cssText = 'background: #6366f1; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;';
+  nextBtn.onclick = function() {
+    currentMonth.setMonth(currentMonth.getMonth() + 1);
+    renderCalendar();
+  };
+  
+  headerRow.appendChild(prevBtn);
+  headerRow.appendChild(monthTitle);
+  headerRow.appendChild(nextBtn);
+  calendar.appendChild(headerRow);
+
+  // Day headers
   var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   for (var d = 0; d < days.length; d++) {
     var header = document.createElement('div');
@@ -372,34 +409,42 @@ function renderCalendar() {
     calendar.appendChild(header);
   }
 
+  // Get first day of month and total days
+  var firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  var lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  var startDayOfWeek = firstDay.getDay();
+  var daysInMonth = lastDay.getDate();
+  
   var today = new Date();
   today.setHours(0, 0, 0, 0);
-  
-  var startDayOfWeek = today.getDay();
-  
+
+  // Empty cells before month starts
   for (var i = 0; i < startDayOfWeek; i++) {
     var empty = document.createElement('div');
     calendar.appendChild(empty);
   }
 
-  for (var i = 0; i < 60; i++) {
-    var date = new Date(today);
-    date.setDate(today.getDate() + i);
-    
+  // Days of the month
+  for (var day = 1; day <= daysInMonth; day++) {
+    var date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     var dateStr = date.toISOString().split('T')[0];
+    
     var dayElement = document.createElement('div');
     dayElement.className = 'calendar-day';
-    dayElement.textContent = date.getDate();
+    dayElement.textContent = day;
     
-    if (i === 0) {
+    var isToday = date.getTime() === today.getTime();
+    var isPast = date < today;
+    
+    if (isToday) {
       dayElement.classList.add('today');
     }
 
     var isAvailable = availableDates.indexOf(dateStr) === -1;
     
-    if (!isAvailable || i === 0) {
+    if (!isAvailable || isPast) {
       dayElement.classList.add('disabled');
-      dayElement.title = 'Not available';
+      dayElement.title = isPast ? 'Past date' : 'Not available';
     } else {
       dayElement.setAttribute('data-date', dateStr);
       dayElement.onclick = function() {
@@ -410,7 +455,6 @@ function renderCalendar() {
     calendar.appendChild(dayElement);
   }
 }
-
 function selectDate(dateStr, element) {
   var selected = document.querySelectorAll('.calendar-day.selected');
   for (var i = 0; i < selected.length; i++) {
