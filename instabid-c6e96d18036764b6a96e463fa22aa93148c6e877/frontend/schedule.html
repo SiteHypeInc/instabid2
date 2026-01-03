@@ -1,303 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schedule Your Project Start Date</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Your Project Start Date</title>
+<style>
+/* FORCE OVERRIDE ELEMENTOR/THEME STYLES */
+#schedule-app * {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+#schedule-app {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 20px !important;
+  width: 100% !important;
+}
 
-    .container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      max-width: 600px;
-      width: 100%;
-      padding: 40px;
-    }
+#schedule-app .container {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  padding: 40px !important;
+}
 
-    .success-icon {
-      width: 80px;
-      height: 80px;
-      background: #10b981;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      animation: scaleIn 0.5s ease;
-    }
+#schedule-app .success-icon {
+  width: 80px !important;
+  height: 80px !important;
+  background: #10b981 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto 24px !important;
+  animation: scaleIn 0.5s ease !important;
+}
 
-    .success-icon svg {
-      width: 48px;
-      height: 48px;
-      stroke: white;
-      stroke-width: 3;
-      fill: none;
-    }
+#schedule-app .success-icon svg {
+  width: 48px !important;
+  height: 48px !important;
+  stroke: white !important;
+  stroke-width: 3 !important;
+  fill: none !important;
+}
 
-    @keyframes scaleIn {
-      from {
-        transform: scale(0);
-      }
-      to {
-        transform: scale(1);
-      }
-    }
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
 
-    h1 {
-      text-align: center;
-      color: #1f2937;
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
-    .subtitle {
-      text-align: center;
-      color: #6b7280;
-      font-size: 16px;
-      margin-bottom: 32px;
-    }
+#schedule-app h1 {
+  text-align: center !important;
+  color: #1f2937 !important;
+  font-size: 28px !important;
+  margin-bottom: 12px !important;
+}
 
-    .info-box {
-      background: #f3f4f6;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 32px;
-    }
+#schedule-app .subtitle {
+  text-align: center !important;
+  color: #6b7280 !important;
+  font-size: 16px !important;
+  margin-bottom: 32px !important;
+}
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      font-size: 15px;
-    }
+#schedule-app .info-box {
+  background: #f3f4f6 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin-bottom: 32px !important;
+}
 
-    .info-row:last-child {
-      margin-bottom: 0;
-    }
+#schedule-app .info-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+  font-size: 15px !important;
+}
 
-    .info-label {
-      color: #6b7280;
-      font-weight: 500;
-    }
+#schedule-app .info-row:last-child {
+  margin-bottom: 0 !important;
+}
 
-    .info-value {
-      color: #1f2937;
-      font-weight: 600;
-    }
+#schedule-app .info-label {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
 
-    .calendar-section {
-      margin-bottom: 32px;
-    }
+#schedule-app .info-value {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+}
 
-    .calendar-section h2 {
-      font-size: 18px;
-      color: #1f2937;
-      margin-bottom: 16px;
-    }
+#schedule-app .calendar-section {
+  margin-bottom: 32px !important;
+}
 
-    .calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      margin-bottom: 24px;
-    }
+#schedule-app .calendar-section h2 {
+  font-size: 18px !important;
+  color: #1f2937 !important;
+  margin-bottom: 16px !important;
+}
 
-    .calendar-header {
-      text-align: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: #6b7280;
-      padding: 8px 0;
-    }
+#schedule-app .calendar {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 24px !important;
+}
 
-    .calendar-day {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 2px solid transparent;
-      background: #f9fafb;
-      color: #1f2937;
-    }
+#schedule-app .calendar-header {
+  text-align: center !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  padding: 8px 0 !important;
+}
 
-    .calendar-day:hover:not(.disabled):not(.selected) {
-      background: #e5e7eb;
-      transform: scale(1.05);
-    }
+#schedule-app .calendar-day {
+  aspect-ratio: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  border: 2px solid transparent !important;
+  background: #f9fafb !important;
+  color: #1f2937 !important;
+}
 
-    .calendar-day.disabled {
-      background: #f3f4f6;
-      color: #d1d5db;
-      cursor: not-allowed;
-    }
+#schedule-app .calendar-day:hover:not(.disabled):not(.selected) {
+  background: #e5e7eb !important;
+  transform: scale(1.05) !important;
+}
 
-    .calendar-day.selected {
-      background: #6366f1;
-      color: white;
-      border-color: #4f46e5;
-      transform: scale(1.1);
-    }
+#schedule-app .calendar-day.disabled {
+  background: #f3f4f6 !important;
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
+}
 
-    .calendar-day.today {
-      border-color: #6366f1;
-    }
+#schedule-app .calendar-day.selected {
+  background: #6366f1 !important;
+  color: white !important;
+  border-color: #4f46e5 !important;
+  transform: scale(1.1) !important;
+}
 
-    .btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+#schedule-app .calendar-day.today {
+  border-color: #6366f1 !important;
+}
 
-    .btn-primary {
-      background: #6366f1;
-      color: white;
-    }
+#schedule-app .btn {
+  width: 100% !important;
+  padding: 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
 
-    .btn-primary:hover:not(:disabled) {
-      background: #4f46e5;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
-    }
+#schedule-app .btn-primary {
+  background: #6366f1 !important;
+  color: white !important;
+}
 
-    .btn:disabled {
-      background: #d1d5db;
-      cursor: not-allowed;
-      transform: none;
-    }
+#schedule-app .btn-primary:hover:not(:disabled) {
+  background: #4f46e5 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3) !important;
+}
 
-    .loading {
-      text-align: center;
-      padding: 40px;
-    }
+#schedule-app .btn:disabled {
+  background: #d1d5db !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
 
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #e5e7eb;
-      border-top-color: #6366f1;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
+#schedule-app .loading {
+  text-align: center !important;
+  padding: 40px !important;
+}
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+#schedule-app .spinner {
+  width: 48px !important;
+  height: 48px !important;
+  border: 4px solid #e5e7eb !important;
+  border-top-color: #6366f1 !important;
+  border-radius: 50% !important;
+  animation: spin 0.8s linear infinite !important;
+  margin: 0 auto 16px !important;
+}
 
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
+#schedule-app .error {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  margin-bottom: 24px !important;
+  text-align: center !important;
+}
 
-    .confirmation {
-      text-align: center;
-      padding: 40px 0;
-    }
+#schedule-app .confirmation {
+  text-align: center !important;
+  padding: 40px 0 !important;
+}
 
-    .confirmation h2 {
-      color: #10b981;
-      font-size: 24px;
-      margin-bottom: 16px;
-    }
+#schedule-app .confirmation h2 {
+  color: #10b981 !important;
+  font-size: 24px !important;
+  margin-bottom: 16px !important;
+}
 
-    .confirmation p {
-      color: #6b7280;
-      font-size: 16px;
-      line-height: 1.6;
-    }
+#schedule-app .confirmation p {
+  color: #6b7280 !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
 
-    .selected-date-display {
-      background: #eff6ff;
-      border: 2px solid #6366f1;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 24px;
-      text-align: center;
-      font-weight: 600;
-      color: #4f46e5;
-    }
-  </style>
+#schedule-app .selected-date-display {
+  background: #eff6ff !important;
+  border: 2px solid #6366f1 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  margin-bottom: 24px !important;
+  text-align: center !important;
+  font-weight: 600 !important;
+  color: #4f46e5 !important;
+}
+</style>
 </head>
 <body>
-  <div class="container" id="app">
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>Verifying payment...</p>
-    </div>
+<div id="schedule-app">
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading your project details...</p>
+  </div>
 
-    <div id="content" style="display: none;">
-      <div class="success-icon">
-        <svg viewBox="0 0 24 24">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      </div>
-
-      <h1>Payment Successful! 🎉</h1>
-      <p class="subtitle">Your deposit has been received. Now let's schedule your project start date.</p>
-
-      <div class="info-box" id="estimateInfo"></div>
-
-      <div class="calendar-section">
-        <h2>Select Your Preferred Start Date</h2>
-        <div class="calendar" id="calendar"></div>
-        <div id="selectedDateDisplay"></div>
-      </div>
-
-      <button class="btn btn-primary" id="confirmBtn" disabled onclick="confirmDate()">
-        Confirm Start Date
-      </button>
-    </div>
-
-    <div id="confirmation" style="display: none;">
-      <div class="success-icon">
-        <svg viewBox="0 0 24 24">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-      </div>
-      <div class="confirmation">
-        <h2>All Set!</h2>
-        <p id="confirmationMessage"></p>
-      </div>
-    </div>
-
-    <div id="errorSection" style="display: none;">
+  <div id="errorSection" style="display: none;">
+    <div class="container">
       <div class="error" id="errorMessage"></div>
     </div>
   </div>
 
- <script>
-var BACKEND_URL = 'https://roofbid-backend-production.up.railway.app';
+  <div id="content" class="container" style="display: none;">
+    <h1>📅 Schedule Your Project</h1>
+    <p class="subtitle">Choose your preferred start date</p>
+
+    <div class="info-box" id="estimateInfo"></div>
+
+    <div class="calendar-section">
+      <h2>Select Your Start Date</h2>
+      <div class="calendar" id="calendar"></div>
+    </div>
+
+    <div id="selectedDateDisplay"></div>
+
+    <button id="confirmBtn" class="btn btn-primary" onclick="confirmDate()" disabled>
+      Confirm Start Date
+    </button>
+  </div>
+
+  <div id="confirmation" class="container" style="display: none;">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="confirmation">
+      <h2>✅ Booking Confirmed!</h2>
+      <p id="confirmationMessage"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+var BACKEND_URL = '[https://roofbid-backend-production.up.railway.app](https://roofbid-backend-production.up.railway.app)';
 var selectedDate = null;
 var estimateId = null;
 var availableDates = [];
@@ -502,5 +497,6 @@ function capitalize(str) {
 
 init();
 </script>
+
 </body>
 </html>
