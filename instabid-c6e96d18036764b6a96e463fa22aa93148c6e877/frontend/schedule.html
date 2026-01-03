@@ -313,6 +313,12 @@ function init() {
     console.log('Hiding loading, showing content');
     document.getElementById('loading').style.display = 'none';
     document.getElementById('content').style.display = 'block';
+
+    // ADD THESE DEBUG LINES:
+var contentEl = document.getElementById('content');
+console.log('content element:', contentEl);
+console.log('content display value:', contentEl.style.display);
+console.log('content computed style:', window.getComputedStyle(contentEl).display);
     
     console.log('Calling renderCalendar()');
     renderCalendar();
