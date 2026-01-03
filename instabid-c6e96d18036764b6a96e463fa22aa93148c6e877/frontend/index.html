@@ -5,249 +5,250 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InstaBid - Multi-Trade Estimator</title>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* FORCE OVERRIDE ELEMENTOR/THEME STYLES */
+#schedule-app * {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
+#schedule-app {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 20px !important;
+  width: 100% !important;
 }
 
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  overflow: hidden;
+#schedule-app .container {
+  background: white !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  padding: 40px !important;
 }
 
-.header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 30px;
-  text-align: center;
+#schedule-app .success-icon {
+  width: 80px !important;
+  height: 80px !important;
+  background: #10b981 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto 24px !important;
+  animation: scaleIn 0.5s ease !important;
 }
 
-.header h1 {
-  font-size: 2.5em;
-  margin-bottom: 10px;
+#schedule-app .success-icon svg {
+  width: 48px !important;
+  height: 48px !important;
+  stroke: white !important;
+  stroke-width: 3 !important;
+  fill: none !important;
 }
 
-.main-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  padding: 30px;
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
 }
 
-.left-column, .right-column {
-  padding: 20px;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.right-column {
-  background: #f8f9fa;
-  border-radius: 8px;
-  min-height: 600px;
+#schedule-app h1 {
+  text-align: center !important;
+  color: #1f2937 !important;
+  font-size: 28px !important;
+  margin-bottom: 12px !important;
 }
 
-.form-group {
-  margin-bottom: 20px;
+#schedule-app .subtitle {
+  text-align: center !important;
+  color: #6b7280 !important;
+  font-size: 16px !important;
+  margin-bottom: 32px !important;
 }
 
-.form-group label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
+#schedule-app .info-box {
+  background: #f3f4f6 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+  margin-bottom: 32px !important;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 1em;
-  font-family: inherit;
+#schedule-app .info-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+  font-size: 15px !important;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #667eea;
+#schedule-app .info-row:last-child {
+  margin-bottom: 0 !important;
 }
 
-.map-container {
-  margin: 20px 0;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  height: 250px;
-  overflow: hidden;
+#schedule-app .info-label {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
 }
 
-#map {
-  width: 100%;
-  height: 100%;
+#schedule-app .info-value {
+  color: #1f2937 !important;
+  font-weight: 600 !important;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  font-size: 1.1em;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-  width: 100%;
-  margin-top: 20px;
+#schedule-app .calendar-section {
+  margin-bottom: 32px !important;
 }
 
-.btn-primary:hover {
-  opacity: 0.9;
+#schedule-app .calendar-section h2 {
+  font-size: 18px !important;
+  color: #1f2937 !important;
+  margin-bottom: 16px !important;
 }
 
-.btn-primary:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+#schedule-app .calendar {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 24px !important;
 }
 
-.result-section {
-  display: none;
+#schedule-app .calendar-header {
+  text-align: center !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  padding: 8px 0 !important;
 }
 
-.result-section.active {
-  display: block;
+#schedule-app .calendar-day {
+  aspect-ratio: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  border: 2px solid transparent !important;
+  background: #f9fafb !important;
+  color: #1f2937 !important;
 }
 
-.result-section h2 {
-  color: #667eea;
-  margin-bottom: 20px;
-  font-size: 1.8em;
+#schedule-app .calendar-day:hover:not(.disabled):not(.selected) {
+  background: #e5e7eb !important;
+  transform: scale(1.05) !important;
 }
 
-.cost-breakdown {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
+#schedule-app .calendar-day.disabled {
+  background: #f3f4f6 !important;
+  color: #d1d5db !important;
+  cursor: not-allowed !important;
 }
 
-.cost-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
-  font-size: 1.1em;
+#schedule-app .calendar-day.selected {
+  background: #6366f1 !important;
+  color: white !important;
+  border-color: #4f46e5 !important;
+  transform: scale(1.1) !important;
 }
 
-.cost-item:last-child {
-  border-bottom: none;
-  font-weight: bold;
-  font-size: 1.3em;
-  color: #667eea;
-  padding-top: 15px;
-  margin-top: 10px;
-  border-top: 2px solid #667eea;
+#schedule-app .calendar-day.today {
+  border-color: #6366f1 !important;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
+#schedule-app .btn {
+  width: 100% !important;
+  padding: 16px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
 }
 
-.btn-action {
-  flex: 1;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1em;
+#schedule-app .btn-primary {
+  background: #6366f1 !important;
+  color: white !important;
 }
 
-.btn-email {
-  background: #28a745;
-  color: white;
+#schedule-app .btn-primary:hover:not(:disabled) {
+  background: #4f46e5 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3) !important;
 }
 
-.btn-pdf {
-  background: #dc3545;
-  color: white;
+#schedule-app .btn:disabled {
+  background: #d1d5db !important;
+  cursor: not-allowed !important;
+  transform: none !important;
 }
 
-.btn-contract {
-  background: #ffc107;
-  color: #333;
+#schedule-app .loading {
+  text-align: center !important;
+  padding: 40px !important;
 }
 
-.btn-action:hover {
-  opacity: 0.9;
+#schedule-app .spinner {
+  width: 48px !important;
+  height: 48px !important;
+  border: 4px solid #e5e7eb !important;
+  border-top-color: #6366f1 !important;
+  border-radius: 50% !important;
+  animation: spin 0.8s linear infinite !important;
+  margin: 0 auto 16px !important;
 }
 
-.error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 15px;
-  border-radius: 6px;
-  margin: 20px 0;
-  display: none;
+#schedule-app .error {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  margin-bottom: 24px !important;
+  text-align: center !important;
 }
 
-.photo-upload {
-  margin: 20px 0;
+#schedule-app .confirmation {
+  text-align: center !important;
+  padding: 40px 0 !important;
 }
 
-.photo-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 10px;
+#schedule-app .confirmation h2 {
+  color: #10b981 !important;
+  font-size: 24px !important;
+  margin-bottom: 16px !important;
 }
 
-.photo-item {
-  position: relative;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 2px solid #ddd;
+#schedule-app .confirmation p {
+  color: #6b7280 !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
 }
 
-.photo-item img {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-}
-
-.photo-item button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: rgba(255, 0, 0, 0.8);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-@media (max-width: 968px) {
-  .main-content {
-    grid-template-columns: 1fr;
-  }
+#schedule-app .selected-date-display {
+  background: #eff6ff !important;
+  border: 2px solid #6366f1 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  margin-bottom: 24px !important;
+  text-align: center !important;
+  font-weight: 600 !important;
+  color: #4f46e5 !important;
 }
 </style>
 </head>
 <body>
+  <div id="schedule-app">
 
 <div class="container">
   <div class="header">
@@ -889,6 +890,6 @@ document.getElementById('contractBtn').addEventListener('click', function() {
 });
 
 </script>
-
+  </div>
 </body>
 </html>
