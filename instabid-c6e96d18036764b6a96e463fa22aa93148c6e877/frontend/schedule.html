@@ -288,27 +288,28 @@ function init() {
   }
 
   if (TEST_MODE) {
-    document.getElementById('estimateInfo').innerHTML = 
-      '<div class="info-row">' +
-      '<span class="info-label">Project Type:</span>' +
-      '<span class="info-value">Roofing (TEST MODE)</span>' +
-      '</div>' +
-      '<div class="info-row">' +
-      '<span class="info-label">Total Amount:</span>' +
-      '<span class="info-value">$25,000</span>' +
-      '</div>' +
-      '<div class="info-row">' +
-      '<span class="info-label">Deposit Paid:</span>' +
-      '<span class="info-value">$7,500</span>' +
-      '</div>';
+  document.getElementById('estimateInfo').innerHTML = 
+    '<div class="info-row">' +
+    '<span class="info-label">Project Type:</span>' +
+    '<span class="info-value">Roofing (TEST MODE)</span>' +
+    '</div>' +
+    '<div class="info-row">' +
+    '<span class="info-label">Total Amount:</span>' +
+    '<span class="info-value">$25,000</span>' +
+    '</div>' +
+    '<div class="info-row">' +
+    '<span class="info-label">Deposit Paid:</span>' +
+    '<span class="info-value">$7,500</span>' +
+    '</div>';
 
-    availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
-    renderCalendar();
-    
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('content').style.display = 'block';
-    return;
-  }
+  // These are BLOCKED dates (contractor unavailable)
+  availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
+  
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+  renderCalendar();
+  return;
+}
 
   fetch(BACKEND_URL + '/api/verify-payment?session_id=' + sessionId)
     .then(function(response) {
