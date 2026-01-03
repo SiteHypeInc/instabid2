@@ -236,7 +236,7 @@ h1 {
     <p style="color: #6b7280;">Please contact support if this problem persists.</p>
   </div>
 
-  <div id="content" style="display: none;">
+  <div id="content" style="display: block;">
     <h1>📅 Schedule Your Project</h1>
     <p class="subtitle">Choose your preferred start date</p>
 
@@ -268,32 +268,22 @@ var availableDates = [];
 // **SET TO false FOR PRODUCTION**
 var TEST_MODE = true;
 
-console.log('Script loaded, TEST_MODE =', TEST_MODE);
-
 var urlParams = new URLSearchParams(window.location.search);
 var sessionId = urlParams.get('session_id');
 estimateId = urlParams.get('estimate_id');
 
-console.log('URL params:', sessionId, estimateId);
-
 if (TEST_MODE && !sessionId) {
   sessionId = 'test_session_' + Date.now();
   estimateId = '1';
-  console.log('🧪 TEST MODE ACTIVE - using mock values');
 }
 
 function init() {
-  console.log('init() called');
-  
   if (!sessionId || !estimateId) {
-    console.error('Missing session or estimate ID');
     showError('Missing payment session information. Please contact support.');
     return;
   }
 
   if (TEST_MODE) {
-    console.log('Running TEST_MODE branch');
-    
     document.getElementById('estimateInfo').innerHTML = 
       '<div class="info-row">' +
       '<span class="info-label">Project Type:</span>' +
@@ -310,45 +300,7 @@ function init() {
 
     availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
     
-    console.log('Hiding loading, showing content');
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('content').style.setProperty('display', 'block', 'important');
-
-    // ADD THESE DEBUG LINES:
-var contentEl = document.getElementById('content');
-console.log('content element:', contentEl);
-console.log('content display value:', contentEl.style.display);
-console.log('content computed style:', window.getComputedStyle(contentEl).display);
-    console.log('Forcing all parent visibility');
-var contentEl = document.getElementById('content');
-contentEl.style.setProperty('display', 'block', 'important');
-contentEl.style.setProperty('visibility', 'visible', 'important');
-contentEl.style.setProperty('opacity', '1', 'important');
-
-// Force all parent elements visible too
-var parent = contentEl.parentElement;
-while (parent && parent !== document.body) {
-  parent.style.setProperty('display', 'block', 'important');
-  parent.style.setProperty('visibility', 'visible', 'important');
-  parent = parent.parentElement;
-}
-console.log('All parents forced visible');
-
-    console.log('Forcing body and content visible');
-
-// Force body visible first
-document.body.style.setProperty('display', 'block', 'important');
-document.body.style.setProperty('visibility', 'visible', 'important');
-
-// Then content
-var contentEl = document.getElementById('content');
-contentEl.style.setProperty('display', 'block', 'important');
-contentEl.style.setProperty('visibility', 'visible', 'important');
-
-console.log('Body display:', window.getComputedStyle(document.body).display);
-console.log('Content display:', window.getComputedStyle(contentEl).display);
-    
-    console.log('Calling renderCalendar()');
     renderCalendar();
     return;
   }
@@ -384,7 +336,6 @@ console.log('Content display:', window.getComputedStyle(contentEl).display);
     })
     .then(function() {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
     })
     .catch(function(error) {
       console.error('Initialization error:', error);
@@ -408,13 +359,8 @@ function loadAvailability() {
 }
 
 function renderCalendar() {
-  console.log('renderCalendar() called, availableDates =', availableDates);
-  
   var calendar = document.getElementById('calendar');
-  if (!calendar) {
-    console.error('Calendar element not found!');
-    return;
-  }
+  if (!calendar) return;
   
   calendar.innerHTML = '';
 
@@ -430,7 +376,6 @@ function renderCalendar() {
   today.setHours(0, 0, 0, 0);
   
   var startDayOfWeek = today.getDay();
-  console.log('Today is day', startDayOfWeek, 'of week');
   
   for (var i = 0; i < startDayOfWeek; i++) {
     var empty = document.createElement('div');
@@ -464,8 +409,6 @@ function renderCalendar() {
 
     calendar.appendChild(dayElement);
   }
-  
-  console.log('Calendar rendered with', calendar.children.length, 'cells');
 }
 
 function selectDate(dateStr, element) {
@@ -569,7 +512,6 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-console.log('About to call init()');
 init();
 </script>
 
