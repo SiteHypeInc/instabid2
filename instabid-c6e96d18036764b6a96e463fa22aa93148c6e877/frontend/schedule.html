@@ -333,6 +333,20 @@ while (parent && parent !== document.body) {
   parent = parent.parentElement;
 }
 console.log('All parents forced visible');
+
+    console.log('Forcing body and content visible');
+
+// Force body visible first
+document.body.style.setProperty('display', 'block', 'important');
+document.body.style.setProperty('visibility', 'visible', 'important');
+
+// Then content
+var contentEl = document.getElementById('content');
+contentEl.style.setProperty('display', 'block', 'important');
+contentEl.style.setProperty('visibility', 'visible', 'important');
+
+console.log('Body display:', window.getComputedStyle(document.body).display);
+console.log('Content display:', window.getComputedStyle(contentEl).display);
     
     console.log('Calling renderCalendar()');
     renderCalendar();
