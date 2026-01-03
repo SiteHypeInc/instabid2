@@ -1520,6 +1520,138 @@ app.post('/api/update-tax-rate', async (req, res) => {
 // END STRIPE INTEGRATION
 // ============================================
 
+// ========== STRIPE & SCHEDULING ENDPOINTS ==========
+
+// Verify Stripe payment session
+app.get('/api/verify-payment', async (req, res) => {
+  const { session_id } = req.query;
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    
+    if (session.payment_status !== 'paid') {
+      return res.status(400).json({ error: 'Payment not completed' });
+    }
+
+    res.json({
+      success: true,
+      amount_paid: session.amount_total / 100,
+      customer_email: session.customer_details?.email,
+      metadata: session.metadata
+    });
+  } catch (error) {
+    console.error('❌ Payment verification error:', error);
+    res.status(500).json({ error: 'Failed to verify payment' });
+  }
+});
+
+// Get estimate details by ID
+app.get('/api/estimate/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Estimate not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error fetching estimate:', error);
+    res.status(500).json({ error: 'Failed to fetch estimate' });
+  }
+});
+
+// Get contractor availability (returns booked dates)
+app.get('/api/availability', async (req, res) => {
+  const { contractor_id } = req.query;
+
+  try {
+    const result = await pool.query(
+      'SELECT start_date FROM scheduled_jobs WHERE contractor_id = $1 AND status != $2',
+      [contractor_id || 1, 'cancelled']
+    );
+
+    // Return array of booked date strings
+    const bookedDates = result.rows.map(row => {
+      const date = new Date(row.start_date);
+      return date.toISOString().split('T')[0];
+    });
+
+    res.json({
+      contractor_id: contractor_id || 1,
+      available_dates: bookedDates  // These are the BOOKED dates (unavailable)
+    });
+  } catch (error) {
+    console.error('❌ Error fetching availability:', error);
+    res.status(500).json({ error: 'Failed to fetch availability' });
+  }
+});
+
+// Book a start date
+app.post('/api/book-date', async (req, res) => {
+  const { estimate_id, start_date, contractor_id } = req.body;
+
+  try {
+    // Check if date is already booked
+    const existingBooking = await pool.query(
+      'SELECT * FROM scheduled_jobs WHERE contractor_id = $1 AND start_date = $2 AND status != $3',
+      [contractor_id || 1, start_date, 'cancelled']
+    );
+
+    if (existingBooking.rows.length > 0) {
+      return res.status(400).json({ error: 'Date already booked' });
+    }
+
+    // Get estimate details
+    const estimateResult = await pool.query(
+      'SELECT * FROM estimates WHERE id = $1',
+      [estimate_id]
+    );
+
+    if (estimateResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Estimate not found' });
+    }
+
+    const estimate = estimateResult.rows[0];
+
+    // Create scheduled job
+    const insertResult = await pool.query(
+      `INSERT INTO scheduled_jobs 
+       (estimate_id, contractor_id, customer_name, customer_email, trade, start_date, status, total_amount, deposit_paid)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        estimate_id,
+        contractor_id || 1,
+        estimate.customer_name,
+        estimate.customer_email,
+        estimate.trade,
+        start_date,
+        'scheduled',
+        estimate.total_cost,
+        (parseFloat(estimate.total_cost) * 0.30).toFixed(2)
+      ]
+    );
+
+    console.log(`✅ Job scheduled for ${start_date} - Estimate #${estimate_id}`);
+
+    // TODO: Send confirmation email to customer & contractor
+
+    res.json({
+      success: true,
+      job: insertResult.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Error booking date:', error);
+    res.status(500).json({ error: 'Failed to book date' });
+  }
+});
+
 
 // Start server
 app.listen(PORT, () => {
