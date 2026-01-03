@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule Your Project Start Date</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: #10b981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      animation: scaleIn 0.5s ease;
+    }
+
+    .success-icon svg {
+      width: 48px;
+      height: 48px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+
+    h1 {
+      text-align: center;
+      color: #1f2937;
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+
+    .info-box {
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .info-value {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .calendar-section {
+      margin-bottom: 32px;
+    }
+
+    .calendar-section h2 {
+      font-size: 18px;
+      color: #1f2937;
+      margin-bottom: 16px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .calendar-header {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      padding: 8px 0;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .calendar-day:hover:not(.disabled):not(.selected) {
+      background: #e5e7eb;
+      transform: scale(1.05);
+    }
+
+    .calendar-day.disabled {
+      background: #f3f4f6;
+      color: #d1d5db;
+      cursor: not-allowed;
+    }
+
+    .calendar-day.selected {
+      background: #6366f1;
+      color: white;
+      border-color: #4f46e5;
+      transform: scale(1.1);
+    }
+
+    .calendar-day.today {
+      border-color: #6366f1;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: #6366f1;
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #4f46e5;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn:disabled {
+      background: #d1d5db;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .confirmation {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .confirmation h2 {
+      color: #10b981;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .confirmation p {
+      color: #6b7280;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .selected-date-display {
+      background: #eff6ff;
+      border: 2px solid #6366f1;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 24px;
+      text-align: center;
+      font-weight: 600;
+      color: #4f46e5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Verifying payment...</p>
+    </div>
+
+    <div id="content" style="display: none;">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <h1>Payment Successful! 🎉</h1>
+      <p class="subtitle">Your deposit has been received. Now let's schedule your project start date.</p>
+
+      <div class="info-box" id="estimateInfo"></div>
+
+      <div class="calendar-section">
+        <h2>Select Your Preferred Start Date</h2>
+        <div class="calendar" id="calendar"></div>
+        <div id="selectedDateDisplay"></div>
+      </div>
+
+      <button class="btn btn-primary" id="confirmBtn" disabled onclick="confirmDate()">
+        Confirm Start Date
+      </button>
+    </div>
+
+    <div id="confirmation" style="display: none;">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="confirmation">
+        <h2>All Set!</h2>
+        <p id="confirmationMessage"></p>
+      </div>
+    </div>
+
+    <div id="errorSection" style="display: none;">
+      <div class="error" id="errorMessage"></div>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)';
+    let selectedDate = null;
+    let estimateId = null;
+    let availableDates = [];
+
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    estimateId = urlParams.get('estimate_id');
+
+    // Initialize
+    async function init() {
+      if (!sessionId || !estimateId) {
+        showError('Missing payment session information. Please contact support.');
+        return;
+      }
+
+      try {
+        // Verify payment (you'll need to add this endpoint)
+        const verifyResponse = await fetch(`${BACKEND_URL}/api/verify-payment?session_id=${sessionId}`);
+        if (!verifyResponse.ok) throw new Error('Payment verification failed');
+        
+        const paymentData = await verifyResponse.json();
+
+        // Load estimate details
+        const estimateResponse = await fetch(`${BACKEND_URL}/api/estimate/${estimateId}`);
+        if (!estimateResponse.ok) throw new Error('Failed to load estimate');
+        
+        const estimate = await estimateResponse.json();
+
+        // Display estimate info
+        document.getElementById('estimateInfo').innerHTML = `
+          <div class="info-row">
+            <span class="info-label">Project Type:</span>
+            <span class="info-value">${capitalize(estimate.trade)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Total Amount:</span>
+            <span class="info-value">$${parseFloat(estimate.total_cost).toLocaleString()}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Deposit Paid:</span>
+            <span class="info-value">$${(parseFloat(estimate.total_cost) * 0.30).toLocaleString()}</span>
+          </div>
+        `;
+
+        // Load available dates
+        await loadAvailability();
+
+        // Show content
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+
+      } catch (error) {
+        console.error('Initialization error:', error);
+        showError('Failed to load scheduling information. Please contact support.');
+      }
+    }
+
+    async function loadAvailability() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/availability?contractor_id=1`);
+        const data = await response.json();
+        availableDates = data.available_dates || [];
+        renderCalendar();
+      } catch (error) {
+        console.error('Failed to load availability:', error);
+        showError('Failed to load available dates.');
+      }
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = '';
+
+      // Add day headers
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      days.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+        header.textContent = day;
+        calendar.appendChild(header);
+      });
+
+      // Get current date and next 60 days
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const startDate = new Date(today);
+      startDate.setDate(1); // Start of current month
+      
+      // Add empty cells for days before month starts
+      const firstDayOfWeek = startDate.getDay();
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const empty = document.createElement('div');
+        calendar.appendChild(empty);
+      }
+
+      // Add 60 days
+      for (let i = 0; i < 60; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        
+        const dateStr = date.toISOString().split('T')[0];
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = date.getDate();
+        
+        if (i === 0) {
+          dayElement.classList.add('today');
+        }
+
+        // Check if date is available
+        const isAvailable = !availableDates.includes(dateStr);
+        
+        if (!isAvailable) {
+          dayElement.classList.add('disabled');
+          dayElement.title = 'Not available';
+        } else {
+          dayElement.onclick = () => selectDate(dateStr, dayElement);
+        }
+
+        calendar.appendChild(dayElement);
+      }
+    }
+
+    function selectDate(dateStr, element) {
+      // Remove previous selection
+      document.querySelectorAll('.calendar-day.selected').forEach(el => {
+        el.classList.remove('selected');
+      });
+
+      // Select new date
+      element.classList.add('selected');
+      selectedDate = dateStr;
+
+      // Show selected date
+      const date = new Date(dateStr + 'T00:00:00');
+      const formatted = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+
+      document.getElementById('selectedDateDisplay').innerHTML = `
+        <div class="selected-date-display">
+          📅 Selected Start Date: ${formatted}
+        </div>
+      `;
+
+      // Enable confirm button
+      document.getElementById('confirmBtn').disabled = false;
+    }
+
+    async function confirmDate() {
+      if (!selectedDate) return;
+
+      const btn = document.getElementById('confirmBtn');
+      btn.disabled = true;
+      btn.textContent = 'Booking...';
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/book-date`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            estimate_id: estimateId,
+            start_date: selectedDate,
+            contractor_id: 1
+          })
+        });
+
+        if (!response.ok) throw new Error('Booking failed');
+
+        const result = await response.json();
+
+        // Show confirmation
+        const date = new Date(selectedDate + 'T00:00:00');
+        const formatted = date.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+
+        document.getElementById('confirmationMessage').innerHTML = `
+          Your project start date has been confirmed for:<br>
+          <strong style="font-size: 20px; color: #6366f1;">${formatted}</strong><br><br>
+          You will receive a confirmation email shortly with all the details.
+        `;
+
+        document.getElementById('content').style.display = 'none';
+        document.getElementById('confirmation').style.display = 'block';
+
+      } catch (error) {
+        console.error('Booking error:', error);
+        showError('Failed to book date. Please try again or contact support.');
+        btn.disabled = false;
+        btn.textContent = 'Confirm Start Date';
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorSection').style.display = 'block';
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
