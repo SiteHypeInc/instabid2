@@ -319,6 +319,20 @@ var contentEl = document.getElementById('content');
 console.log('content element:', contentEl);
 console.log('content display value:', contentEl.style.display);
 console.log('content computed style:', window.getComputedStyle(contentEl).display);
+    console.log('Forcing all parent visibility');
+var contentEl = document.getElementById('content');
+contentEl.style.setProperty('display', 'block', 'important');
+contentEl.style.setProperty('visibility', 'visible', 'important');
+contentEl.style.setProperty('opacity', '1', 'important');
+
+// Force all parent elements visible too
+var parent = contentEl.parentElement;
+while (parent && parent !== document.body) {
+  parent.style.setProperty('display', 'block', 'important');
+  parent.style.setProperty('visibility', 'visible', 'important');
+  parent = parent.parentElement;
+}
+console.log('All parents forced visible');
     
     console.log('Calling renderCalendar()');
     renderCalendar();
