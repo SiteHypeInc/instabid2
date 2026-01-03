@@ -220,15 +220,12 @@ h1 {
   line-height: 1.6;
 }
 
-#content {
-  display: none;
-}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <div id="loading" class="loading">
+  <div id="loading" style="display: none;">
     <div class="spinner"></div>
     <p style="color: #6b7280;">Loading your project details...</p>
   </div>
@@ -239,7 +236,7 @@ h1 {
     <p style="color: #6b7280;">Please contact support if this problem persists.</p>
   </div>
 
-  <div id="content">
+  <div id="content" style="display: none;">
     <h1>📅 Schedule Your Project</h1>
     <p class="subtitle">Choose your preferred start date</p>
 
@@ -314,7 +311,7 @@ function init() {
     availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
     
     console.log('Hiding loading, showing content');
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loading').style.display = 'block';
     document.getElementById('content').style.display = 'block';
     
     console.log('Calling renderCalendar()');
