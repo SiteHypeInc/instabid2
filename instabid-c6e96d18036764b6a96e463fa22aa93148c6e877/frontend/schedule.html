@@ -263,7 +263,276 @@ h1 {
 </div>
 
 <script>
+
+  <script>
 var BACKEND_URL = '[https://roofbid-backend-production.up.railway.app](https://roofbid-backend-production.up.railway.app)';
+var selectedDate = null;
+var estimateId = null;
+var availableDates = [];
+
+// **TEST MODE - Set to false in production**
+var TEST_MODE = true;
+
+var urlParams = new URLSearchParams(window.location.search);
+var sessionId = urlParams.get('session_id');
+estimateId = urlParams.get('estimate_id');
+
+// Override with test values if TEST_MODE is on and params are missing
+if (TEST_MODE && !sessionId) {
+  sessionId = 'test_session_' + Date.now();
+  estimateId = '1';
+  console.log('🧪 TEST MODE ACTIVE');
+}
+
+function init() {
+  if (!sessionId || !estimateId) {
+    showError('Missing payment session information. Please contact support.');
+    return;
+  }
+
+  // **SKIP API VERIFICATION IN TEST MODE**
+  if (TEST_MODE) {
+    document.getElementById('estimateInfo').innerHTML = 
+      '<div class="info-row">' +
+      '<span class="info-label">Project Type:</span>' +
+      '<span class="info-value">Roofing (TEST MODE)</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Total Amount:</span>' +
+      '<span class="info-value">$25,000</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Deposit Paid:</span>' +
+      '<span class="info-value">$7,500</span>' +
+      '</div>';
+
+    // Mock blocked dates
+    availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
+    renderCalendar();
+    
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    return;
+  }
+
+  // **PRODUCTION FLOW**
+  fetch(BACKEND_URL + '/api/verify-payment?session_id=' + sessionId)
+    .then(function(response) {
+      if (!response.ok) throw new Error('Payment verification failed');
+      return response.json();
+    })
+    .then(function(paymentData) {
+      return fetch(BACKEND_URL + '/api/estimate/' + estimateId);
+    })
+    .then(function(response) {
+      if (!response.ok) throw new Error('Failed to load estimate');
+      return response.json();
+    })
+    .then(function(estimate) {
+      document.getElementById('estimateInfo').innerHTML = 
+        '<div class="info-row">' +
+        '<span class="info-label">Project Type:</span>' +
+        '<span class="info-value">' + capitalize(estimate.trade) + '</span>' +
+        '</div>' +
+        '<div class="info-row">' +
+        '<span class="info-label">Total Amount:</span>' +
+        '<span class="info-value">$' + parseFloat(estimate.total_cost).toLocaleString() + '</span>' +
+        '</div>' +
+        '<div class="info-row">' +
+        '<span class="info-label">Deposit Paid:</span>' +
+        '<span class="info-value">$' + (parseFloat(estimate.total_cost) * 0.30).toLocaleString() + '</span>' +
+        '</div>';
+
+      return loadAvailability();
+    })
+    .then(function() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+    })
+    .catch(function(error) {
+      console.error('Initialization error:', error);
+      showError('Failed to load scheduling information. Please contact support.');
+    });
+}
+
+function loadAvailability() {
+  return fetch(BACKEND_URL + '/api/availability?contractor_id=1')
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      availableDates = data.available_dates || [];
+      renderCalendar();
+    })
+    .catch(function(error) {
+      console.error('Failed to load availability:', error);
+      renderCalendar();
+    });
+}
+
+function renderCalendar() {
+  var calendar = document.getElementById('calendar');
+  calendar.innerHTML = '';
+
+  var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  for (var d = 0; d < days.length; d++) {
+    var header = document.createElement('div');
+    header.className = 'calendar-header';
+    header.textContent = days[d];
+    calendar.appendChild(header);
+  }
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  var firstDayOfWeek = firstDay.getDay();
+  
+  for (var i = 0; i < firstDayOfWeek; i++) {
+    var empty = document.createElement('div');
+    calendar.appendChild(empty);
+  }
+
+  for (var i = 0; i < 60; i++) {
+    var date = new Date(today);
+    date.setDate(today.getDate() + i);
+    
+    var dateStr = date.toISOString().split('T')[0];
+    var dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day';
+    dayElement.textContent = date.getDate();
+    
+    if (i === 0) {
+      dayElement.classList.add('today');
+    }
+
+    var isAvailable = availableDates.indexOf(dateStr) === -1;
+    
+    if (!isAvailable || i === 0) {
+      dayElement.classList.add('disabled');
+      dayElement.title = 'Not available';
+    } else {
+      dayElement.setAttribute('data-date', dateStr);
+      dayElement.onclick = function() {
+        selectDate(this.getAttribute('data-date'), this);
+      };
+    }
+
+    calendar.appendChild(dayElement);
+  }
+}
+
+function selectDate(dateStr, element) {
+  var selected = document.querySelectorAll('.calendar-day.selected');
+  for (var i = 0; i < selected.length; i++) {
+    selected[i].classList.remove('selected');
+  }
+
+  element.classList.add('selected');
+  selectedDate = dateStr;
+
+  var date = new Date(dateStr + 'T00:00:00');
+  var formatted = date.toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  var display = document.getElementById('selectedDateDisplay');
+  display.textContent = '📅 Selected Start Date: ' + formatted;
+  display.classList.add('active');
+
+  document.getElementById('confirmBtn').disabled = false;
+}
+
+function confirmDate() {
+  if (!selectedDate) return;
+
+  var btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Booking...';
+
+  // **TEST MODE - SKIP BACKEND CALL**
+  if (TEST_MODE) {
+    setTimeout(function() {
+      var date = new Date(selectedDate + 'T00:00:00');
+      var formatted = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+
+      document.getElementById('confirmationMessage').innerHTML = 
+        'Your project start date has been confirmed for:<br>' +
+        '<strong style="font-size: 20px; color: #6366f1;">' + formatted + '</strong><br><br>' +
+        '<em style="color: #6b7280;">(TEST MODE - No database update)</em>';
+
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('confirmation').style.display = 'block';
+    }, 1000);
+    return;
+  }
+
+  // **PRODUCTION FLOW**
+  fetch(BACKEND_URL + '/api/book-date', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      estimate_id: estimateId,
+      start_date: selectedDate,
+      contractor_id: 1
+    })
+  })
+  .then(function(response) {
+    if (!response.ok) throw new Error('Booking failed');
+    return response.json();
+  })
+  .then(function(result) {
+    var date = new Date(selectedDate + 'T00:00:00');
+    var formatted = date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    document.getElementById('confirmationMessage').innerHTML = 
+      'Your project start date has been confirmed for:<br>' +
+      '<strong style="font-size: 20px; color: #6366f1;">' + formatted + '</strong><br><br>' +
+      'You will receive a confirmation email shortly with all the details.';
+
+    document.getElementById('content').style.display = 'none';
+    document.getElementById('confirmation').style.display = 'block';
+  })
+  .catch(function(error) {
+    console.error('Booking error:', error);
+    showError('Failed to book date. Please try again or contact support.');
+    btn.disabled = false;
+    btn.textContent = 'Confirm Start Date';
+  });
+}
+
+function showError(message) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('errorMessage').textContent = message;
+  document.getElementById('errorSection').style.display = 'block';
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+
+
+
+///////////////////////////////////////
+  //LIVE PRODUCTION VERSION - UNCOMMENT
+///////////////////////////////////////  
+  
+/*var BACKEND_URL = 'https://roofbid-backend-production.up.railway.app';
 var selectedDate = null;
 var estimateId = null;
 var availableDates = [];
@@ -462,7 +731,7 @@ function showError(message) {
 
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
+}*/
 
 init();
 </script>
