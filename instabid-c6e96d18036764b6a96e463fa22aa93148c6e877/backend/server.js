@@ -1668,7 +1668,7 @@ const oauth2Client = new google.auth.OAuth2(
 app.get('/api/google/auth-url', (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/calendar.readonly',]
+    scope: ['https://www.googleapis.com/auth/calendar.readonly'],
     prompt: 'consent'
   });
   
