@@ -927,15 +927,113 @@ body {
     <h3>📅 Google Calendar Integration</h3>
     
     <div id="calendarStatusBox">
-      <!-- Not Connected State -->
-      <div id="notConnected">
-        <p style="margin-bottom: 15px; color: #666;">
-          Connect your Google Calendar to automatically block out busy dates for customer scheduling.
-        </p>
-        <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
-          🔗 Connect Google Calendar
-        </button>
-      </div>
+  <!-- Not Connected State -->
+  <div id="notConnected" style="display: none;">
+    <p style="margin-bottom: 15px; color: #666;">
+      Connect your Google Calendar to automatically block out busy dates for customer scheduling.
+    </p>
+    <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
+      🔗 Connect Google Calendar
+    </button>
+  </div>
+
+  <!-- Connected State -->
+  <div id="connected" style="display: none;">
+    <p style="color: #28a745; margin-bottom: 10px;">
+      ✅ <span id="connectedEmail"></span>
+    </p>
+    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+      Last synced: <span id="lastSync">Never</span>
+    </p>
+    <button class="btn-save" onclick="syncCalendar()" style="margin-right: 10px;">
+      🔄 Sync Now
+    </button>
+    <button class="btn-cancel" onclick="disconnectCalendar()">
+      ❌ Disconnect
+    </button>
+  </div>
+</div>
+
+<script>
+// Get contractor ID from session/localStorage (adjust based on your auth system)
+function getContractorId() {
+  return localStorage.getItem('contractor_id') || '1';
+}
+
+async function connectGoogleCalendar() {
+  try {
+    const contractorId = getContractorId();
+    const res = await fetch('https://roofbid-backend-production.up.railway.app/api/google/auth-url?contractor_id=' + contractorId);
+    const data = await res.json();
+    
+    const popup = window.open(data.auth_url, 'google-auth', 'width=500,height=600');
+    
+    const timer = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(timer);
+        checkCalendarStatus();
+      }
+    }, 500);
+  } catch (err) {
+    alert('Error connecting to Google: ' + err.message);
+  }
+}
+
+async function syncCalendar() {
+  try {
+    const contractorId = getContractorId();
+    const res = await fetch('https://roofbid-backend-production.up.railway.app/api/google/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractor_id: contractorId })
+    });
+    const data = await res.json();
+    alert('Synced! Blocked ' + (data.blocked_dates ? data.blocked_dates.length : 0) + ' dates');
+    checkCalendarStatus();
+  } catch (err) {
+    alert('Sync failed: ' + err.message);
+  }
+}
+
+async function disconnectCalendar() {
+  if (!confirm('Disconnect Google Calendar?')) return;
+  
+  try {
+    const contractorId = getContractorId();
+    await fetch('https://roofbid-backend-production.up.railway.app/api/google/disconnect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contractor_id: contractorId })
+    });
+    checkCalendarStatus();
+  } catch (err) {
+    alert('Disconnect failed: ' + err.message);
+  }
+}
+
+async function checkCalendarStatus() {
+  try {
+    const contractorId = getContractorId();
+    const res = await fetch('https://roofbid-backend-production.up.railway.app/api/google/status?contractor_id=' + contractorId);
+    const data = await res.json();
+    
+    if (data.connected) {
+      document.getElementById('notConnected').style.display = 'none';
+      document.getElementById('connected').style.display = 'block';
+      document.getElementById('connectedEmail').textContent = data.email;
+      document.getElementById('lastSync').textContent = data.last_sync || 'Never';
+    } else {
+      document.getElementById('notConnected').style.display = 'block';
+      document.getElementById('connected').style.display = 'none';
+    }
+  } catch (err) {
+    document.getElementById('notConnected').style.display = 'block';
+    document.getElementById('connected').style.display = 'none';
+  }
+}
+
+checkCalendarStatus();
+</script>
       
       <!-- Connected State (hidden initially) -->
       <div id="connected" style="display: none;">
