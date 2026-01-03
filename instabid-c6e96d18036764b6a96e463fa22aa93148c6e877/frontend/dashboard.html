@@ -916,16 +916,68 @@ body {
 
     </div>
 
-    <!-- ========================================= -->
-    <!-- ESTIMATE TRACKER TAB -->
-    <!-- ========================================= -->
-    <div class="main-content" id="estimate-tracker">
-      <div class="placeholder-content">
-        <h2>📊 Estimate Tracker</h2>
-        <p>View all estimates, track status, conversion rates</p>
-        <p style="margin-top: 20px; color: #667eea; font-weight: 600;">Coming Soon</p>
+<!-- ========================================= -->
+<!-- ESTIMATE TRACKER TAB -->
+<!-- ========================================= -->
+<div class="main-content" id="estimate-tracker">
+  <h2 class="section-title">📊 Estimate Tracker</h2>
+  
+  <!-- Google Calendar Sync Section -->
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+    <h3>📅 Google Calendar Integration</h3>
+    
+    <div id="calendarStatusBox">
+      <!-- Not Connected State -->
+      <div id="notConnected">
+        <p style="margin-bottom: 15px; color: #666;">
+          Connect your Google Calendar to automatically block out busy dates for customer scheduling.
+        </p>
+        <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
+          🔗 Connect Google Calendar
+        </button>
+      </div>
+      
+      <!-- Connected State (hidden initially) -->
+      <div id="connected" style="display: none;">
+        <div style="background: #d4edda; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #c3e6cb;">
+          <p style="color: #155724; margin: 0;">
+            ✅ <strong>Calendar Connected:</strong> <span id="connectedEmail"></span>
+          </p>
+          <p style="color: #155724; margin: 5px 0 0 0; font-size: 0.9em;">
+            Last synced: <span id="lastSyncTime">Never</span>
+          </p>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-save" onclick="syncCalendar()" style="margin-top: 0; background: #28a745;">
+            🔄 Sync Now
+          </button>
+          <button class="btn-save" onclick="disconnectCalendar()" style="margin-top: 0; background: #dc3545;">
+            ❌ Disconnect
+          </button>
+        </div>
+        
+        <div id="blockedDatesSection" style="margin-top: 20px; display: none;">
+          <h4 style="color: #333; margin-bottom: 10px;">Blocked Dates from Calendar:</h4>
+          <div id="blockedDatesList" style="background: #f8f9fa; padding: 15px; border-radius: 6px; max-height: 200px; overflow-y: auto;">
+            <!-- Dates will be populated here -->
+          </div>
+        </div>
       </div>
     </div>
+    
+    <div class="status-message" id="calendar-status"></div>
+  </div>
+  
+  <!-- Estimate List (Coming Soon) -->
+  <div class="config-card" style="max-width: 100%;">
+    <h3>📋 Recent Estimates</h3>
+    <div class="placeholder-content">
+      <p>View all estimates, track status, conversion rates</p>
+      <p style="margin-top: 20px; color: #667eea; font-weight: 600;">Coming Soon</p>
+    </div>
+  </div>
+</div>
 
     <!-- ========================================= -->
     <!-- COMPANY PROFILE TAB -->
@@ -1036,6 +1088,162 @@ function saveConfig(section) {
     statusDiv.className = 'status-message error';
   });
 }
+
+  // ========================================
+// GOOGLE CALENDAR FUNCTIONS
+// ========================================
+
+// Check calendar connection status on load
+function checkCalendarStatus() {
+  fetch(`${API_BASE}/api/google/status`, {
+    credentials: 'include'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.connected) {
+      showConnectedState(data.email, data.last_sync, data.blocked_dates);
+    }
+  })
+  .catch(err => console.error('Calendar status check failed:', err));
+}
+
+function connectGoogleCalendar() {
+  const statusDiv = document.getElementById('calendar-status');
+  statusDiv.textContent = '⏳ Opening Google authorization...';
+  statusDiv.className = 'status-message';
+  statusDiv.style.display = 'block';
+  
+  fetch(`${API_BASE}/api/google/auth-url`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.auth_url) {
+        // Open OAuth in popup
+        const width = 600;
+        const height = 700;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        
+        const popup = window.open(
+          data.auth_url,
+          'Google Calendar Authorization',
+          `width=${width},height=${height},left=${left},top=${top}`
+        );
+        
+        // Poll for completion
+        const checkPopup = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkPopup);
+            checkCalendarStatus();
+            statusDiv.style.display = 'none';
+          }
+        }, 500);
+      } else {
+        throw new Error('Failed to get authorization URL');
+      }
+    })
+    .catch(err => {
+      statusDiv.textContent = '❌ Error: ' + err.message;
+      statusDiv.className = 'status-message error';
+    });
+}
+
+function syncCalendar() {
+  const statusDiv = document.getElementById('calendar-status');
+  statusDiv.textContent = '⏳ Syncing calendar...';
+  statusDiv.className = 'status-message';
+  statusDiv.style.display = 'block';
+  
+  fetch(`${API_BASE}/api/google/sync`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      statusDiv.textContent = '✅ Calendar synced successfully!';
+      statusDiv.className = 'status-message success';
+      document.getElementById('lastSyncTime').textContent = new Date().toLocaleString();
+      
+      if (data.blocked_dates && data.blocked_dates.length > 0) {
+        displayBlockedDates(data.blocked_dates);
+      }
+      
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+    } else {
+      throw new Error(data.error || 'Sync failed');
+    }
+  })
+  .catch(err => {
+    statusDiv.textContent = '❌ Error: ' + err.message;
+    statusDiv.className = 'status-message error';
+  });
+}
+
+function disconnectCalendar() {
+  if (!confirm('Are you sure you want to disconnect Google Calendar?')) return;
+  
+  const statusDiv = document.getElementById('calendar-status');
+  statusDiv.textContent = '⏳ Disconnecting...';
+  statusDiv.className = 'status-message';
+  statusDiv.style.display = 'block';
+  
+  fetch(`${API_BASE}/api/google/disconnect`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('notConnected').style.display = 'block';
+      document.getElementById('connected').style.display = 'none';
+      statusDiv.textContent = '✅ Calendar disconnected';
+      statusDiv.className = 'status-message success';
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+    } else {
+      throw new Error(data.error || 'Disconnect failed');
+    }
+  })
+  .catch(err => {
+    statusDiv.textContent = '❌ Error: ' + err.message;
+    statusDiv.className = 'status-message error';
+  });
+}
+
+function showConnectedState(email, lastSync, blockedDates) {
+  document.getElementById('notConnected').style.display = 'none';
+  document.getElementById('connected').style.display = 'block';
+  document.getElementById('connectedEmail').textContent = email;
+  
+  if (lastSync) {
+    document.getElementById('lastSyncTime').textContent = new Date(lastSync).toLocaleString();
+  }
+  
+  if (blockedDates && blockedDates.length > 0) {
+    displayBlockedDates(blockedDates);
+  }
+}
+
+function displayBlockedDates(dates) {
+  const section = document.getElementById('blockedDatesSection');
+  const list = document.getElementById('blockedDatesList');
+  
+  if (dates.length === 0) {
+    list.innerHTML = '<p style="color: #666; margin: 0;">No blocked dates found</p>';
+  } else {
+    list.innerHTML = dates
+      .sort()
+      .map(date => `<div style="padding: 5px 0; border-bottom: 1px solid #ddd;">📅 ${new Date(date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</div>`)
+      .join('');
+  }
+  
+  section.style.display = 'block';
+}
+
+// Check status on page load
+window.addEventListener('load', function() {
+  checkCalendarStatus();
+});
+  
 </script>
 
 </body>
