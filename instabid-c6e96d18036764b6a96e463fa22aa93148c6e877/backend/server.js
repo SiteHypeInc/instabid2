@@ -1652,6 +1652,172 @@ app.post('/api/book-date', async (req, res) => {
   }
 });
 
+// ============================================
+// GOOGLE CALENDAR INTEGRATION
+// ============================================
+const { google } = require('googleapis');
+
+// OAuth2 client setup
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI || `${process.env.BACKEND_URL}/api/google/callback`
+);
+
+// 1. Get OAuth URL
+app.get('/api/google/auth-url', (req, res) => {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['[https://www.googleapis.com/auth/calendar.readonly'],](https://www.googleapis.com/auth/calendar.readonly'],)
+    prompt: 'consent'
+  });
+  
+  res.json({ auth_url: authUrl });
+});
+
+// 2. OAuth callback (handles redirect from Google)
+app.get('/api/google/callback', async (req, res) => {
+  const { code } = req.query;
+  
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    
+    // Store refresh_token in database
+    await pool.query(
+      `UPDATE contractors 
+       SET google_refresh_token = $1, 
+           google_calendar_id = 'primary',
+           last_calendar_sync = NOW()
+       WHERE id = $2`,
+      [tokens.refresh_token, 1] // TODO: replace 1 with actual contractor ID from session
+    );
+    
+    console.log('✅ Google Calendar connected');
+    
+    // Close popup window
+    res.send('<script>window.close();</script>');
+  } catch (error) {
+    console.error('❌ OAuth callback error:', error);
+    res.status(500).send('Authorization failed');
+  }
+});
+
+// 3. Check connection status
+app.get('/api/google/status', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT google_refresh_token, google_calendar_id, last_calendar_sync FROM contractors WHERE id = $1',
+      [1] // TODO: replace with actual contractor ID
+    );
+    
+    if (result.rows.length === 0 || !result.rows[0].google_refresh_token) {
+      return res.json({ connected: false });
+    }
+    
+    const contractor = result.rows[0];
+    
+    // Get blocked dates
+    const blockedDates = await pool.query(
+      'SELECT DISTINCT start_date FROM scheduled_jobs WHERE contractor_id = $1 AND status != $2',
+      [1, 'cancelled']
+    );
+    
+    res.json({
+      connected: true,
+      email: 'calendar@contractor.com', // TODO: fetch from Google API
+      last_sync: contractor.last_calendar_sync,
+      blocked_dates: blockedDates.rows.map(r => r.start_date)
+    });
+  } catch (error) {
+    console.error('❌ Status check error:', error);
+    res.status(500).json({ connected: false });
+  }
+});
+
+// 4. Sync calendar (fetch busy dates)
+app.post('/api/google/sync', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT google_refresh_token FROM contractors WHERE id = $1',
+      [1] // TODO: replace with actual contractor ID
+    );
+    
+    if (result.rows.length === 0 || !result.rows[0].google_refresh_token) {
+      return res.status(401).json({ success: false, error: 'Calendar not connected' });
+    }
+    
+    // Set refresh token
+    oauth2Client.setCredentials({
+      refresh_token: result.rows[0].google_refresh_token
+    });
+    
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+    
+    // Fetch events for next 90 days
+    const timeMin = new Date().toISOString();
+    const timeMax = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    
+    const events = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin,
+      timeMax,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+    
+    // Extract busy dates
+    const busyDates = events.data.items
+      .filter(event => event.start.date || event.start.dateTime)
+      .map(event => {
+        const dateStr = event.start.date || event.start.dateTime.split('T')[0];
+        return dateStr;
+      });
+    
+    // Remove duplicates
+    const uniqueDates = [...new Set(busyDates)];
+    
+    // Update last sync time
+    await pool.query(
+      'UPDATE contractors SET last_calendar_sync = NOW() WHERE id = $1',
+      [1]
+    );
+    
+    console.log(`✅ Calendar synced: ${uniqueDates.length} blocked dates`);
+    
+    res.json({
+      success: true,
+      blocked_dates: uniqueDates,
+      count: uniqueDates.length
+    });
+  } catch (error) {
+    console.error('❌ Calendar sync error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// 5. Disconnect calendar
+app.post('/api/google/disconnect', async (req, res) => {
+  try {
+    await pool.query(
+      `UPDATE contractors 
+       SET google_refresh_token = NULL, 
+           google_calendar_id = NULL,
+           last_calendar_sync = NULL
+       WHERE id = $1`,
+      [1] // TODO: replace with actual contractor ID
+    );
+    
+    console.log('✅ Google Calendar disconnected');
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Disconnect error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {
