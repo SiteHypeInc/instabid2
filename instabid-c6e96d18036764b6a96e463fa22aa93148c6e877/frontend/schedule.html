@@ -298,9 +298,39 @@ var urlParams = new URLSearchParams(window.location.search);
 var sessionId = urlParams.get('session_id');
 estimateId = urlParams.get('estimate_id');
 
+// **TEMPORARY TEST MODE - REMOVE IN PRODUCTION**
+var TEST_MODE = true;
+if (TEST_MODE && !sessionId) {
+  sessionId = 'test_session_123';
+  estimateId = '1';
+}
+
 function init() {
   if (!sessionId || !estimateId) {
     showError('Missing payment session information. Please contact support.');
+    return;
+  }
+  
+  // **SKIP API CALLS IN TEST MODE**
+  if (TEST_MODE) {
+    document.getElementById('estimateInfo').innerHTML = 
+      '<div class="info-row">' +
+      '<span class="info-label">Project Type:</span>' +
+      '<span class="info-value">Roofing (TEST)</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Total Amount:</span>' +
+      '<span class="info-value">$25,000</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Deposit Paid:</span>' +
+      '<span class="info-value">$7,500</span>' +
+      '</div>';
+    
+    availableDates = []; // All dates available in test
+    renderCalendar();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
     return;
   }
 
