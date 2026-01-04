@@ -1566,32 +1566,37 @@ app.get('/api/estimate/:id', async (req, res) => {
   }
 });
 
-// Get contractor availability (returns booked dates)
+// Get contractor availability (returns blocked dates from both scheduled_jobs AND Google Calendar sync)
 app.get('/api/availability', async (req, res) => {
   const { contractor_id } = req.query;
 
   try {
-    const result = await pool.query(
+    // Get dates from scheduled_jobs (customer bookings)
+    const jobsResult = await pool.query(
       'SELECT start_date FROM scheduled_jobs WHERE contractor_id = $1 AND status != $2',
       [contractor_id || 1, 'cancelled']
     );
 
-    // Return array of booked date strings
-    const bookedDates = result.rows.map(row => {
-      const date = new Date(row.start_date);
-      return date.toISOString().split('T')[0];
-    });
+    // Get dates from contractor_availability (Google Calendar blocks)
+    const blocksResult = await pool.query(
+      'SELECT date FROM contractor_availability WHERE contractor_id = $1 AND is_available = false AND date >= CURRENT_DATE',
+      [contractor_id || 1]
+    );
+
+    // Combine and deduplicate
+    const jobDates = jobsResult.rows.map(row => new Date(row.start_date).toISOString().split('T')[0]);
+    const blockDates = blocksResult.rows.map(row => new Date(row.date).toISOString().split('T')[0]);
+    const allBlockedDates = [...new Set([...jobDates, ...blockDates])];
 
     res.json({
       contractor_id: contractor_id || 1,
-      available_dates: bookedDates  // These are the BOOKED dates (unavailable)
+      available_dates: allBlockedDates  // Frontend expects blocked dates here
     });
   } catch (error) {
     console.error('❌ Error fetching availability:', error);
     res.status(500).json({ error: 'Failed to fetch availability' });
   }
 });
-
 // Book a start date
 app.post('/api/book-date', async (req, res) => {
   const { estimate_id, start_date, contractor_id } = req.body;
@@ -1798,34 +1803,7 @@ app.post('/api/google/sync', async (req, res) => {
   }
 });
 
-// GET available dates (excludes Google Calendar busy times + scheduled jobs)
-app.get('/api/availability', async (req, res) => {
-  try {
-    const contractorId = req.query.contractor_id || 1;
-    
-    // Get all dates that are either:
-    // 1. Already booked in scheduled_jobs
-    // 2. Blocked by Google Calendar sync
-    const blockedResult = await pool.query(`
-      SELECT DISTINCT date 
-      FROM contractor_availability 
-      WHERE contractor_id = $1 
-        AND is_available = false
-        AND date >= CURRENT_DATE
-      ORDER BY date
-    `, [contractorId]);
-    
-    const blockedDates = blockedResult.rows.map(row => row.date);
-    
-    res.json({ 
-      blocked_dates: blockedDates,
-      available_dates: [] // Frontend will calculate available = not blocked
-    });
-  } catch (error) {
-    console.error('❌ Availability error:', error);
-    res.status(500).json({ error: 'Failed to load availability' });
-  }
-});
+
 
 // 5. Disconnect calendar
 app.post('/api/google/disconnect', async (req, res) => {
