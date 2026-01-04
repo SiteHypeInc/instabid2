@@ -1798,6 +1798,35 @@ app.post('/api/google/sync', async (req, res) => {
   }
 });
 
+// GET available dates (excludes Google Calendar busy times + scheduled jobs)
+app.get('/api/availability', async (req, res) => {
+  try {
+    const contractorId = req.query.contractor_id || 1;
+    
+    // Get all dates that are either:
+    // 1. Already booked in scheduled_jobs
+    // 2. Blocked by Google Calendar sync
+    const blockedResult = await pool.query(`
+      SELECT DISTINCT date 
+      FROM contractor_availability 
+      WHERE contractor_id = $1 
+        AND is_available = false
+        AND date >= CURRENT_DATE
+      ORDER BY date
+    `, [contractorId]);
+    
+    const blockedDates = blockedResult.rows.map(row => row.date);
+    
+    res.json({ 
+      blocked_dates: blockedDates,
+      available_dates: [] // Frontend will calculate available = not blocked
+    });
+  } catch (error) {
+    console.error('❌ Availability error:', error);
+    res.status(500).json({ error: 'Failed to load availability' });
+  }
+});
+
 // 5. Disconnect calendar
 app.post('/api/google/disconnect', async (req, res) => {
   try {
