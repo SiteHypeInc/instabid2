@@ -265,43 +265,13 @@ var selectedDate = null;
 var estimateId = null;
 var availableDates = [];
 
-// **SET TO false FOR PRODUCTION**
-var TEST_MODE = false;
-
 var urlParams = new URLSearchParams(window.location.search);
 var sessionId = urlParams.get('session_id');
 estimateId = urlParams.get('estimate_id');
 
-if (TEST_MODE && !sessionId) {
-  sessionId = 'test_session_' + Date.now();
-  estimateId = '1';
-}
-
 function init() {
   if (!sessionId || !estimateId) {
     showError('Missing payment session information. Please contact support.');
-    return;
-  }
-
-  if (TEST_MODE) {
-    document.getElementById('estimateInfo').innerHTML = 
-      '<div class="info-row">' +
-      '<span class="info-label">Project Type:</span>' +
-      '<span class="info-value">Roofing (TEST MODE)</span>' +
-      '</div>' +
-      '<div class="info-row">' +
-      '<span class="info-label">Total Amount:</span>' +
-      '<span class="info-value">$25,000</span>' +
-      '</div>' +
-      '<div class="info-row">' +
-      '<span class="info-label">Deposit Paid:</span>' +
-      '<span class="info-value">$7,500</span>' +
-      '</div>';
-
-    // Load real blocked dates from backend even in test mode
-    loadAvailability().then(function() {
-      document.getElementById('loading').style.display = 'none';
-    });
     return;
   }
 
@@ -368,7 +338,6 @@ function renderCalendar() {
   
   calendar.innerHTML = '';
 
-  // Month/Year header with navigation
   var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                     'July', 'August', 'September', 'October', 'November', 'December'];
   
@@ -400,7 +369,6 @@ function renderCalendar() {
   headerRow.appendChild(nextBtn);
   calendar.appendChild(headerRow);
 
-  // Day headers
   var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   for (var d = 0; d < days.length; d++) {
     var header = document.createElement('div');
@@ -409,7 +377,6 @@ function renderCalendar() {
     calendar.appendChild(header);
   }
 
-  // Get first day of month and total days
   var firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   var lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
   var startDayOfWeek = firstDay.getDay();
@@ -418,13 +385,11 @@ function renderCalendar() {
   var today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Empty cells before month starts
   for (var i = 0; i < startDayOfWeek; i++) {
     var empty = document.createElement('div');
     calendar.appendChild(empty);
   }
 
-  // Days of the month
   for (var day = 1; day <= daysInMonth; day++) {
     var date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     var dateStr = date.toISOString().split('T')[0];
@@ -440,16 +405,11 @@ function renderCalendar() {
       dayElement.classList.add('today');
     }
 
-    /*var isAvailable = availableDates.indexOf(dateStr) === -1;
+    var isBlocked = availableDates.indexOf(dateStr) !== -1;
     
-    if (!isAvailable || isPast) {
+    if (isBlocked || isPast) {
       dayElement.classList.add('disabled');
-      dayElement.title = isPast ? 'Past date' : 'Not available';*/
-    var isBlocked = availableDates.indexOf(dateStr) !== -1; // Date IS in the blocked list
-
-if (isBlocked || isPast) {
-  dayElement.classList.add('disabled');
-  dayElement.title = isPast ? 'Past date' : 'Already booked';
+      dayElement.title = isPast ? 'Past date' : 'Already booked';
     } else {
       dayElement.setAttribute('data-date', dateStr);
       dayElement.onclick = function() {
@@ -460,6 +420,7 @@ if (isBlocked || isPast) {
     calendar.appendChild(dayElement);
   }
 }
+
 function selectDate(dateStr, element) {
   var selected = document.querySelectorAll('.calendar-day.selected');
   for (var i = 0; i < selected.length; i++) {
@@ -490,27 +451,6 @@ function confirmDate() {
   var btn = document.getElementById('confirmBtn');
   btn.disabled = true;
   btn.textContent = 'Booking...';
-
-  if (TEST_MODE) {
-    setTimeout(function() {
-      var date = new Date(selectedDate + 'T00:00:00');
-      var formatted = date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-
-      document.getElementById('confirmationMessage').innerHTML = 
-        'Your project start date has been confirmed for:<br>' +
-        '<strong style="font-size: 20px; color: #6366f1;">' + formatted + '</strong><br><br>' +
-        '<em style="color: #6b7280;">(TEST MODE - No database update)</em>';
-
-      document.getElementById('content').style.display = 'none';
-      document.getElementById('confirmation').style.display = 'block';
-    }, 1000);
-    return;
-  }
 
   fetch(BACKEND_URL + '/api/book-date', {
     method: 'POST',
@@ -563,7 +503,6 @@ function capitalize(str) {
 
 init();
 </script>
-
 </body>
 </html>
 
