@@ -1468,29 +1468,66 @@ app.get('/api/availability/:contractorId', async (req, res) => {
 
 // Book start date
 app.post('/api/book-date', async (req, res) => {
-  const { estimateId, startDate } = req.body;
+  const { estimate_id, start_date, contractor_id } = req.body;
 
   try {
-    const result = await pool.query(
-      `UPDATE scheduled_jobs 
-       SET start_date = $1, updated_at = NOW()
-       WHERE estimate_id = $2
+    // Insert new scheduled job
+    const jobResult = await pool.query(
+      `INSERT INTO scheduled_jobs (estimate_id, contractor_id, start_date, status, created_at, updated_at)
+       VALUES ($1, $2, $3, 'scheduled', NOW(), NOW())
        RETURNING *`,
-      [startDate, estimateId]
+      [estimate_id, contractor_id, start_date]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Scheduled job not found' });
+    const job = jobResult.rows[0];
+    console.log('✅ Created scheduled job:', job.id);
+
+    // Try to add to Google Calendar
+    try {
+      const tokenResult = await pool.query(
+        'SELECT google_access_token, google_refresh_token FROM contractors WHERE id = $1',
+        [contractor_id]
+      );
+
+      if (tokenResult.rows.length > 0 && tokenResult.rows[0].google_access_token) {
+        const contractor = tokenResult.rows[0];
+        
+        oauth2Client.setCredentials({
+          access_token: contractor.google_access_token,
+          refresh_token: contractor.google_refresh_token
+        });
+
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+        const event = {
+          summary: `Project Start - Estimate #${estimate_id}`,
+          description: `Scheduled project start date`,
+          start: {
+            date: start_date
+          },
+          end: {
+            date: start_date
+          }
+        };
+
+        const calendarResponse = await calendar.events.insert({
+          calendarId: 'primary',
+          resource: event
+        });
+
+        // Save Google event ID
+        await pool.query(
+          'UPDATE scheduled_jobs SET google_event_id = $1 WHERE id = $2',
+          [calendarResponse.data.id, job.id]
+        );
+
+        console.log('✅ Added to Google Calendar:', calendarResponse.data.htmlLink);
+      } else {
+        console.log('⚠️ No Google Calendar connected for contractor', contractor_id);
+      }
+    } catch (gcalError) {
+      console.error('⚠️ Google Calendar error (job still created):', gcalError.message);
     }
-
-    const job = result.rows[0];
-
-    await pool.query(
-      `UPDATE availability 
-       SET slots_booked = slots_booked + 1
-       WHERE contractor_id = $1 AND available_date = $2`,
-      [job.contractor_id, startDate]
-    );
 
     res.json({ success: true, job });
   } catch (error) {
@@ -1498,7 +1535,6 @@ app.post('/api/book-date', async (req, res) => {
     res.status(500).json({ error: 'Failed to book date' });
   }
 });
-
 // Update contractor tax rate
 app.post('/api/update-tax-rate', async (req, res) => {
   const { contractorId, taxRate } = req.body;
