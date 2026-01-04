@@ -474,6 +474,9 @@ function confirmDate() {
       day: 'numeric' 
     });
 
+    // Show alert FIRST
+    alert('Booking confirmed for ' + formatted + '!\n\nCheck your email for confirmation.\n\nRedirecting to home page in 30 seconds...');
+
     document.getElementById('confirmationMessage').innerHTML = 
       'Your project start date has been confirmed for:<br>' +
       '<strong style="font-size: 20px; color: #6366f1;">' + formatted + '</strong><br><br>' +
