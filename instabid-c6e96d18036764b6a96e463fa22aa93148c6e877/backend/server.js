@@ -1597,7 +1597,8 @@ app.get('/api/availability', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch availability' });
   }
 });
-// Book a start date
+
+// Book a start date (saves to scheduled_jobs AND writes to Google Calendar)
 app.post('/api/book-date', async (req, res) => {
   const { estimate_id, start_date, contractor_id } = req.body;
 
@@ -1643,13 +1644,60 @@ app.post('/api/book-date', async (req, res) => {
       ]
     );
 
+    const job = insertResult.rows[0];
+
     console.log(`✅ Job scheduled for ${start_date} - Estimate #${estimate_id}`);
+
+    // Write to Google Calendar if connected
+    try {
+      const contractorResult = await pool.query(
+        'SELECT google_refresh_token FROM contractors WHERE id = $1',
+        [contractor_id || 1]
+      );
+
+      if (contractorResult.rows.length > 0 && contractorResult.rows[0].google_refresh_token) {
+        oauth2Client.setCredentials({
+          refresh_token: contractorResult.rows[0].google_refresh_token
+        });
+
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+        const event = {
+          summary: `${estimate.trade.toUpperCase()} - ${estimate.customer_name}`,
+          description: `InstaBid Job\nEstimate #${estimate_id}\nCustomer: ${estimate.customer_name}\nEmail: ${estimate.customer_email}\nTotal: $${estimate.total_cost}`,
+          start: {
+            date: start_date,
+            timeZone: 'America/Los_Angeles'
+          },
+          end: {
+            date: start_date,
+            timeZone: 'America/Los_Angeles'
+          },
+          colorId: '9' // Blue color for customer jobs
+        };
+
+        const calendarEvent = await calendar.events.insert({
+          calendarId: 'primary',
+          resource: event
+        });
+
+        // Save Google Calendar event ID to scheduled_jobs
+        await pool.query(
+          'UPDATE scheduled_jobs SET google_event_id = $1 WHERE id = $2',
+          [calendarEvent.data.id, job.id]
+        );
+
+        console.log(`✅ Added to Google Calendar: ${calendarEvent.data.htmlLink}`);
+      }
+    } catch (calError) {
+      console.error('⚠️ Failed to add to Google Calendar (job still saved):', calError.message);
+    }
 
     // TODO: Send confirmation email to customer & contractor
 
     res.json({
       success: true,
-      job: insertResult.rows[0]
+      job: job
     });
   } catch (error) {
     console.error('❌ Error booking date:', error);
@@ -1739,26 +1787,26 @@ app.get('/api/google/status', async (req, res) => {
   }
 });
 
-// 4. Sync calendar (fetch busy dates)
+// 4. Sync calendar (fetch busy dates & save to contractor_availability)
 app.post('/api/google/sync', async (req, res) => {
   try {
+    const contractorId = 1; // TODO: get from session
+    
     const result = await pool.query(
       'SELECT google_refresh_token FROM contractors WHERE id = $1',
-      [1] // TODO: replace with actual contractor ID
+      [contractorId]
     );
     
     if (result.rows.length === 0 || !result.rows[0].google_refresh_token) {
       return res.status(401).json({ success: false, error: 'Calendar not connected' });
     }
     
-    // Set refresh token
     oauth2Client.setCredentials({
       refresh_token: result.rows[0].google_refresh_token
     });
     
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
     
-    // Fetch events for next 90 days
     const timeMin = new Date().toISOString();
     const timeMax = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
     
@@ -1770,7 +1818,6 @@ app.post('/api/google/sync', async (req, res) => {
       orderBy: 'startTime'
     });
     
-    // Extract busy dates
     const busyDates = events.data.items
       .filter(event => event.start.date || event.start.dateTime)
       .map(event => {
@@ -1778,16 +1825,30 @@ app.post('/api/google/sync', async (req, res) => {
         return dateStr;
       });
     
-    // Remove duplicates
     const uniqueDates = [...new Set(busyDates)];
     
-    // Update last sync time
+    // Clear old Google Calendar blocks (keep customer bookings in scheduled_jobs)
     await pool.query(
-      'UPDATE contractors SET last_calendar_sync = NOW() WHERE id = $1',
-      [1]
+      'DELETE FROM contractor_availability WHERE contractor_id = $1 AND source = $2',
+      [contractorId, 'google_calendar']
     );
     
-    console.log(`✅ Calendar synced: ${uniqueDates.length} blocked dates`);
+    // Insert new blocked dates
+    for (const date of uniqueDates) {
+      await pool.query(
+        `INSERT INTO contractor_availability (contractor_id, date, is_available, source)
+         VALUES ($1, $2, false, 'google_calendar')
+         ON CONFLICT (contractor_id, date) DO UPDATE SET is_available = false, source = 'google_calendar'`,
+        [contractorId, date]
+      );
+    }
+    
+    await pool.query(
+      'UPDATE contractors SET last_calendar_sync = NOW() WHERE id = $1',
+      [contractorId]
+    );
+    
+    console.log(`✅ Calendar synced: ${uniqueDates.length} blocked dates saved to database`);
     
     res.json({
       success: true,
