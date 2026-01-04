@@ -1772,17 +1772,18 @@ app.get('/api/google/callback', async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     
-    // Store refresh_token in database
+    // Store BOTH access_token and refresh_token in database
     await pool.query(
       `UPDATE contractors 
-       SET google_refresh_token = $1, 
+       SET google_access_token = $1,
+           google_refresh_token = $2, 
            google_calendar_id = 'primary',
            last_calendar_sync = NOW()
-       WHERE id = $2`,
-      [tokens.refresh_token, 1] // TODO: replace 1 with actual contractor ID from session
+       WHERE id = $3`,
+      [tokens.access_token, tokens.refresh_token, 1] // TODO: replace 1 with actual contractor ID from session
     );
     
-    console.log('✅ Google Calendar connected');
+    console.log('✅ Google Calendar connected with access token');
     
     // Close popup window
     res.send('<script>window.close();</script>');
