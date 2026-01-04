@@ -477,10 +477,16 @@ function confirmDate() {
     document.getElementById('confirmationMessage').innerHTML = 
       'Your project start date has been confirmed for:<br>' +
       '<strong style="font-size: 20px; color: #6366f1;">' + formatted + '</strong><br><br>' +
-      'You will receive a confirmation email shortly with all the details.';
+      'You will receive a confirmation email shortly with all the details.<br><br>' +
+      '<em style="color: #666;">Redirecting to home page in 30 seconds...</em>';
 
     document.getElementById('content').style.display = 'none';
     document.getElementById('confirmation').style.display = 'block';
+    
+    // Auto-redirect after 30 seconds
+    setTimeout(function() {
+      window.location.href = 'https://white-raven-264519.hostingersite.com';
+    }, 30000);
   })
   .catch(function(error) {
     console.error('Booking error:', error);
@@ -489,7 +495,6 @@ function confirmDate() {
     btn.textContent = 'Confirm Start Date';
   });
 }
-
 function showError(message) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'none';
