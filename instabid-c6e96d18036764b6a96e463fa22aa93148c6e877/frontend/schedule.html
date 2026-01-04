@@ -298,10 +298,10 @@ function init() {
       '<span class="info-value">$7,500</span>' +
       '</div>';
 
-    availableDates = ['2025-01-05', '2025-01-11', '2025-01-24'];
-    
-    document.getElementById('loading').style.display = 'none';
-    renderCalendar();
+    // Load real blocked dates from backend even in test mode
+    loadAvailability().then(function() {
+      document.getElementById('loading').style.display = 'none';
+    });
     return;
   }
 
@@ -440,11 +440,16 @@ function renderCalendar() {
       dayElement.classList.add('today');
     }
 
-    var isAvailable = availableDates.indexOf(dateStr) === -1;
+    /*var isAvailable = availableDates.indexOf(dateStr) === -1;
     
     if (!isAvailable || isPast) {
       dayElement.classList.add('disabled');
-      dayElement.title = isPast ? 'Past date' : 'Not available';
+      dayElement.title = isPast ? 'Past date' : 'Not available';*/
+    var isBlocked = availableDates.indexOf(dateStr) !== -1; // Date IS in the blocked list
+
+if (isBlocked || isPast) {
+  dayElement.classList.add('disabled');
+  dayElement.title = isPast ? 'Past date' : 'Already booked';
     } else {
       dayElement.setAttribute('data-date', dateStr);
       dayElement.onclick = function() {
