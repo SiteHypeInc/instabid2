@@ -25,7 +25,7 @@ async function scrapeHomeDepotPrice(sku, zipCode) {
       params: {
         api_key: SCRAPINGBEE_API_KEY,
         url: url,
-        render_js: 'false',
+        render_js: 'true',
         premium_proxy: 'true',
         country_code: 'us'
       },
