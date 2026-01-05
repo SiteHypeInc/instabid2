@@ -1966,10 +1966,10 @@ app.post('/api/register', async (req, res) => {
     // Create contractor account
     const result = await pool.query(
       `INSERT INTO contractors 
-       (email, password_hash, company_name, phone, api_key, subscription_status, created_at)
-       VALUES ($1, $2, $3, $4, $5, 'active', NOW())
-       RETURNING id, email, company_name, api_key`,
-      [email, password_hash, company_name, phone, api_key]
+ (name, email, password_hash, company_name, phone, api_key, subscription_status, created_at)
+ VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW())
+ RETURNING id, email, company_name, api_key`,
+[company_name, email, password_hash, company_name, phone, api_key]
     );
     
     const contractor = result.rows[0];
