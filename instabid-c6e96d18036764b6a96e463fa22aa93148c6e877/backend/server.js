@@ -115,31 +115,6 @@ async function initDatabase() {
       `);
     }
 
-    // Drop and recreate estimates table
-   /* await pool.query(`DROP TABLE IF EXISTS estimates`);
-    
-    await pool.query(`
-      CREATE TABLE estimates (
-        id SERIAL PRIMARY KEY,
-        customer_name VARCHAR(255) NOT NULL,
-        customer_email VARCHAR(255) NOT NULL,
-        customer_phone VARCHAR(50),
-        property_address TEXT NOT NULL,
-        city VARCHAR(100) NOT NULL,
-        state VARCHAR(2) NOT NULL,
-        zip_code VARCHAR(10) NOT NULL,
-        trade VARCHAR(50) NOT NULL,
-        trade_details JSONB,
-        labor_hours DECIMAL(10,2),
-        labor_rate DECIMAL(10,2),
-        labor_cost DECIMAL(10,2),
-        material_cost DECIMAL(10,2),
-        equipment_cost DECIMAL(10,2),
-        total_cost DECIMAL(10,2),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);*/
-
     // Create estimates table if it doesn't exist
 await pool.query(`
   CREATE TABLE IF NOT EXISTS estimates (
@@ -796,49 +771,6 @@ async function generateContract(estimateData) {
 async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
   const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
 
- /* // Email to customer
-  const customerMailOptions = {
-    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
-    to: estimateData.customerEmail,
-    subject: `Your ${tradeName} Estimate & Contract`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0;">Your Estimate is Ready!</h1>
-        </div>
-        <div style="padding: 20px; background: #f9fafb;">
-          <p>Hi ${estimateData.customerName},</p>
-          <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
-          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
-              Total Estimate: $${estimateData.totalCost.toLocaleString()}
-            </p>
-          </div>
-          <p><strong>Two documents are attached:</strong></p>
-          <ul>
-            <li>Detailed Estimate (PDF)</li>
-            <li>Service Contract (PDF)</li>
-          </ul>
-          <p>Please review both documents. To proceed, sign and return the contract with your 50% deposit.</p>
-          <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
-        </div>
-      </div>
-    `,
-    attachments: [
-      {
-        filename: `estimate-${estimateData.id}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      },
-      {
-        filename: `contract-${estimateData.id}.pdf`,
-        content: contractBuffer,
-        contentType: 'application/pdf'
-      }
-    ]
-  };
-*/
-
   // Email to customer
 const customerMailOptions = {
   from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
@@ -931,12 +863,13 @@ const customerMailOptions = {
   console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
 }
 
-// ========== MAIN ESTIMATE SUBMISSION ENDPOINT ==========
+// ========== MAIN ESTIMATE SUBMISSION ENDPOINT (PUBLIC - API key in widget) ==========
 app.post('/api/estimate', async (req, res) => {
   console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
   
   try {
     const {
+      api_key, // 👈 Hidden in embed script, NOT entered by customer
       customerName,
       customer_name,
       customerEmail,
@@ -953,6 +886,42 @@ app.post('/api/estimate', async (req, res) => {
       ...tradeSpecificFields
     } = req.body;
 
+    // Validate API key and check subscription status
+    if (!api_key) {
+      return res.status(503).json({
+        success: false,
+        error: 'Service temporarily unavailable. Please contact the contractor directly.',
+        user_message: 'This estimate tool is currently unavailable. Please contact us directly for a quote.'
+      });
+    }
+
+    const contractorResult = await pool.query(
+      'SELECT id, company_name, email, subscription_status FROM contractors WHERE api_key = $1',
+      [api_key]
+    );
+
+    if (contractorResult.rows.length === 0) {
+      return res.status(503).json({
+        success: false,
+        error: 'Invalid API key',
+        user_message: 'This estimate tool is currently unavailable. Please contact us directly for a quote.'
+      });
+    }
+
+    const contractor = contractorResult.rows[0];
+
+    // Check subscription status
+    if (contractor.subscription_status !== 'active') {
+      console.log(`⚠️ Estimate blocked - Contractor ${contractor.id} subscription status: ${contractor.subscription_status}`);
+      return res.status(503).json({
+        success: false,
+        error: 'Contractor subscription inactive',
+        user_message: 'This estimate tool is currently unavailable. Please contact us directly for a quote.'
+      });
+    }
+
+    const contractor_id = contractor.id;
+
     const finalCustomerName = customerName || customer_name || req.body.name;
     const finalCustomerEmail = customerEmail || customer_email || req.body.email;
     const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
@@ -963,6 +932,7 @@ app.post('/api/estimate', async (req, res) => {
 
     console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
+    console.log(`🔐 Contractor: ${contractor.company_name} (ID: ${contractor_id})`);
 
     const hourlyRate = await getHourlyRate(state, finalZipCode);
     console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
@@ -979,17 +949,19 @@ app.post('/api/estimate', async (req, res) => {
 
     const insertQuery = `
       INSERT INTO estimates (
+        contractor_id,
         customer_name, customer_email, customer_phone,
         property_address, city, state, zip_code,
         trade, trade_details,
         labor_hours, labor_rate, labor_cost,
         material_cost, equipment_cost, total_cost,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
       RETURNING id
     `;
 
     const values = [
+      contractor_id,
       finalCustomerName,
       finalCustomerEmail,
       finalCustomerPhone,
@@ -1010,7 +982,7 @@ app.post('/api/estimate', async (req, res) => {
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
 
-    console.log(`✅ Estimate #${estimateId} saved to database`);
+    console.log(`✅ Estimate #${estimateId} saved to database for contractor ${contractor_id}`);
 
     const pdfBuffer = await generateEstimatePDF({
       id: estimateId,
@@ -1097,10 +1069,15 @@ app.post('/api/estimate', async (req, res) => {
     console.error('❌ Estimate submission error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+      user_message: 'An error occurred. Please try again or contact us directly.'
     });
   }
 });
+
+// ============================================
+// STANDALONE PDF/CONTRACT GENERATION (PUBLIC)
+// ============================================
 
 // Standalone PDF generation endpoint
 app.post('/api/generate-pdf', async (req, res) => {
@@ -1188,9 +1165,14 @@ app.post('/api/generate-contract', async (req, res) => {
   }
 });
 
+// ============================================
+// DASHBOARD CONFIG (PROTECTED)
+// ============================================
+
 // GET config for dashboard - merges defaults + overrides
-app.get('/api/config/:section', (req, res) => {
+app.get('/api/config/:section', requireAuth, (req, res) => {
   const section = req.params.section;
+  const contractor_id = req.contractor.contractor_id;
   
   if (!DEFAULT_PRICING[section]) {
     return res.status(404).json({ 
@@ -1200,21 +1182,23 @@ app.get('/api/config/:section', (req, res) => {
   }
   
   // Merge: defaults first, then contractor overrides
+  const contractorOverrides = configData[contractor_id]?.[section] || {};
   const merged = {
     ...DEFAULT_PRICING[section],
-    ...(configData[section] || {})
+    ...contractorOverrides
   };
   
   res.json({
     success: true,
     config: merged,
-    overrides: Object.keys(configData[section] || {}),
-    overrideCount: Object.keys(configData[section] || {}).length
+    overrides: Object.keys(contractorOverrides),
+    overrideCount: Object.keys(contractorOverrides).length
   });
 });
 
-app.put('/api/config/:section', (req, res) => {
+app.put('/api/config/:section', requireAuth, (req, res) => {
   const section = req.params.section;
+  const contractor_id = req.contractor.contractor_id;
   const { config } = req.body;
   
   if (!config) {
@@ -1242,10 +1226,14 @@ app.put('/api/config/:section', (req, res) => {
     }
   });
   
-  configData[section] = overrides;
+  // Initialize contractor config if needed
+  if (!configData[contractor_id]) {
+    configData[contractor_id] = {};
+  }
   
-  console.log(`✅ Contractor overrides for ${section}:`, overrides);
-  console.log(`📊 Override count: ${Object.keys(overrides).length} of ${Object.keys(DEFAULT_PRICING[section]).length} values`);
+  configData[contractor_id][section] = overrides;
+  
+  console.log(`✅ Contractor ${contractor_id} overrides for ${section}:`, overrides);
   
   res.json({
     success: true,
@@ -1256,15 +1244,11 @@ app.put('/api/config/:section', (req, res) => {
 });
 
 // ============================================
-// END DASHBOARD ENDPOINTS
-// ============================================
-
-// ============================================
 // STRIPE INTEGRATION
 // ============================================
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// Create checkout session
+// Create checkout session (PUBLIC - customer-facing)
 app.post('/api/create-checkout-session', async (req, res) => {
   const { estimateId } = req.body;
 
@@ -1300,7 +1284,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL}/?cancelled=true`,
       metadata: {
         estimate_id: estimateId,
-        contractor_id: estimate.contractor_id || 1,
+        contractor_id: estimate.contractor_id,
         deposit_amount: (depositAmount / 100).toFixed(2),
       },
     });
@@ -1312,7 +1296,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-// Email link version - redirects to Stripe checkout
+// Email link version - redirects to Stripe checkout (PUBLIC)
 app.get('/api/create-checkout-session-email', async (req, res) => {
   const { estimateId } = req.query;
 
@@ -1348,7 +1332,7 @@ app.get('/api/create-checkout-session-email', async (req, res) => {
       cancel_url: `${process.env.FRONTEND_URL}/?cancelled=true`,
       metadata: {
         estimate_id: estimateId,
-        contractor_id: estimate.contractor_id || 1,
+        contractor_id: estimate.contractor_id,
         deposit_amount: (depositAmount / 100).toFixed(2),
       },
     });
@@ -1361,103 +1345,7 @@ app.get('/api/create-checkout-session-email', async (req, res) => {
   }
 });
 
-// ========== EMAIL SENDING FUNCTION ==========
-async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
-  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-
-  // Email to customer
-  const customerMailOptions = {
-    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
-    to: estimateData.customerEmail,
-    subject: `Your ${tradeName} Estimate & Contract`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0;">Your Estimate is Ready!</h1>
-        </div>
-        <div style="padding: 20px; background: #f9fafb;">
-          <p>Hi ${estimateData.customerName},</p>
-          <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
-          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
-              Total Estimate: $${estimateData.totalCost.toLocaleString()}
-            </p>
-          </div>
-          <p><strong>Two documents are attached:</strong></p>
-          <ul>
-            <li>Detailed Estimate (PDF)</li>
-            <li>Service Contract (PDF)</li>
-          </ul>
-          
-          <!-- STRIPE PAYMENT BUTTON -->
-          <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
-            <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
-            <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
-            <a href="${process.env.BACKEND_URL || '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
-               style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
-                      text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-              💳 Pay Deposit & Schedule Start Date
-            </a>
-          </div>
-          
-          <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
-        </div>
-      </div>
-    `,
-    attachments: [
-      {
-        filename: `estimate-${estimateData.id}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      },
-      {
-        filename: `contract-${estimateData.id}.pdf`,
-        content: contractBuffer,
-        contentType: 'application/pdf'
-      }
-    ]
-  };
-
-  // Email to contractor
-  const contractorMailOptions = {
-    from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
-    to: process.env.CONTRACTOR_EMAIL || 'john@sitehypedesigns.com',
-    subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
-    html: `
-      <h2>🔔 New Estimate Request</h2>
-      <p><strong>Customer:</strong> ${estimateData.customerName}</p>
-      <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
-      <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
-      <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
-      <hr>
-      <p><strong>Service:</strong> ${tradeName}</p>
-      <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
-      <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
-      <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
-      <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
-    `,
-    attachments: [
-      {
-        filename: `estimate-${estimateData.id}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      },
-      {
-        filename: `contract-${estimateData.id}.pdf`,
-        content: contractBuffer,
-        contentType: 'application/pdf'
-      }
-    ]
-  };
-
-  await transporter.sendMail(customerMailOptions);
-  console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
-  
-  await transporter.sendMail(contractorMailOptions);
-  console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
-}
-
-// Stripe webhook
+// Stripe webhook (PUBLIC - called by Stripe)
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -1490,105 +1378,15 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
   res.json({ received: true });
 });
 
-// Get contractor availability
-app.get('/api/availability/:contractorId', async (req, res) => {
-  const { contractorId } = req.params;
-
-  try {
-    const result = await pool.query(
-      `SELECT available_date, slots_available, slots_booked 
-       FROM availability 
-       WHERE contractor_id = $1 
-       AND available_date >= CURRENT_DATE
-       AND slots_booked < slots_available
-       ORDER BY available_date`,
-      [contractorId]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('❌ Error fetching availability:', error);
-    res.status(500).json({ error: 'Failed to fetch availability' });
-  }
-});
-
-// Book start date
-app.post('/api/book-date', async (req, res) => {
-  const { estimate_id, start_date, contractor_id } = req.body;
-
-  try {
-    // Insert new scheduled job
-    const jobResult = await pool.query(
-      `INSERT INTO scheduled_jobs (estimate_id, contractor_id, start_date, status, created_at, updated_at)
-       VALUES ($1, $2, $3, 'scheduled', NOW(), NOW())
-       RETURNING *`,
-      [estimate_id, contractor_id, start_date]
-    );
-
-    const job = jobResult.rows[0];
-    console.log('✅ Created scheduled job:', job.id);
-
-    // Try to add to Google Calendar
-    try {
-      const tokenResult = await pool.query(
-        'SELECT google_access_token, google_refresh_token FROM contractors WHERE id = $1',
-        [contractor_id]
-      );
-
-      if (tokenResult.rows.length > 0 && tokenResult.rows[0].google_access_token) {
-        const contractor = tokenResult.rows[0];
-        
-        oauth2Client.setCredentials({
-          access_token: contractor.google_access_token,
-          refresh_token: contractor.google_refresh_token
-        });
-
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-        const event = {
-          summary: `Project Start - Estimate #${estimate_id}`,
-          description: `Scheduled project start date`,
-          start: {
-            date: start_date
-          },
-          end: {
-            date: start_date
-          }
-        };
-
-        const calendarResponse = await calendar.events.insert({
-          calendarId: 'primary',
-          resource: event
-        });
-
-        // Save Google event ID
-        await pool.query(
-          'UPDATE scheduled_jobs SET google_event_id = $1 WHERE id = $2',
-          [calendarResponse.data.id, job.id]
-        );
-
-        console.log('✅ Added to Google Calendar:', calendarResponse.data.htmlLink);
-      } else {
-        console.log('⚠️ No Google Calendar connected for contractor', contractor_id);
-      }
-    } catch (gcalError) {
-      console.error('⚠️ Google Calendar error (job still created):', gcalError.message);
-    }
-
-    res.json({ success: true, job });
-  } catch (error) {
-    console.error('❌ Error booking date:', error);
-    res.status(500).json({ error: 'Failed to book date' });
-  }
-});
-// Update contractor tax rate
-app.post('/api/update-tax-rate', async (req, res) => {
-  const { contractorId, taxRate } = req.body;
+// Update contractor tax rate (PROTECTED)
+app.post('/api/update-tax-rate', requireAuth, async (req, res) => {
+  const { taxRate } = req.body;
+  const contractor_id = req.contractor.contractor_id;
 
   try {
     await pool.query(
       'UPDATE contractors SET tax_rate = $1 WHERE id = $2',
-      [taxRate, contractorId]
+      [taxRate, contractor_id]
     );
 
     res.json({ success: true });
@@ -1599,12 +1397,10 @@ app.post('/api/update-tax-rate', async (req, res) => {
 });
 
 // ============================================
-// END STRIPE INTEGRATION
+// SCHEDULING & AVAILABILITY
 // ============================================
 
-// ========== STRIPE & SCHEDULING ENDPOINTS ==========
-
-// Verify Stripe payment session
+// Verify Stripe payment session (PUBLIC - customer-facing)
 app.get('/api/verify-payment', async (req, res) => {
   const { session_id } = req.query;
 
@@ -1627,7 +1423,7 @@ app.get('/api/verify-payment', async (req, res) => {
   }
 });
 
-// Get estimate details by ID
+// Get estimate details by ID (PUBLIC - customer-facing)
 app.get('/api/estimate/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -1648,21 +1444,25 @@ app.get('/api/estimate/:id', async (req, res) => {
   }
 });
 
-// Get contractor availability (returns blocked dates from both scheduled_jobs AND Google Calendar sync)
+// Get contractor availability (PUBLIC - customer-facing, but filtered by contractor)
 app.get('/api/availability', async (req, res) => {
   const { contractor_id } = req.query;
+
+  if (!contractor_id) {
+    return res.status(400).json({ error: 'contractor_id required' });
+  }
 
   try {
     // Get dates from scheduled_jobs (customer bookings)
     const jobsResult = await pool.query(
       'SELECT start_date FROM scheduled_jobs WHERE contractor_id = $1 AND status != $2',
-      [contractor_id || 1, 'cancelled']
+      [contractor_id, 'cancelled']
     );
 
     // Get dates from contractor_availability (Google Calendar blocks)
     const blocksResult = await pool.query(
       'SELECT date FROM contractor_availability WHERE contractor_id = $1 AND is_available = false AND date >= CURRENT_DATE',
-      [contractor_id || 1]
+      [contractor_id]
     );
 
     // Combine and deduplicate
@@ -1671,7 +1471,7 @@ app.get('/api/availability', async (req, res) => {
     const allBlockedDates = [...new Set([...jobDates, ...blockDates])];
 
     res.json({
-      contractor_id: contractor_id || 1,
+      contractor_id: contractor_id,
       available_dates: allBlockedDates  // Frontend expects blocked dates here
     });
   } catch (error) {
@@ -1680,29 +1480,33 @@ app.get('/api/availability', async (req, res) => {
   }
 });
 
-// Book a start date (saves to scheduled_jobs AND writes to Google Calendar)
+// Book a start date (PUBLIC - customer-facing after payment)
 app.post('/api/book-date', async (req, res) => {
   const { estimate_id, start_date, contractor_id } = req.body;
+
+  if (!estimate_id || !start_date || !contractor_id) {
+    return res.status(400).json({ error: 'estimate_id, start_date, and contractor_id required' });
+  }
 
   try {
     // Check if date is already booked
     const existingBooking = await pool.query(
       'SELECT * FROM scheduled_jobs WHERE contractor_id = $1 AND start_date = $2 AND status != $3',
-      [contractor_id || 1, start_date, 'cancelled']
+      [contractor_id, start_date, 'cancelled']
     );
 
     if (existingBooking.rows.length > 0) {
       return res.status(400).json({ error: 'Date already booked' });
     }
 
-    // Get estimate details
+    // Get estimate details (verify it belongs to this contractor)
     const estimateResult = await pool.query(
-      'SELECT * FROM estimates WHERE id = $1',
-      [estimate_id]
+      'SELECT * FROM estimates WHERE id = $1 AND contractor_id = $2',
+      [estimate_id, contractor_id]
     );
 
     if (estimateResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Estimate not found' });
+      return res.status(404).json({ error: 'Estimate not found or unauthorized' });
     }
 
     const estimate = estimateResult.rows[0];
@@ -1715,7 +1519,7 @@ app.post('/api/book-date', async (req, res) => {
        RETURNING *`,
       [
         estimate_id,
-        contractor_id || 1,
+        contractor_id,
         estimate.customer_name,
         estimate.customer_email,
         estimate.trade,
@@ -1728,13 +1532,13 @@ app.post('/api/book-date', async (req, res) => {
 
     const job = insertResult.rows[0];
 
-    console.log(`✅ Job scheduled for ${start_date} - Estimate #${estimate_id}`);
+    console.log(`✅ Job scheduled for ${start_date} - Estimate #${estimate_id} - Contractor ${contractor_id}`);
 
     // Write to Google Calendar if connected
     try {
       const contractorResult = await pool.query(
         'SELECT google_refresh_token FROM contractors WHERE id = $1',
-        [contractor_id || 1]
+        [contractor_id]
       );
 
       if (contractorResult.rows.length > 0 && contractorResult.rows[0].google_refresh_token) {
@@ -1788,7 +1592,7 @@ app.post('/api/book-date', async (req, res) => {
 });
 
 // ============================================
-// GOOGLE CALENDAR INTEGRATION
+// GOOGLE CALENDAR INTEGRATION (PROTECTED)
 // ============================================
 const { google } = require('googleapis');
 
@@ -1799,21 +1603,23 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_REDIRECT_URI || `${process.env.BACKEND_URL}/api/google/callback`
 );
 
-// 1. Get OAuth URL
-app.get('/api/google/auth-url', (req, res) => {
+// 1. Get OAuth URL (PROTECTED)
+app.get('/api/google/auth-url', requireAuth, (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/calendar.readonly',
-            'https://www.googleapis.com/auth/calendar.events'],
-    prompt: 'consent'
+    scope: ['[https://www.googleapis.com/auth/calendar.readonly',](https://www.googleapis.com/auth/calendar.readonly',)
+            '[https://www.googleapis.com/auth/calendar.events'],](https://www.googleapis.com/auth/calendar.events'],)
+    prompt: 'consent',
+    state: req.contractor.contractor_id.toString() // Pass contractor ID through OAuth flow
   });
   
   res.json({ auth_url: authUrl });
 });
 
-// 2. OAuth callback (handles redirect from Google)
+// 2. OAuth callback (PUBLIC - Google redirects here)
 app.get('/api/google/callback', async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
+  const contractor_id = parseInt(state) || 1; // Get contractor ID from state
   
   try {
     const { tokens } = await oauth2Client.getToken(code);
@@ -1826,10 +1632,10 @@ app.get('/api/google/callback', async (req, res) => {
            google_calendar_id = 'primary',
            last_calendar_sync = NOW()
        WHERE id = $3`,
-      [tokens.access_token, tokens.refresh_token, 1] // TODO: replace 1 with actual contractor ID from session
+      [tokens.access_token, tokens.refresh_token, contractor_id]
     );
     
-    console.log('✅ Google Calendar connected with access token');
+    console.log(`✅ Google Calendar connected for contractor ${contractor_id}`);
     
     // Close popup window
     res.send('<script>window.close();</script>');
@@ -1839,12 +1645,14 @@ app.get('/api/google/callback', async (req, res) => {
   }
 });
 
-// 3. Check connection status
-app.get('/api/google/status', async (req, res) => {
+// 3. Check connection status (PROTECTED)
+app.get('/api/google/status', requireAuth, async (req, res) => {
+  const contractor_id = req.contractor.contractor_id;
+  
   try {
     const result = await pool.query(
       'SELECT google_refresh_token, google_calendar_id, last_calendar_sync FROM contractors WHERE id = $1',
-      [1] // TODO: replace with actual contractor ID
+      [contractor_id]
     );
     
     if (result.rows.length === 0 || !result.rows[0].google_refresh_token) {
@@ -1856,12 +1664,12 @@ app.get('/api/google/status', async (req, res) => {
     // Get blocked dates
     const blockedDates = await pool.query(
       'SELECT DISTINCT start_date FROM scheduled_jobs WHERE contractor_id = $1 AND status != $2',
-      [1, 'cancelled']
+      [contractor_id, 'cancelled']
     );
     
     res.json({
       connected: true,
-      email: 'calendar@contractor.com', // TODO: fetch from Google API
+      email: req.contractor.email,
       last_sync: contractor.last_calendar_sync,
       blocked_dates: blockedDates.rows.map(r => r.start_date)
     });
@@ -1871,14 +1679,14 @@ app.get('/api/google/status', async (req, res) => {
   }
 });
 
-// 4. Sync calendar (fetch busy dates & save to contractor_availability)
-app.post('/api/google/sync', async (req, res) => {
+// 4. Sync calendar (PROTECTED)
+app.post('/api/google/sync', requireAuth, async (req, res) => {
+  const contractor_id = req.contractor.contractor_id;
+  
   try {
-    const contractorId = 1; // TODO: get from session
-    
     const result = await pool.query(
       'SELECT google_refresh_token FROM contractors WHERE id = $1',
-      [contractorId]
+      [contractor_id]
     );
     
     if (result.rows.length === 0 || !result.rows[0].google_refresh_token) {
@@ -1914,7 +1722,7 @@ app.post('/api/google/sync', async (req, res) => {
     // Clear old Google Calendar blocks (keep customer bookings in scheduled_jobs)
     await pool.query(
       'DELETE FROM contractor_availability WHERE contractor_id = $1 AND source = $2',
-      [contractorId, 'google_calendar']
+      [contractor_id, 'google_calendar']
     );
     
     // Insert new blocked dates
@@ -1923,16 +1731,16 @@ app.post('/api/google/sync', async (req, res) => {
         `INSERT INTO contractor_availability (contractor_id, date, is_available, source)
          VALUES ($1, $2, false, 'google_calendar')
          ON CONFLICT (contractor_id, date) DO UPDATE SET is_available = false, source = 'google_calendar'`,
-        [contractorId, date]
+        [contractor_id, date]
       );
     }
     
     await pool.query(
       'UPDATE contractors SET last_calendar_sync = NOW() WHERE id = $1',
-      [contractorId]
+      [contractor_id]
     );
     
-    console.log(`✅ Calendar synced: ${uniqueDates.length} blocked dates saved to database`);
+    console.log(`✅ Calendar synced for contractor ${contractor_id}: ${uniqueDates.length} blocked dates`);
     
     res.json({
       success: true,
@@ -1948,10 +1756,10 @@ app.post('/api/google/sync', async (req, res) => {
   }
 });
 
-
-
-// 5. Disconnect calendar
-app.post('/api/google/disconnect', async (req, res) => {
+// 5. Disconnect calendar (PROTECTED)
+app.post('/api/google/disconnect', requireAuth, async (req, res) => {
+  const contractor_id = req.contractor.contractor_id;
+  
   try {
     await pool.query(
       `UPDATE contractors 
@@ -1959,10 +1767,10 @@ app.post('/api/google/disconnect', async (req, res) => {
            google_calendar_id = NULL,
            last_calendar_sync = NULL
        WHERE id = $1`,
-      [1] // TODO: replace with actual contractor ID
+      [contractor_id]
     );
     
-    console.log('✅ Google Calendar disconnected');
+    console.log(`✅ Google Calendar disconnected for contractor ${contractor_id}`);
     
     res.json({ success: true });
   } catch (error) {
@@ -1972,10 +1780,10 @@ app.post('/api/google/disconnect', async (req, res) => {
 });
 
 // ============================================
-// CONTRACTOR REGISTRATION & AUTH
+// CONTRACTOR REGISTRATION & AUTH (PUBLIC)
 // ============================================
 
-// Register new contractor (after Stripe payment)
+// Register new contractor (PUBLIC - after Stripe payment)
 app.post('/api/register', async (req, res) => {
   const { email, password, company_name, phone, stripe_session_id } = req.body;
   
@@ -2010,10 +1818,10 @@ app.post('/api/register', async (req, res) => {
     // Create contractor account
     const result = await pool.query(
       `INSERT INTO contractors 
- (name, email, password_hash, company_name, phone, api_key, subscription_status, created_at)
- VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW())
- RETURNING id, email, company_name, api_key`,
-[company_name, email, password_hash, company_name, phone, api_key]
+       (name, email, password_hash, company_name, phone, api_key, subscription_status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW())
+       RETURNING id, email, company_name, api_key`,
+      [company_name, email, password_hash, company_name, phone, api_key]
     );
     
     const contractor = result.rows[0];
@@ -2037,7 +1845,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Login endpoint
+// Login endpoint (PUBLIC)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   
@@ -2095,8 +1903,6 @@ app.post('/api/login', async (req, res) => {
     });
   }
 });
-
-
 
 // Start server
 app.listen(PORT, () => {
