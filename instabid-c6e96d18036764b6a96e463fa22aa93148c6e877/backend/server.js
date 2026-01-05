@@ -799,7 +799,7 @@ const customerMailOptions = {
         <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
           <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
           <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
-          <a href="${process.env.BACKEND_URL || '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
+          <a href="${process.env.BACKEND_URL || 'https://instabid-backend-production.up.railway.app'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
              style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
                     text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
             💳 Pay Deposit & Schedule Start Date
@@ -1607,8 +1607,8 @@ const oauth2Client = new google.auth.OAuth2(
 app.get('/api/google/auth-url', requireAuth, (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['[https://www.googleapis.com/auth/calendar.readonly',](https://www.googleapis.com/auth/calendar.readonly',)
-            '[https://www.googleapis.com/auth/calendar.events'],](https://www.googleapis.com/auth/calendar.events'],)
+    scope: ['https://www.googleapis.com/auth/calendar.readonly',
+            'https://www.googleapis.com/auth/calendar.events'],
     prompt: 'consent',
     state: req.contractor.contractor_id.toString() // Pass contractor ID through OAuth flow
   });
