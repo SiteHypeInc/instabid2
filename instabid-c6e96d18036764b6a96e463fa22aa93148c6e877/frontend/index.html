@@ -707,11 +707,14 @@ data.photos = uploadedPhotos;
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ Calculating...';
   
-  fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
+  // ADD API KEY TO REQUEST
+data.api_key = 'YOUR_API_KEY_HERE'; // 👈 Get this from your database contractors table
+
+fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+})
   .then(function(response) {
     console.log('Response received:', response);
     return response.json().then(function(result) {
@@ -719,16 +722,17 @@ data.photos = uploadedPhotos;
       return { ok: response.ok, result: result };
     });
   })
-  .then(function(data) {
-    if (data.ok) {
-      // DON'T OVERWRITE currentEstimateData HERE!
-      displayResults(data.result);
-    } else {
-      showError(data.result.error || 'Failed to calculate estimate');
-    }
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Get Instant Estimate';
-  })
+ .then(function(data) {
+  if (data.ok) {
+    displayResults(data.result);
+  } else {
+    // 👈 Show user-friendly message if subscription inactive
+    var errorMsg = data.result.user_message || data.result.error || 'Failed to calculate estimate';
+    showError(errorMsg);
+  }
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Get Instant Estimate';
+})
   .catch(function(error) {
     showError('Network error: ' + error.message);
     submitBtn.disabled = false;
@@ -796,10 +800,7 @@ document.getElementById('emailBtn').addEventListener('click', function() {
   });
 });
 
-/*document.getElementById('pdfBtn').addEventListener('click', function() {
-  if (!currentEstimateData) return;
-  alert('PDF generation coming soon!');
-});*/
+
   document.getElementById('pdfBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   
