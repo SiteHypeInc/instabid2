@@ -1,0 +1,91 @@
+{
+  "roofing": [
+    {"name": "Asphalt 3-Tab Shingles", "sku": "202534215", "category": "shingles", "unit": "bundle"},
+    {"name": "Architectural Shingles", "sku": "203003641", "category": "shingles", "unit": "bundle"},
+    {"name": "Metal Roofing Panel", "sku": "202091274", "category": "metal", "unit": "panel"},
+    {"name": "Concrete Tile", "sku": "100144419", "category": "tile", "unit": "each"},
+    {"name": "Roofing Underlayment", "sku": "202084288", "category": "underlayment", "unit": "roll"},
+    {"name": "Plywood 1/2in 4x8", "sku": "100056707", "category": "plywood", "unit": "sheet"},
+    {"name": "Plywood 5/8in 4x8", "sku": "202090212", "category": "plywood", "unit": "sheet"},
+    {"name": "Valley Flashing 10ft", "sku": "202534276", "category": "flashing", "unit": "each"},
+    {"name": "Ridge Vent 4ft", "sku": "100071783", "category": "ridge_vent", "unit": "each"},
+    {"name": "Chimney Flashing Kit", "sku": "203717385", "category": "flashing", "unit": "kit"},
+    {"name": "Skylight Flashing Kit", "sku": "202305692", "category": "flashing", "unit": "kit"},
+    {"name": "Roofing Nails 1.25in", "sku": "100115357", "category": "fasteners", "unit": "box"}
+  ],
+  
+  "hvac": [
+    {"name": "Gas Furnace 80% 80K BTU", "sku": "311467636", "category": "furnace", "unit": "each"},
+    {"name": "Gas Furnace 95% 80K BTU", "sku": "312558692", "category": "furnace_higheff", "unit": "each"},
+    {"name": "Central AC 2.5 Ton 14 SEER", "sku": "312299847", "category": "ac", "unit": "each"},
+    {"name": "Central AC 3 Ton 18 SEER", "sku": "313847562", "category": "ac_higheff", "unit": "each"},
+    {"name": "Heat Pump 2.5 Ton 14 SEER", "sku": "314562893", "category": "heatpump", "unit": "each"},
+    {"name": "Heat Pump 3 Ton 18 SEER", "sku": "315847291", "category": "heatpump_higheff", "unit": "each"},
+    {"name": "Mini Split 12K BTU", "sku": "309501994", "category": "minisplit", "unit": "each"},
+    {"name": "Programmable Thermostat", "sku": "202532598", "category": "thermostat", "unit": "each"},
+    {"name": "Smart Thermostat", "sku": "301668865", "category": "thermostat_smart", "unit": "each"}
+  ],
+  
+  "electrical": [
+    {"name": "200A Main Panel", "sku": "100209329", "category": "panel", "unit": "each"},
+    {"name": "100A Sub Panel", "sku": "202077679", "category": "subpanel", "unit": "each"},
+    {"name": "Romex 12/2 Wire 250ft", "sku": "202316191", "category": "wire", "unit": "roll"},
+    {"name": "Romex 14/2 Wire 250ft", "sku": "202077386", "category": "wire", "unit": "roll"},
+    {"name": "Duplex Outlet 15A", "sku": "202077282", "category": "outlet", "unit": "each"},
+    {"name": "GFCI Outlet 20A", "sku": "202532847", "category": "outlet_gfci", "unit": "each"},
+    {"name": "Single Pole Switch", "sku": "100356672", "category": "switch", "unit": "each"},
+    {"name": "3-Way Switch", "sku": "203674458", "category": "switch", "unit": "each"},
+    {"name": "LED Light Fixture", "sku": "310502467", "category": "fixture", "unit": "each"},
+    {"name": "Ceiling Fan 52in", "sku": "304743041", "category": "fan", "unit": "each"},
+    {"name": "15A Circuit Breaker", "sku": "100212074", "category": "breaker", "unit": "each"},
+    {"name": "20A Circuit Breaker", "sku": "202532156", "category": "breaker", "unit": "each"}
+  ],
+  
+  "plumbing": [
+    {"name": "Toilet Comfort Height", "sku": "301469892", "category": "toilet", "unit": "each"},
+    {"name": "Bathroom Sink", "sku": "304845716", "category": "sink", "unit": "each"},
+    {"name": "Kitchen Sink Stainless", "sku": "202084619", "category": "sink", "unit": "each"},
+    {"name": "Bathroom Faucet", "sku": "311847562", "category": "faucet", "unit": "each"},
+    {"name": "Kitchen Faucet", "sku": "309847251", "category": "faucet", "unit": "each"},
+    {"name": "Shower Valve Kit", "sku": "304562981", "category": "shower", "unit": "kit"},
+    {"name": "Water Heater 40 Gal", "sku": "311467890", "category": "waterheater_tank", "unit": "each"},
+    {"name": "Water Heater 50 Gal", "sku": "312558947", "category": "waterheater_tank", "unit": "each"},
+    {"name": "Tankless Water Heater Gas", "sku": "313847629", "category": "waterheater_tankless", "unit": "each"},
+    {"name": "PEX Pipe 1/2in 100ft", "sku": "203668668", "category": "pipe_pex", "unit": "roll"},
+    {"name": "PEX Pipe 3/4in 100ft", "sku": "204562847", "category": "pipe_pex", "unit": "roll"},
+    {"name": "Copper Pipe 1/2in 10ft", "sku": "100134510", "category": "pipe_copper", "unit": "each"},
+    {"name": "PVC Drain 2in 10ft", "sku": "202316745", "category": "pipe_pvc", "unit": "each"}
+  ],
+  
+  "flooring": [
+    {"name": "Carpet Builder Grade", "sku": "305847291", "category": "carpet", "unit": "sqft"},
+    {"name": "Carpet Mid Grade", "sku": "306562847", "category": "carpet", "unit": "sqft"},
+    {"name": "Carpet Premium", "sku": "307847562", "category": "carpet", "unit": "sqft"},
+    {"name": "Carpet Pad 6lb", "sku": "202084756", "category": "carpet_pad", "unit": "sqft"},
+    {"name": "Vinyl Plank Basic", "sku": "308562941", "category": "vinyl", "unit": "sqft"},
+    {"name": "Luxury Vinyl Plank", "sku": "309847625", "category": "vinyl_lvp", "unit": "sqft"},
+    {"name": "Laminate AC3", "sku": "310562847", "category": "laminate", "unit": "sqft"},
+    {"name": "Laminate AC4", "sku": "311847562", "category": "laminate", "unit": "sqft"},
+    {"name": "Engineered Hardwood Oak", "sku": "312562941", "category": "hardwood_eng", "unit": "sqft"},
+    {"name": "Solid Hardwood Oak", "sku": "313847625", "category": "hardwood_solid", "unit": "sqft"},
+    {"name": "Ceramic Tile 12x12", "sku": "100138864", "category": "tile_ceramic", "unit": "sqft"},
+    {"name": "Porcelain Tile 18x18", "sku": "203456789", "category": "tile_porcelain", "unit": "sqft"},
+    {"name": "Underlayment", "sku": "202084892", "category": "underlayment", "unit": "sqft"},
+    {"name": "Baseboard 3.5in 8ft", "sku": "202316892", "category": "baseboard", "unit": "each"}
+  ],
+  
+  "painting": [
+    {"name": "Interior Paint Flat Gallon", "sku": "202532674", "category": "paint_int_flat", "unit": "gallon"},
+    {"name": "Interior Paint Eggshell Gallon", "sku": "203668741", "category": "paint_int_eggshell", "unit": "gallon"},
+    {"name": "Interior Paint Semi-Gloss Gallon", "sku": "204562918", "category": "paint_int_semigloss", "unit": "gallon"},
+    {"name": "Exterior Paint Flat Gallon", "sku": "205847562", "category": "paint_ext_flat", "unit": "gallon"},
+    {"name": "Exterior Paint Satin Gallon", "sku": "206562847", "category": "paint_ext_satin", "unit": "gallon"},
+    {"name": "Exterior Paint Semi-Gloss Gallon", "sku": "207847291", "category": "paint_ext_semigloss", "unit": "gallon"},
+    {"name": "Interior Primer Gallon", "sku": "202084947", "category": "primer_int", "unit": "gallon"},
+    {"name": "Exterior Primer Gallon", "sku": "203456892", "category": "primer_ext", "unit": "gallon"},
+    {"name": "Painters Tape 1.88in", "sku": "100152503", "category": "supplies", "unit": "roll"},
+    {"name": "Drop Cloth 9x12", "sku": "202316941", "category": "supplies", "unit": "each"},
+    {"name": "Roller Cover 9in", "sku": "100356784", "category": "supplies", "unit": "each"},
+    {"name": "Paint Brush Set", "sku": "202532891", "category": "supplies", "unit": "set"}
+  ]
+}
