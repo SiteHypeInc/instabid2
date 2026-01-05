@@ -30,6 +30,9 @@
     "googleapis": "^128.0.0",
     "bcrypt": "^5.1.1"
   },
+    "scripts": {
+  "scrape-materials": "node scripts/scrape-materials.js"
+},
     
   "devDependencies": {
     "nodemon": "^3.0.2"
