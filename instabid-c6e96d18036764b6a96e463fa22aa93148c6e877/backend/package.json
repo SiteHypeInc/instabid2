@@ -29,7 +29,7 @@
     "dotenv": "^16.3.1",
     "googleapis": "^128.0.0",
     "bcrypt": "^5.1.1",
-    "scrapingbee": "^2.1.0"
+    "scrapingbee": "^2.0.10"
   },
     "scripts": {
   "scrape-materials": "node scripts/scrape-materials.js"
