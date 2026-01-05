@@ -139,6 +139,26 @@ await pool.query(`
   )
 `);
 
+//ADD MATERIALS_CACHE
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS materials_cache (
+    id SERIAL PRIMARY KEY,
+    sku VARCHAR(100) NOT NULL,
+    material_name VARCHAR(255) NOT NULL,
+    trade VARCHAR(50) NOT NULL,
+    category VARCHAR(100),
+    region VARCHAR(10) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(20) DEFAULT 'each',
+    retailer VARCHAR(50) DEFAULT 'homedepot',
+    last_updated TIMESTAMP DEFAULT NOW(),
+    UNIQUE(sku, region)
+  );
+  
+  CREATE INDEX IF NOT EXISTS idx_materials_trade_region ON materials_cache(trade, region);
+  CREATE INDEX IF NOT EXISTS idx_materials_updated ON materials_cache(last_updated);
+`);
+
 // Add contractor_id column if it doesn't exist
 await pool.query(`
   ALTER TABLE estimates 
