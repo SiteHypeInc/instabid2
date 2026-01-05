@@ -1993,6 +1993,66 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// Login endpoint
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  try {
+    // Find contractor by email
+    const result = await pool.query(
+      'SELECT id, email, password_hash, company_name, subscription_status FROM contractors WHERE email = $1',
+      [email]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Invalid email or password' 
+      });
+    }
+    
+    const contractor = result.rows[0];
+    
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, contractor.password_hash);
+    
+    if (!passwordMatch) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Invalid email or password' 
+      });
+    }
+    
+    // Generate session token
+    const session_token = crypto.randomBytes(32).toString('hex');
+    const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    
+    // Save session
+    await pool.query(
+      'INSERT INTO contractor_sessions (contractor_id, session_token, expires_at) VALUES ($1, $2, $3)',
+      [contractor.id, session_token, expires_at]
+    );
+    
+    console.log('✅ Contractor logged in:', contractor.email);
+    
+    res.json({
+      success: true,
+      session_token: session_token,
+      contractor_id: contractor.id,
+      email: contractor.email,
+      company_name: contractor.company_name
+    });
+    
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Login failed: ' + error.message 
+    });
+  }
+});
+
+
 
 // Start server
 app.listen(PORT, () => {
