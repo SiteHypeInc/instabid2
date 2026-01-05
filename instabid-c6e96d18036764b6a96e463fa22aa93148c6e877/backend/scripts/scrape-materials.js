@@ -1,9 +1,9 @@
-const ScrapingBee = require('scrapingbee');
+const axios = require('axios');
 const { Pool } = require('pg');
 const fs = require('fs');
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const client = new ScrapingBee.ScrapingBeeClient(process.env.SCRAPINGBEE_API_KEY);
+const SCRAPINGBEE_API_KEY = process.env.SCRAPINGBEE_API_KEY;
 
 const materialSkus = JSON.parse(fs.readFileSync('./material_skus.json', 'utf8'));
 
@@ -20,16 +20,19 @@ async function scrapeHomeDepotPrice(sku, zipCode) {
   try {
     const url = `https://www.homedepot.com/p/${sku}`;
     
-    const response = await client.get({
-      url: url,
+    // Use ScrapingBee API directly via axios
+    const response = await axios.get('https://app.scrapingbee.com/api/v1/', {
       params: {
-        render_js: false,
-        premium_proxy: true,
+        api_key: SCRAPINGBEE_API_KEY,
+        url: url,
+        render_js: 'false',
+        premium_proxy: 'true',
         country_code: 'us'
-      }
+      },
+      timeout: 30000
     });
 
-    const html = response.data.toString();
+    const html = response.data;
     
     // Extract price (adjust regex based on actual HTML structure)
     const priceMatch = html.match(/price["\s:]+(\d+\.\d{2})/i);
