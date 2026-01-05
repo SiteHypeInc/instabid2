@@ -760,11 +760,8 @@ function displayResults(result) {
 
 function showError(message) {
   var errorDiv = document.getElementById('errorMessage');
-  errorDiv.textContent = '❌ ' + message;
+  errorDiv.innerHTML = '❌ ' + message + ' <button onclick="this.parentElement.style.display=\'none\'" style="margin-left:10px;cursor:pointer;">✕</button>';
   errorDiv.style.display = 'block';
-  setTimeout(function() {
-    errorDiv.style.display = 'none';
-  }, 5000);
 }
 
 document.getElementById('emailBtn').addEventListener('click', function() {
