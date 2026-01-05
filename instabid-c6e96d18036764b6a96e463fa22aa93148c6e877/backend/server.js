@@ -34,6 +34,39 @@ app.use((req, res, next) => {
   next();
 });
 
+// Session authentication middleware
+async function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No session token provided' });
+  }
+  
+  const sessionToken = authHeader.split(' ')[1];
+  
+  try {
+    const result = await pool.query(
+      `SELECT cs.contractor_id, c.company_name, c.email 
+       FROM contractor_sessions cs
+       JOIN contractors c ON cs.contractor_id = c.id
+       WHERE cs.session_token = $1 AND cs.expires_at > NOW()`,
+      [sessionToken]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or expired session' });
+    }
+    
+    // Attach contractor info to request
+    req.contractor = result.rows[0];
+    next();
+  } catch (err) {
+    console.error('Auth middleware error:', err);
+    return res.status(500).json({ error: 'Authentication failed' });
+  }
+}
+
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
