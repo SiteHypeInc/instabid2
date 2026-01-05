@@ -4,6 +4,8 @@ const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
 const PDFDocument = require('pdfkit');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1924,6 +1926,73 @@ app.post('/api/google/disconnect', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+// ============================================
+// CONTRACTOR REGISTRATION & AUTH
+// ============================================
+
+// Register new contractor (after Stripe payment)
+app.post('/api/register', async (req, res) => {
+  const { email, password, company_name, phone, stripe_session_id } = req.body;
+  
+  try {
+    // Validate required fields
+    if (!email || !password || !company_name) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email, password, and company name are required' 
+      });
+    }
+    
+    // Check if email already exists
+    const existingUser = await pool.query(
+      'SELECT id FROM contractors WHERE email = $1',
+      [email]
+    );
+    
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ 
+        success: false, 
+        error: 'Email already registered' 
+      });
+    }
+    
+    // Hash password
+    const password_hash = await bcrypt.hash(password, 10);
+    
+    // Generate unique API key
+    const api_key = 'ib_' + crypto.randomBytes(32).toString('hex');
+    
+    // Create contractor account
+    const result = await pool.query(
+      `INSERT INTO contractors 
+       (email, password_hash, company_name, phone, api_key, subscription_status, created_at)
+       VALUES ($1, $2, $3, $4, $5, 'active', NOW())
+       RETURNING id, email, company_name, api_key`,
+      [email, password_hash, company_name, phone, api_key]
+    );
+    
+    const contractor = result.rows[0];
+    
+    console.log('✅ New contractor registered:', contractor.email);
+    
+    res.json({
+      success: true,
+      contractor_id: contractor.id,
+      email: contractor.email,
+      company_name: contractor.company_name,
+      api_key: contractor.api_key
+    });
+    
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Registration failed: ' + error.message 
+    });
+  }
+});
+
 
 // Start server
 app.listen(PORT, () => {
