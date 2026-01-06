@@ -20,7 +20,7 @@ const regions = {
 // Load materials (we'll convert from lowes_materials.json)
 const materials = JSON.parse(fs.readFileSync('./homedepot_materials.json', 'utf8'));
 
-async function triggerScrape(keyword, zipcode) {
+/*async function triggerScrape(keyword, zipcode) {
   const url = `${BASE_URL}/trigger?dataset_id=${DATASET_ID}&format=json`;
   
   try {
@@ -28,6 +28,29 @@ async function triggerScrape(keyword, zipcode) {
       keyword: keyword,
       zipcode: zipcode
     }], {
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data.snapshot_id;
+  } catch (error) {
+    console.error(`    ❌ Trigger failed: ${error.response?.data?.message || error.message}`);
+    return null;
+  }
+}*/
+
+async function triggerScrape(keyword, zipcode) {
+  const url = `${BASE_URL}/scrape?dataset_id=${DATASET_ID}&notify=false&include_errors=true&type=discover_new&discover_by=keyword`;
+  
+  try {
+    const response = await axios.post(url, {
+      input: [{
+        keyword: keyword,
+        zipcode: zipcode
+      }]
+    }, {
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json'
@@ -99,6 +122,8 @@ async function scrapeProduct(keyword, region, zipcode, trade, category, unit) {
   }
   
   console.log(`      ⏳ Waiting for snapshot ${snapshotId}...`);
+
+  
   
   // Step 2: Poll until ready
   const ready = await pollSnapshot(snapshotId, 120);
