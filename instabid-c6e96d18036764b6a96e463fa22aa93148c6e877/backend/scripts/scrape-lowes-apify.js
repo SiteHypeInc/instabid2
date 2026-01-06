@@ -21,7 +21,7 @@ async function runApifyActor(query, zipCode) {
   try {
     // Start actor run
     const runResponse = await axios.post(
-      `[https://api.apify.com/v2/acts/${ACTOR_ID}/runs?token=${APIFY_API_TOKEN}`,
+      `https://api.apify.com/v2/acts/${ACTOR_ID}/runs?token=${APIFY_API_TOKEN}`,
       {
         query: query,
         limit: 1,  // Just get first result
@@ -41,7 +41,7 @@ async function runApifyActor(query, zipCode) {
       await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s
       
       const statusResponse = await axios.get(
-        `[https://api.apify.com/v2/acts/${ACTOR_ID}/runs/${runId}?token=${APIFY_API_TOKEN}`](https://api.apify.com/v2/acts/${ACTOR_ID}/runs/${runId}?token=${APIFY_API_TOKEN}`)
+        `https://api.apify.com/v2/acts/${ACTOR_ID}/runs/${runId}?token=${APIFY_API_TOKEN}`
       );
       
       status = statusResponse.data.data.status;
@@ -55,7 +55,7 @@ async function runApifyActor(query, zipCode) {
 
     // Get results
     const resultsResponse = await axios.get(
-      `[https://api.apify.com/v2/acts/${ACTOR_ID}/runs/${runId}/dataset/items?token=${APIFY_API_TOKEN}`](https://api.apify.com/v2/acts/${ACTOR_ID}/runs/${runId}/dataset/items?token=${APIFY_API_TOKEN}`)
+      `https://api.apify.com/v2/acts/${ACTOR_ID}/runs/${runId}/dataset/items?token=${APIFY_API_TOKEN}`
     );
 
     const items = resultsResponse.data;
