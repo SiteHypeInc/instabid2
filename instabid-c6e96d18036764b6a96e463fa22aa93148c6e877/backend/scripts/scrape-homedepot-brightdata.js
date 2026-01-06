@@ -59,7 +59,12 @@ async function triggerScrape(keyword, zipcode) {
     
     return response.data.snapshot_id;
   } catch (error) {
-    console.error(`    ❌ Trigger failed: ${error.response?.data?.message || error.message}`);
+    // Log the full error details
+    if (error.response) {
+      console.error(`    ❌ Status ${error.response.status}: ${JSON.stringify(error.response.data)}`);
+    } else {
+      console.error(`    ❌ ${error.message}`);
+    }
     return null;
   }
 }
