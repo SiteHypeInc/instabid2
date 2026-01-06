@@ -1,0 +1,42 @@
+{
+  "roofing": [
+    {
+      "name": "Asphalt 3-Tab Shingles",
+      "search": "GAF Royal Sovereign 3-tab shingles bundle",
+      "category": "shingles",
+      "unit": "bundle"
+    },
+    {
+      "name": "Architectural Shingles",
+      "search": "GAF Timberline HDZ architectural shingles bundle",
+      "category": "shingles",
+      "unit": "bundle"
+    },
+    {
+      "name": "Roofing Underlayment",
+      "search": "GAF FeltBuster synthetic underlayment roll",
+      "category": "underlayment",
+      "unit": "roll"
+    },
+    {
+      "name": "Plywood 1/2in 4x8",
+      "search": "1/2 inch plywood sheathing 4x8",
+      "category": "decking",
+      "unit": "sheet"
+    },
+    {
+      "name": "Roofing Nails",
+      "search": "roofing nails 1-1/4 inch coil",
+      "category": "fasteners",
+      "unit": "box"
+    }
+  ],
+  "hvac": [
+    {
+      "name": "Gas Furnace 80K BTU",
+      "search": "80000 BTU gas furnace 80% efficiency",
+      "category": "heating",
+      "unit": "unit"
+    }
+  ]
+}
