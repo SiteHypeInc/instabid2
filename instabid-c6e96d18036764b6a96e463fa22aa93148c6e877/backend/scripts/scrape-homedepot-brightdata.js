@@ -6,7 +6,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const API_KEY = process.env.BRIGHTDATA_API_KEY;
 const DATASET_ID = process.env.BRIGHTDATA_DATASET_ID;
-const BASE_URL = '[https://api.brightdata.com/datasets/v3';](https://api.brightdata.com/datasets/v3';)
+const BASE_URL = 'https://api.brightdata.com/datasets/v3';
 
 // Region ZIP codes
 const regions = {
