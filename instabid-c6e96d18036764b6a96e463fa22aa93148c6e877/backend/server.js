@@ -1924,6 +1924,16 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// TEMPORARY TEST ENDPOINT - Remove after testing
+app.get('/api/test-scraper', async (req, res) => {
+  res.json({ message: 'Scraper started - check Railway logs' });
+  
+  // Run in background
+  setTimeout(() => {
+    require('./scripts/scrape-homedepot-brightdata.js');
+  }, 100);
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
