@@ -1926,12 +1926,22 @@ app.post('/api/login', async (req, res) => {
 
 // TEMPORARY TEST ENDPOINT - Remove after testing
 app.get('/api/test-scraper', async (req, res) => {
+  console.log('🔥 TEST SCRAPER ENDPOINT HIT');
   res.json({ message: 'Scraper started - check Railway logs' });
   
   // Run in background
-  setTimeout(() => {
-    require('./scripts/scrape-homedepot-brightdata.js');
-  }, 100);
+  setImmediate(async () => {
+    try {
+      console.log('🔥 Loading scraper module...');
+      const { scrapeAllMaterials } = require('./scripts/scrape-homedepot-brightdata');
+      console.log('🔥 Starting scraper...');
+      await scrapeAllMaterials();
+      console.log('🔥 Scraper finished!');
+    } catch (error) {
+      console.error('🔥 SCRAPER ERROR:', error.message);
+      console.error(error.stack);
+    }
+  });
 });
 
 // Start server
