@@ -1974,7 +1974,6 @@ app.post('/api/import-snapshots', requireAuth, async (req, res) => {
     return res.status(400).json({ 
       error: 'Missing snapshotData array in request body',
       example: 'Send POST with { "snapshotData": [array of products] }'
-});
     });
   }
   
