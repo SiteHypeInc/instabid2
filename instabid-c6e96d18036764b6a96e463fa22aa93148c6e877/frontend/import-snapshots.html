@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import BrightData Snapshots - InstaBid Admin</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .drop-zone {
+      border: 3px dashed #667eea;
+      border-radius: 12px;
+      padding: 60px 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f8f9ff;
+      margin-bottom: 30px;
+    }
+
+    .drop-zone:hover {
+      border-color: #764ba2;
+      background: #f0f2ff;
+      transform: translateY(-2px);
+    }
+
+    .drop-zone.dragover {
+      border-color: #764ba2;
+      background: #e8ebff;
+      transform: scale(1.02);
+    }
+
+    .drop-zone-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .drop-zone h3 {
+      color: #667eea;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .drop-zone p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-list {
+      margin-bottom: 30px;
+    }
+
+    .file-item {
+      background: #f8f9ff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #667eea;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .file-icon {
+      font-size: 24px;
+    }
+
+    .file-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .file-size {
+      color: #999;
+      font-size: 13px;
+    }
+
+    .file-remove {
+      background: #ff4757;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .file-remove:hover {
+      background: #e84118;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #f1f3f5;
+      color: #495057;
+    }
+
+    .btn-secondary:hover {
+      background: #e9ecef;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .results {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 25px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .results h3 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .log-output {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .log-output:empty::before {
+      content: 'Logs will appear here...';
+      color: #666;
+      font-style: italic;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-info {
+      background: #e7f5ff;
+      color: #1864ab;
+      border-left: 4px solid #1864ab;
+    }
+
+    .alert-success {
+      background: #d3f9d8;
+      color: #2b8a3e;
+      border-left: 4px solid #2b8a3e;
+    }
+
+    .alert-error {
+      background: #ffe3e3;
+      color: #c92a2a;
+      border-left: 4px solid #c92a2a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Import BrightData Snapshots</h1>
+      <p>Upload your downloaded JSON files to extract and cache relevant materials</p>
+    </div>
+
+    <div class="content">
+      <div class="alert alert-info">
+        <span>ℹ️</span>
+        <div>
+          <strong>Cost-Saving Mode:</strong> This will analyze your existing BrightData snapshots and extract relevant products WITHOUT making new API calls.
+        </div>
+      </div>
+
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-icon">📁</div>
+        <h3>Drop JSON files here</h3>
+        <p>or click to browse</p>
+        <input type="file" id="fileInput" accept=".json" multiple>
+      </div>
+
+      <div id="fileList" class="file-list hidden"></div>
+
+      <div class="controls">
+        <button class="btn btn-secondary" id="clearBtn" disabled>
+          🗑️ Clear All
+        </button>
+        <button class="btn btn-primary" id="importBtn" disabled>
+          <span id="importBtnText">🚀 Import & Cache</span>
+          <div class="spinner hidden" id="importSpinner"></div>
+        </button>
+      </div>
+
+      <div id="results" class="results hidden">
+        <h3>📊 Import Results</h3>
+        <div class="stat-grid" id="statsGrid"></div>
+        <div class="log-output" id="logOutput"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://instabid-production.up.railway.app';
+    const API_KEY = localStorage.getItem('api_key') || prompt('Enter your API key:');
+    
+    if (API_KEY) localStorage.setItem('api_key', API_KEY);
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const clearBtn = document.getElementById('clearBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importBtnText = document.getElementById('importBtnText');
+    const importSpinner = document.getElementById('importSpinner');
+    const results = document.getElementById('results');
+    const statsGrid = document.getElementById('statsGrid');
+    const logOutput = document.getElementById('logOutput');
+
+    let uploadedFiles = [];
+    let allProducts = [];
+
+    // Drag and drop handlers
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+      Array.from(files).forEach(file => {
+        if (file.type === 'application/json') {
+          uploadedFiles.push(file);
+          readFile(file);
+        } else {
+          alert(`❌ ${file.name} is not a JSON file`);
+        }
+      });
+
+      updateFileList();
+      updateButtons();
+    }
+
+    function readFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (Array.isArray(data)) {
+            allProducts.push(...data);
+            log(`✅ Loaded ${data.length} products from ${file.name}`);
+          } else {
+            log(`⚠️  ${file.name} is not an array`);
+          }
+        } catch (error) {
+          log(`❌ Failed to parse ${file.name}: ${error.message}`);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function updateFileList() {
+      if (uploadedFiles.length === 0) {
+        fileList.classList.add('hidden');
+        return;
+      }
+
+      fileList.classList.remove('hidden');
+      fileList.innerHTML = uploadedFiles.map((file, index) => `
+        <div class="file-item">
+          <div class="file-info">
+            <span class="file-icon">📄</span>
+            <div>
+              <div class="file-name">${file.name}</div>
+              <div class="file-size">${formatFileSize(file.size)}</div>
+            </div>
+          </div>
+          <button class="file-remove" onclick="removeFile(${index})">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function removeFile(index) {
+      uploadedFiles.splice(index, 1);
+      updateFileList();
+      updateButtons();
+      
+      // Reload all remaining files
+      allProducts = [];
+      uploadedFiles.forEach(file => readFile(file));
+    }
+
+    function updateButtons() {
+      const hasFiles = uploadedFiles.length > 0;
+      clearBtn.disabled = !hasFiles;
+      importBtn.disabled = !hasFiles;
+    }
+
+    clearBtn.addEventListener('click', () => {
+      uploadedFiles = [];
+      allProducts = [];
+      updateFileList();
+      updateButtons();
+      results.classList.add('hidden');
+      logOutput.textContent = '';
+    });
+
+    importBtn.addEventListener('click', importSnapshots);
+
+    async function importSnapshots() {
+      if (allProducts.length === 0) {
+        alert('⚠️  No products loaded yet. Please wait for files to finish loading.');
+        return;
+      }
+
+      // Disable button and show spinner
+      importBtn.disabled = true;
+      importBtnText.textContent = 'Processing...';
+      importSpinner.classList.remove('hidden');
+      
+      results.classList.remove('hidden');
+      logOutput.textContent = '';
+      log(`🚀 Starting import of ${allProducts.length} products...`);
+
+      try {
+        const response = await fetch(`${API_BASE}/api/import-snapshots`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': API_KEY
+          },
+          body: JSON.stringify({ snapshotData: allProducts })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        log(`✅ ${result.message}`);
+        log(`📝 ${result.note}`);
+        log(`\n⏳ Check Railway logs for detailed results...`);
+
+        // Simulate stats (real stats come from Railway logs)
+        setTimeout(() => {
+          showStats({
+            scanned: allProducts.length,
+            matched: '?',
+            cached: '?',
+            note: 'Check Railway logs for exact numbers'
+          });
+        }, 2000);
+
+      } catch (error) {
+        log(`❌ ERROR: ${error.message}`);
+        showError(error.message);
+      } finally {
+        importBtn.disabled = false;
+        importBtnText.textContent = '🚀 Import & Cache';
+        importSpinner.classList.add('hidden');
+      }
+    }
+
+    function showStats(stats) {
+      statsGrid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-value">${stats.scanned}</div>
+          <div class="stat-label">Products Scanned</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${stats.matched}</div>
+          <div class="stat-label">Matched</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${stats.cached}</div>
+          <div class="stat-label">Cached to DB</div>
+        </div>
+      `;
+      
+      if (stats.note) {
+        log(`\nℹ️  ${stats.note}`);
+      }
+    }
+
+    function showError(message) {
+      const alert = document.createElement('div');
+      alert.className = 'alert alert-error';
+      alert.innerHTML = `<span>❌</span><div><strong>Import Failed:</strong> ${message}</div>`;
+      results.insertBefore(alert, results.firstChild);
+    }
+
+    function log(message) {
+      logOutput.textContent += message + '\n';
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+  </script>
+</body>
+</html>
