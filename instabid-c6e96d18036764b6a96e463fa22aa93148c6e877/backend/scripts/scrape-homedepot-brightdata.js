@@ -95,8 +95,11 @@ async function cachePrice(sku, name, price, region) {
   }
 }
 
+
+In backend/scripts/scrape-homedepot-brightdata.js, find the scrapeAllMaterials() function and update it:
+
+
 async function scrapeAllMaterials() {
-  async function scrapeAllMaterials() {
   console.log('🚀 SCRAPER STARTED');
   
   let materials;
@@ -110,9 +113,6 @@ async function scrapeAllMaterials() {
     console.error('❌ Failed to load materials catalog:', error.message);
     throw error;
   }
-  const materials = JSON.parse(
-    fs.readFileSync('backend/homedepot_materials.json', 'utf8')
-  );
   
   let totalCached = 0;
   
