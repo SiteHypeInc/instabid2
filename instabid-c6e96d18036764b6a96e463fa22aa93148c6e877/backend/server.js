@@ -1966,10 +1966,21 @@ app.get('/api/run-full-scraper', requireAuth, async (req, res) => {
 
 // IMPORT EXISTING BRIGHTDATA SNAPSHOTS
 // OPTIONS preflight for import-snapshots
+// OPTIONS preflight for import-snapshots
 app.options('/api/import-snapshots', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = [
+    'https://white-raven-264519.hostingersite.com',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.sendStatus(200);
 });
 app.post('/api/import-snapshots', requireAuth, async (req, res) => {
