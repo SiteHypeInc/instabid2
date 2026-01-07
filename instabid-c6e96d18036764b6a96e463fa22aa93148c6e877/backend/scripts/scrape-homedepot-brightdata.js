@@ -8,7 +8,6 @@ const API_KEY = process.env.BRIGHTDATA_API_KEY;
 const DATASET_ID = process.env.BRIGHTDATA_DATASET_ID;
 const BASE_URL = 'https://api.brightdata.com/datasets/v3';
 
-// National pricing only - no regional variation for now
 const DEFAULT_REGION = {
   name: 'National',
   zip: '00000'
@@ -95,7 +94,6 @@ async function cachePrice(sku, name, price, region) {
   }
 }
 
-
 async function scrapeAllMaterials() {
   console.log('🚀 SCRAPER STARTED');
   
@@ -146,7 +144,6 @@ async function scrapeAllMaterials() {
         continue;
       }
       
-      // Cache first result
       const product = results[0];
       const sku = product.item_id || material.keyword.substring(0, 20);
       const name = product.title || material.name;
@@ -160,7 +157,6 @@ async function scrapeAllMaterials() {
         console.log(`      ⚠️ No valid price found`);
       }
       
-      // 3-second delay between requests
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
@@ -168,10 +164,8 @@ async function scrapeAllMaterials() {
   console.log(`\n🎉 Scraping complete! ${totalCached} prices cached.`);
 }
 
-// Export for use in server.js
 module.exports = { scrapeAllMaterials };
 
-// Run if called directly
 if (require.main === module) {
   scrapeAllMaterials().catch(err => {
     console.error('Fatal error:', err);
