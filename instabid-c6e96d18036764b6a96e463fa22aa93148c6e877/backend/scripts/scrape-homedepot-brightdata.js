@@ -108,7 +108,9 @@ async function scrapeAllMaterials() {
       fs.readFileSync(materialsPath, 'utf8')
     );
     console.log(`✅ Loaded ${Object.keys(materials).length} categories`);
-  } catch (error) {
+  } catch (error) {console.error('❌ Failed to load materials catalog:', error.message);
+    throw error;
+  }
   
   let totalCached = 0;
   
