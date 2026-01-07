@@ -1924,25 +1924,47 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// TEMPORARY TEST ENDPOINT - Remove after testing
-app.get('/api/test-scraper', async (req, res) => {
-  console.log('🔥 TEST SCRAPER ENDPOINT HIT');
-  res.json({ message: 'Scraper started - check Railway logs' });
+// TEST SCRAPER - Single material only (SAFE)
+app.get('/api/test-scraper-single', requireAuth, async (req, res) => {
+  console.log('🧪 SINGLE MATERIAL TEST STARTED');
+  res.json({ 
+    message: 'Testing single material - check Railway logs',
+    note: 'This will only scrape ONE material to test accuracy'
+  });
   
-  // Run in background
   setImmediate(async () => {
     try {
-      console.log('🔥 Loading scraper module...');
       const { scrapeAllMaterials } = require('./scripts/scrape-homedepot-brightdata');
-      console.log('🔥 Starting scraper...');
-      await scrapeAllMaterials();
-      console.log('🔥 Scraper finished!');
+      await scrapeAllMaterials(true); // TEST MODE = true
+      console.log('🧪 Single material test finished!');
     } catch (error) {
-      console.error('🔥 SCRAPER ERROR:', error.message);
+      console.error('🧪 TEST ERROR:', error.message);
       console.error(error.stack);
     }
   });
 });
+
+// FULL SCRAPER - All materials (USE WITH CAUTION)
+app.get('/api/run-full-scraper', requireAuth, async (req, res) => {
+  console.log('🚀 FULL SCRAPER STARTED');
+  res.json({ 
+    message: 'Full scraper started - check Railway logs',
+    warning: 'This will scrape ALL materials and may use significant BrightData credits'
+  });
+  
+  setImmediate(async () => {
+    try {
+      const { scrapeAllMaterials } = require('./scripts/scrape-homedepot-brightdata');
+      await scrapeAllMaterials(false); // FULL MODE
+      console.log('🚀 Full scraper finished!');
+    } catch (error) {
+      console.error('🚀 SCRAPER ERROR:', error.message);
+      console.error(error.stack);
+    }
+  });
+});
+
+
 
 // Start server
 app.listen(PORT, () => {
