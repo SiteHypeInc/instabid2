@@ -96,9 +96,6 @@ async function cachePrice(sku, name, price, region) {
 }
 
 
-In backend/scripts/scrape-homedepot-brightdata.js, find the scrapeAllMaterials() function and update it:
-
-
 async function scrapeAllMaterials() {
   console.log('🚀 SCRAPER STARTED');
   
