@@ -2,78 +2,78 @@
   "roofing": [
     {
       "name": "Asphalt 3-Tab Shingles",
-      "keyword": "asphalt 3 tab shingles",
+      "keyword": "GAF Royal Sovereign 3-tab shingles bundle",
       "unit": "bundle"
     },
     {
       "name": "Architectural Shingles",
-      "keyword": "architectural shingles",
+      "keyword": "Owens Corning Duration architectural shingles bundle",
       "unit": "bundle"
     },
     {
       "name": "Roofing Underlayment",
-      "keyword": "roofing underlayment felt paper",
+      "keyword": "GAF Tiger Paw synthetic roofing underlayment",
       "unit": "roll"
     },
     {
       "name": "Plywood 1/2in 4x8",
-      "keyword": "plywood 1/2 inch 4x8",
+      "keyword": "plywood sheathing 1/2 inch 4x8 sheet",
       "unit": "sheet"
     },
     {
       "name": "Roofing Nails",
-      "keyword": "roofing nails coil",
+      "keyword": "Grip-Rite 1-1/4 inch roofing nails coil",
       "unit": "box"
     }
   ],
   "hvac": [
     {
       "name": "Gas Furnace 80K BTU",
-      "keyword": "gas furnace 80000 btu",
+      "keyword": "Goodman 80000 BTU gas furnace",
       "unit": "unit"
     },
     {
       "name": "Air Conditioner 3 Ton",
-      "keyword": "air conditioner 3 ton",
+      "keyword": "Goodman 3 ton 14 SEER air conditioner condenser",
       "unit": "unit"
     },
     {
       "name": "Thermostat Programmable",
-      "keyword": "programmable thermostat",
+      "keyword": "Honeywell programmable digital thermostat",
       "unit": "unit"
     }
   ],
   "plumbing": [
     {
       "name": "PEX Pipe 1/2in",
-      "keyword": "pex pipe 1/2 inch",
+      "keyword": "SharkBite PEX tubing 1/2 inch red",
       "unit": "ft"
     },
     {
       "name": "Copper Pipe 3/4in",
-      "keyword": "copper pipe 3/4 inch",
+      "keyword": "Mueller 3/4 inch Type L copper pipe",
       "unit": "ft"
     },
     {
       "name": "PVC Pipe 2in",
-      "keyword": "pvc pipe 2 inch schedule 40",
+      "keyword": "Charlotte 2 inch schedule 40 PVC pipe",
       "unit": "ft"
     }
   ],
   "electrical": [
     {
       "name": "Romex Wire 12/2",
-      "keyword": "romex 12-2 wire",
+      "keyword": "Southwire 12-2 NM-B copper wire",
       "unit": "ft"
     },
     {
       "name": "Romex Wire 14/2",
-      "keyword": "romex 14-2 wire",
+      "keyword": "Southwire 14-2 NM-B copper wire",
       "unit": "ft"
     },
     {
       "name": "Electrical Box Single Gang",
-      "keyword": "single gang electrical box",
+      "keyword": "Carlon single gang new work electrical box",
       "unit": "unit"
     }
   ]
