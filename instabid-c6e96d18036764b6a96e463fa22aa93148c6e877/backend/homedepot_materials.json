@@ -2,40 +2,78 @@
   "roofing": [
     {
       "name": "Asphalt 3-Tab Shingles",
-      "search": "asphalt 3 tab shingles",
-      "category": "shingles",
+      "keyword": "asphalt 3 tab shingles",
       "unit": "bundle"
     },
     {
       "name": "Architectural Shingles",
-      "search": "architectural shingles",
-      "category": "shingles",
+      "keyword": "architectural shingles",
       "unit": "bundle"
     },
     {
       "name": "Roofing Underlayment",
-      "search": "roofing underlayment felt paper",
-      "category": "underlayment",
+      "keyword": "roofing underlayment felt paper",
       "unit": "roll"
     },
     {
       "name": "Plywood 1/2in 4x8",
-      "search": "plywood 1/2 inch 4x8",
-      "category": "decking",
+      "keyword": "plywood 1/2 inch 4x8",
       "unit": "sheet"
     },
     {
       "name": "Roofing Nails",
-      "search": "roofing nails coil",
-      "category": "fasteners",
+      "keyword": "roofing nails coil",
       "unit": "box"
     }
   ],
   "hvac": [
     {
       "name": "Gas Furnace 80K BTU",
-      "search": "gas furnace 80000 btu",
-      "category": "heating",
+      "keyword": "gas furnace 80000 btu",
+      "unit": "unit"
+    },
+    {
+      "name": "Air Conditioner 3 Ton",
+      "keyword": "air conditioner 3 ton",
+      "unit": "unit"
+    },
+    {
+      "name": "Thermostat Programmable",
+      "keyword": "programmable thermostat",
+      "unit": "unit"
+    }
+  ],
+  "plumbing": [
+    {
+      "name": "PEX Pipe 1/2in",
+      "keyword": "pex pipe 1/2 inch",
+      "unit": "ft"
+    },
+    {
+      "name": "Copper Pipe 3/4in",
+      "keyword": "copper pipe 3/4 inch",
+      "unit": "ft"
+    },
+    {
+      "name": "PVC Pipe 2in",
+      "keyword": "pvc pipe 2 inch schedule 40",
+      "unit": "ft"
+    }
+  ],
+  "electrical": [
+    {
+      "name": "Romex Wire 12/2",
+      "keyword": "romex 12-2 wire",
+      "unit": "ft"
+    },
+    {
+      "name": "Romex Wire 14/2",
+      "keyword": "romex 14-2 wire",
+      "unit": "ft"
+    },
+    {
+      "name": "Electrical Box Single Gang",
+      "keyword": "single gang electrical box",
       "unit": "unit"
     }
   ]
