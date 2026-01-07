@@ -1965,6 +1965,13 @@ app.get('/api/run-full-scraper', requireAuth, async (req, res) => {
 });*/
 
 // IMPORT EXISTING BRIGHTDATA SNAPSHOTS
+// OPTIONS preflight for import-snapshots
+app.options('/api/import-snapshots', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
+  res.sendStatus(200);
+});
 app.post('/api/import-snapshots', requireAuth, async (req, res) => {
   console.log('📂 SNAPSHOT IMPORT STARTED');
   
