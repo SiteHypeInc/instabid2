@@ -41,7 +41,7 @@ async function triggerScrape(keyword) {
 async function pollSnapshot(snapshotId) {
   const url = `${BASE_URL}/snapshot/${snapshotId}`;
   let attempts = 0;
-  const maxAttempts = 30;
+  const maxAttempts = 60; // 180 seconds (3 minutes)
   
   while (attempts < maxAttempts) {
     try {
@@ -95,20 +95,23 @@ async function cachePrice(sku, name, price, region) {
   }
 }
 
-async function scrapeAllMaterials() {
+async function scrapeAllMaterials(testMode = false) {
   console.log('🚀 SCRAPER STARTED');
+  if (testMode) {
+    console.log('⚠️ TEST MODE - Processing first material only');
+  }
   
-   let materials;
+  let materials;
   try {
     console.log('📂 Loading materials catalog...');
-    const path = require('path');
     const materialsPath = path.join(__dirname, '../homedepot_materials.json');
     console.log('📂 Looking for materials at:', materialsPath);
     materials = JSON.parse(
       fs.readFileSync(materialsPath, 'utf8')
     );
     console.log(`✅ Loaded ${Object.keys(materials).length} categories`);
-  } catch (error) {console.error('❌ Failed to load materials catalog:', error.message);
+  } catch (error) {
+    console.error('❌ Failed to load materials catalog:', error.message);
     throw error;
   }
   
@@ -147,17 +150,44 @@ async function scrapeAllMaterials() {
         continue;
       }
       
-      const product = results[0];
+      // Filter for relevant results
+      const keywordLower = material.keyword.toLowerCase();
+      const keywordWords = keywordLower.split(' ').filter(w => w.length > 2); // Ignore short words like "in", "3"
+      
+      const relevantResults = results.filter(r => {
+        const titleLower = (r.title || '').toLowerCase();
+        // Product must contain at least 40% of keyword words
+        const matches = keywordWords.filter(word => titleLower.includes(word)).length;
+        const threshold = Math.max(2, Math.floor(keywordWords.length * 0.4));
+        return matches >= threshold;
+      });
+      
+      if (relevantResults.length === 0) {
+        console.log(`      ⚠️ No relevant results (found ${results.length} total, none matched keyword)`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        continue;
+      }
+      
+      console.log(`      ℹ️ Found ${relevantResults.length} relevant results (filtered from ${results.length} total)`);
+      
+      const product = relevantResults[0];
       const sku = product.item_id || material.keyword.substring(0, 20);
       const name = product.title || material.name;
       const price = parseFloat(product.final_price || product.initial_price || 0);
       
       if (price > 0) {
         await cachePrice(sku, name, price, DEFAULT_REGION.name);
-        console.log(`      ✅ ${name} - $${price}`);
+        console.log(`      ✅ ${name} - $${price.toFixed(2)}`);
         totalCached++;
       } else {
         console.log(`      ⚠️ No valid price found`);
+      }
+      
+      // TEST MODE: Stop after first material
+      if (testMode) {
+        console.log('\n⚠️ TEST MODE - Stopping after first material');
+        console.log(`🎉 Test complete! ${totalCached} prices cached.`);
+        return;
       }
       
       await new Promise(resolve => setTimeout(resolve, 3000));
