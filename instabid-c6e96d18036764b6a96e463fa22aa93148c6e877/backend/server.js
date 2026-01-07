@@ -1925,7 +1925,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 // TEST SCRAPER - Single material only (SAFE)
-app.get('/api/test-scraper-single', requireAuth, async (req, res) => {
+/*app.get('/api/test-scraper-single', requireAuth, async (req, res) => {
   console.log('🧪 SINGLE MATERIAL TEST STARTED');
   res.json({ 
     message: 'Testing single material - check Railway logs',
@@ -1959,6 +1959,189 @@ app.get('/api/run-full-scraper', requireAuth, async (req, res) => {
       console.log('🚀 Full scraper finished!');
     } catch (error) {
       console.error('🚀 SCRAPER ERROR:', error.message);
+      console.error(error.stack);
+    }
+  });
+});*/
+
+// IMPORT EXISTING BRIGHTDATA SNAPSHOTS
+app.post('/api/import-snapshots', requireAuth, async (req, res) => {
+  console.log('📂 SNAPSHOT IMPORT STARTED');
+  
+  const { snapshotData } = req.body;
+  
+  if (!snapshotData || !Array.isArray(snapshotData)) {
+    return res.status(400).json({ 
+      error: 'Missing snapshotData array in request body',
+      example: { snapshotData: [...] }
+    });
+  }
+  
+  console.log(`📦 Received ${snapshotData.length} products to process`);
+  
+  res.json({ 
+    message: `Processing ${snapshotData.length} products - check logs for results`,
+    note: 'Import running in background'
+  });
+  
+  setImmediate(async () => {
+    try {
+      const { Pool } = require('pg');
+      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      
+      const DEFAULT_REGION = 'National';
+      
+      // Load materials catalog
+      const fs = require('fs');
+      const path = require('path');
+      const materialsPath = path.join(__dirname, 'homedepot_materials.json');
+      const materials = JSON.parse(fs.readFileSync(materialsPath, 'utf8'));
+      
+      // Flatten materials
+      const allMaterials = [];
+      for (const [category, items] of Object.entries(materials)) {
+        items.forEach(item => {
+          allMaterials.push({
+            ...item,
+            category,
+            keywordWords: item.keyword.toLowerCase().split(' ').filter(w => w.length > 2)
+          });
+        });
+      }
+      
+      console.log(`📚 Loaded ${allMaterials.length} materials from catalog`);
+      
+      // Matching function
+      function findMatchingMaterial(product) {
+        if (product.error) return null;
+        
+        const price = parseFloat(product.final_price || product.initial_price || 0);
+        if (price <= 0) return null;
+        
+        const category = (product.category?.name || '').toLowerCase();
+        const rootCategory = (product.root_category?.name || '').toLowerCase();
+        
+        const isRelevant = category.includes('roof') || 
+                          category.includes('shingle') ||
+                          category.includes('hvac') ||
+                          category.includes('plumbing') ||
+                          category.includes('electrical') ||
+                          rootCategory.includes('building');
+        
+        if (!isRelevant) return null;
+        
+        const titleLower = (product.product_name || product.title || '').toLowerCase();
+        
+        for (const material of allMaterials) {
+          const matches = material.keywordWords.filter(word => titleLower.includes(word)).length;
+          const threshold = Math.max(2, Math.floor(material.keywordWords.length * 0.4));
+          
+          if (matches >= threshold) {
+            return { material, product, matchScore: matches };
+          }
+        }
+        
+        return null;
+      }
+      
+      // Cache function
+      async function cachePrice(sku, name, price, region) {
+        const query = `
+          INSERT INTO materials_cache (sku, name, price, region, last_updated)
+          VALUES ($1, $2, $3, $4, NOW())
+          ON CONFLICT (sku, region)
+          DO UPDATE SET price = $3, name = $2, last_updated = NOW()
+          RETURNING *
+        `;
+        
+        try {
+          const result = await pool.query(query, [sku, name, price, region]);
+          return result.rows[0];
+        } catch (error) {
+          console.error(`❌ Cache failed: ${error.message}`);
+          return null;
+        }
+      }
+      
+      // Process products
+      let totalMatched = 0;
+      let totalCached = 0;
+      const matchedProducts = [];
+      
+      console.log('\n🔍 Processing products...\n');
+      
+      for (const product of snapshotData) {
+        const match = findMatchingMaterial(product);
+        
+        if (match) {
+          totalMatched++;
+          
+          const sku = product.sku || product.product_id || match.material.keyword.substring(0, 20);
+          const name = product.product_name || product.title || match.material.name;
+          const price = parseFloat(product.final_price || product.initial_price);
+          
+          matchedProducts.push({
+            category: match.material.category,
+            material: match.material.name,
+            productName: name,
+            price: price,
+            sku: sku
+          });
+          
+          const cached = await cachePrice(sku, name, price, DEFAULT_REGION);
+          
+          if (cached) {
+            totalCached++;
+            console.log(`✅ ${match.material.category} > ${match.material.name}`);
+            console.log(`   ${name}`);
+            console.log(`   $${price.toFixed(2)} | SKU: ${sku}\n`);
+          }
+        }
+      }
+      
+      // Summary
+      console.log('═══════════════════════════════════════════════════');
+      console.log('📊 IMPORT SUMMARY');
+      console.log('═══════════════════════════════════════════════════');
+      console.log(`Total products scanned:  ${snapshotData.length}`);
+      console.log(`Total matched:           ${totalMatched}`);
+      console.log(`Total cached to DB:      ${totalCached}`);
+      console.log('═══════════════════════════════════════════════════\n');
+      
+      // Breakdown by category
+      const byCategory = {};
+      matchedProducts.forEach(p => {
+        if (!byCategory[p.category]) byCategory[p.category] = [];
+        byCategory[p.category].push(p);
+      });
+      
+      console.log('📦 BREAKDOWN BY CATEGORY:\n');
+      for (const [category, products] of Object.entries(byCategory)) {
+        console.log(`${category.toUpperCase()} (${products.length} products):`);
+        products.forEach(p => {
+          console.log(`  • ${p.material}: $${p.price.toFixed(2)}`);
+        });
+        console.log('');
+      }
+      
+      // What's missing
+      console.log('❓ MATERIALS NOT FOUND:\n');
+      const foundMaterials = new Set(matchedProducts.map(p => p.material));
+      
+      for (const [category, items] of Object.entries(materials)) {
+        const missing = items.filter(item => !foundMaterials.has(item.name));
+        if (missing.length > 0) {
+          console.log(`${category.toUpperCase()}:`);
+          missing.forEach(m => console.log(`  ⚠️  ${m.name}`));
+          console.log('');
+        }
+      }
+      
+      await pool.end();
+      console.log('✅ Import complete!');
+      
+    } catch (error) {
+      console.error('❌ IMPORT ERROR:', error.message);
       console.error(error.stack);
     }
   });
