@@ -96,6 +96,20 @@ async function cachePrice(sku, name, price, region) {
 }
 
 async function scrapeAllMaterials() {
+  async function scrapeAllMaterials() {
+  console.log('🚀 SCRAPER STARTED');
+  
+  let materials;
+  try {
+    console.log('📂 Loading materials catalog...');
+    materials = JSON.parse(
+      fs.readFileSync('backend/homedepot_materials.json', 'utf8')
+    );
+    console.log(`✅ Loaded ${Object.keys(materials).length} categories`);
+  } catch (error) {
+    console.error('❌ Failed to load materials catalog:', error.message);
+    throw error;
+  }
   const materials = JSON.parse(
     fs.readFileSync('backend/homedepot_materials.json', 'utf8')
   );
