@@ -1,0 +1,14 @@
+
+🚀 InstaBid Preview Server Running!
+
+   📱 Frontend: http://localhost:3001
+
+   Available pages:
+   - Main Estimator: http://localhost:3001/
+   - Dashboard: http://localhost:3001/dashboard.html
+   - Login: http://localhost:3001/login.html
+   - Register: http://localhost:3001/register.html
+   - Schedule: http://localhost:3001/schedule.html
+
+   Note: The app uses an external API at Railway for backend functionality.
+  
