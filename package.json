@@ -4,6 +4,8 @@
   "description": "InstaBid preview server",
   "main": "preview-server.js",
   "scripts": {
+    "build": "echo 'No build step required for static preview'",
+    "start": "node preview-server.js",
     "preview": "node preview-server.js"
   },
   "dependencies": {
