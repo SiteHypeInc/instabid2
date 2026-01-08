@@ -1,0 +1,12 @@
+{
+  "name": "instabid-preview",
+  "version": "1.0.0",
+  "description": "InstaBid preview server",
+  "main": "preview-server.js",
+  "scripts": {
+    "preview": "node preview-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
