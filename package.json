@@ -1,11 +1,15 @@
 {
-  "name": "instabid-preview",
-  "version": "1.0.0",
-  "description": "InstaBid preview server",
-  "main": "preview-server.js",
+  "name": "instabid-app",
+  "version": "2.0.0",
+  "description": "InstaBid Multi-Trade Construction Estimator",
+  "main": "server.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
-    "build": "echo 'No build step required for static preview'",
-    "start": "node preview-server.js",
+    "build": "cd instabid-c6e96d18036764b6a96e463fa22aa93148c6e877/backend && npm install",
+    "start": "node server.js",
+    "backend": "cd instabid-c6e96d18036764b6a96e463fa22aa93148c6e877/backend && npm start",
     "preview": "node preview-server.js"
   },
   "dependencies": {
