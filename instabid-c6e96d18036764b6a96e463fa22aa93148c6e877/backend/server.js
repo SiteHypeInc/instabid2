@@ -2165,6 +2165,25 @@ app.post('/api/import-snapshots', requireAuth, async (req, res) => {
   });
 });
 
+// TEST: Supabase connection
+app.get('/api/test-supabase', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = $1', ['public']);
+    const contractors = await pool.query('SELECT id, company_name, contact_email FROM contractors LIMIT 1');
+    
+    res.json({
+      status: 'connected',
+      public_tables: result.rows[0].table_count,
+      sample_contractor: contractors.rows[0] || 'no contractors yet'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+});
+
 
 
 // Start server
