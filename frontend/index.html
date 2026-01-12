@@ -268,6 +268,8 @@ body {
             <option value="plumbing">Plumbing</option>
             <option value="flooring">Flooring</option>
             <option value="painting">Painting</option>
+            <option value="drywall">Drywall</option>
+            <option value="siding">Siding</option>
         <!--<option value="general_contracting">General Contracting</option>-->
           </select>
         </div>
@@ -449,6 +451,41 @@ var TRADE_FORM_SCHEMA = {
     { name: 'leadPaint', label: 'Lead Paint Present (Pre-1978)?', type: 'radio', options: ['yes', 'no', 'unknown'], required: false },
     { name: 'colorChangeDramatic', label: 'Dramatic Color Change?', type: 'radio', options: ['yes', 'no'], required: false }
   ],
+
+
+drywall: [
+  { name: 'name', label: 'Full Name', type: 'text', required: true },
+  { name: 'email', label: 'Email', type: 'email', required: true },
+  { name: 'phone', label: 'Phone', type: 'tel', required: true },
+  { name: 'address', label: 'Property Address', type: 'text', required: true },
+  { name: 'city', label: 'City', type: 'text', required: true },
+  { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+  { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+  { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+  { name: 'projectType', label: 'Project Type', type: 'select', options: ['new_construction', 'repair'], required: true },
+  { name: 'rooms', label: 'Number of Rooms', type: 'number', required: true },
+  { name: 'ceilingHeight', label: 'Ceiling Height', type: 'select', options: ['8ft', '9ft', '10ft', '12ft+'], required: true },
+  { name: 'finishLevel', label: 'Finish Level', type: 'select', options: ['level_3_standard', 'level_4_smooth', 'level_5_glass'], required: false },
+  { name: 'textureType', label: 'Texture Type', type: 'select', options: ['none', 'orange_peel', 'knockdown', 'popcorn'], required: false },
+  { name: 'damageExtent', label: 'Damage Extent (Repair)', type: 'select', options: ['minor', 'moderate', 'extensive'], required: false }
+],
+
+siding: [
+  { name: 'name', label: 'Full Name', type: 'text', required: true },
+  { name: 'email', label: 'Email', type: 'email', required: true },
+  { name: 'phone', label: 'Phone', type: 'tel', required: true },
+  { name: 'address', label: 'Property Address', type: 'text', required: true },
+  { name: 'city', label: 'City', type: 'text', required: true },
+  { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+  { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+  { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+  { name: 'sidingType', label: 'Siding Type', type: 'select', options: ['vinyl', 'fiber_cement', 'wood_cedar', 'metal_aluminum', 'stucco'], required: true },
+  { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+  { name: 'needsRemoval', label: 'Remove Existing Siding?', type: 'radio', options: ['yes', 'no'], required: true },
+  { name: 'windowCount', label: 'Number of Windows', type: 'number', required: false },
+  { name: 'doorCount', label: 'Number of Doors', type: 'number', required: false },
+  { name: 'trimLinearFeet', label: 'Trim (Linear Feet)', type: 'number', required: false }
+],
 
   general_contracting: [
     { name: 'name', label: 'Full Name', type: 'text', required: true },
