@@ -9,6 +9,8 @@ const TRADE_SOC_CODES = {
   'plumbing': '47-2152',
   'flooring': '47-2042',
   'painting': '47-2141',
+  'drywall': '47-2081',    // ADD THIS - Drywall and Ceiling Tile Installers
+  'siding': '47-2099'      // ADD THIS - Construction and Related Workers, All Other
   'general': '47-1011'
 };
 
@@ -56,7 +58,7 @@ function calculateRoofing(criteria, blsLaborRate, regionalMultiplier) {
 // ========================================
 // 2. HVAC CALCULATOR
 // ========================================
-/*function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
+function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
   const {
     squareFeet,
     zones = 1,
@@ -115,7 +117,7 @@ function calculateRoofing(criteria, blsLaborRate, regionalMultiplier) {
       regionalMultiplier
     }
   };
-}*/
+}
 
 function calculateHVAC(criteria, blsLaborRate, regionalMultiplier) {
   const {
@@ -423,9 +425,130 @@ function calculatePainting(criteria, blsLaborRate, regionalMultiplier) {
 }
 
 // ========================================
+// DRYWALL CALCULATOR
+// ========================================
+function calculateDrywall(criteria) {
+  const {
+    squareFeet,
+    rooms = 1,
+    ceilingHeight = 8,
+    finishLevel = 'standard', // standard, smooth, textured
+    isRepair = false,
+    damageExtent = 'minor' // minor, moderate, extensive
+  } = criteria;
+
+  const socCode = '47-2081'; // Drywall and Ceiling Tile Installers
+  
+  // Material costs
+  const sheetCost = ceilingHeight > 9 ? 20 : 12;
+  const sheetsNeeded = Math.ceil(squareFeet / 32);
+  const sheetTotal = sheetsNeeded * sheetCost;
+  
+  const compoundCost = squareFeet * 0.35;
+  const tapeCost = squareFeet * 0.15;
+  const screwsCost = sheetsNeeded * 0.50;
+  
+  // Complexity multipliers
+  const heightMultiplier = ceilingHeight > 9 ? 1.2 : 1.0;
+  const finishMultipliers = { standard: 1.0, smooth: 1.3, textured: 1.15 };
+  const finishMultiplier = finishMultipliers[finishLevel] || 1.0;
+  
+  const totalMaterialCost = (sheetTotal + compoundCost + tapeCost + screwsCost) * heightMultiplier * finishMultiplier;
+  
+  // Labor calculations
+  const hangHours = squareFeet * 0.02 * heightMultiplier;
+  const mudHours = squareFeet * 0.03 * finishMultiplier;
+  const textureHours = finishLevel === 'textured' ? squareFeet * 0.015 : 0;
+  
+  const totalLaborHours = hangHours + mudHours + textureHours;
+  
+  return {
+    socCode,
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    totalLaborHours: Math.round(totalLaborHours * 100) / 100,
+    breakdown: {
+      sheets: sheetsNeeded,
+      sheetCost: sheetTotal,
+      compoundCost,
+      tapeCost,
+      screwsCost,
+      heightMultiplier,
+      finishMultiplier
+    }
+  };
+}
+
+// ========================================
+// SIDING CALCULATOR
+// ========================================
+function calculateSiding(criteria) {
+  const {
+    squareFeet,
+    stories = 1,
+    materialType = 'vinyl', // vinyl, fiber_cement, wood, metal, stucco
+    removeExisting = false,
+    trimLinearFeet = 0,
+    windowCount = 0
+  } = criteria;
+
+  const socCode = '47-2099'; // Construction and Related Workers, All Other
+  
+  // Material costs per sqft
+  const materialCosts = {
+    vinyl: 4.50,
+    fiber_cement: 8.00,
+    wood: 12.00,
+    metal: 6.50,
+    stucco: 9.00
+  };
+  
+  const materialUnitCost = materialCosts[materialType] || 4.50;
+  const sidingCost = squareFeet * materialUnitCost;
+  
+  // Additional materials
+  const removalCost = removeExisting ? squareFeet * 1.50 : 0;
+  const houseWrapCost = squareFeet * 0.75;
+  const trimCost = trimLinearFeet * 4.00;
+  const windowTrimCost = windowCount * 50;
+  
+  // Story multiplier
+  const storyMultipliers = { 1: 1.0, 2: 1.2, 3: 1.5 };
+  const storyMultiplier = storyMultipliers[stories] || 1.0;
+  
+  const totalMaterialCost = (sidingCost + removalCost + houseWrapCost + trimCost + windowTrimCost) * storyMultiplier;
+  
+  // Labor rates per sqft
+  const laborRates = {
+    vinyl: 2.50,
+    fiber_cement: 4.00,
+    wood: 5.00,
+    metal: 3.50,
+    stucco: 6.00
+  };
+  
+  const laborRate = laborRates[materialType] || 2.50;
+  const totalLaborHours = (squareFeet * laborRate / 45) * storyMultiplier; // Assuming $45/hr base
+  
+  return {
+    socCode,
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    totalLaborHours: Math.round(totalLaborHours * 100) / 100,
+    breakdown: {
+      sidingCost,
+      removalCost,
+      houseWrapCost,
+      trimCost,
+      windowTrimCost,
+      storyMultiplier,
+      materialType
+    }
+  };
+}
+
+// ========================================
 // 7. GENERAL CONTRACTING CALCULATOR
 // ========================================
-function calculateGeneral(criteria, blsLaborRate, regionalMultiplier) {
+/*function calculateGeneral(criteria, blsLaborRate, regionalMultiplier) {
   const {
     projectType = 'remodel',
     squareFeet,
@@ -484,7 +607,7 @@ function calculateGeneral(criteria, blsLaborRate, regionalMultiplier) {
       managementFeePercent
     }
   };
-}
+}*/
 
 // ========================================
 // MAIN CALCULATOR ROUTER
@@ -520,4 +643,6 @@ module.exports = {
   calculateFlooring,
   calculatePainting,
   calculateGeneral
+  calculateDrywall,     
+  calculateSiding  
 };

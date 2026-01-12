@@ -1,7 +1,7 @@
 cat > js/calculators/materialMatcher.js << 'EOF'
 // Material Matcher - Supabase product matching
-const SUPABASE_URL = '[https://audvkmgaufxzylebtmpx.supabase.co](https://audvkmgaufxzylebtmpx.supabase.co)';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
+const SUPABASE_URL = 'https://audvkmgaufxzylebtmpx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1ZHZrbWdhdWZ4enlsZWJ0bXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwODQ1MTcsImV4cCI6MjA4MzY2MDUxN30.9hNbZtCpEhi9_3cXSbJ4CqNI9rTqpT_wCZ56jNA-KFA';
 
 let supabaseClient;
 
