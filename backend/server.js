@@ -1105,12 +1105,12 @@ app.get('/api/estimates', async (req, res) => {
         customer_name as "customerName",
         customer_email as "customerEmail",
         customer_phone as "customerPhone",
-        address,
+        property_address as "address",
         city,
         state,
         zip_code as "zipCode",
         trade,
-        materials_cost as "materialsCost",
+        material_cost as "materialsCost",
         labor_cost as "laborCost",
         total_cost as "totalCost",
         created_at as "createdAt"
@@ -1137,15 +1137,15 @@ app.get('/api/estimates/:id', async (req, res) => {
         customer_name as "customerName",
         customer_email as "customerEmail",
         customer_phone as "customerPhone",
-        address,
+        property_address as "address",
         city,
         state,
         zip_code as "zipCode",
         trade,
-        materials_cost as "materialsCost",
+        material_cost as "materialsCost",
         labor_cost as "laborCost",
         total_cost as "totalCost",
-        project_details as "projectDetails",
+        trade_details as "projectDetails",
         created_at as "createdAt"
       FROM estimates 
       WHERE id = $1
