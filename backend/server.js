@@ -2251,6 +2251,44 @@ app.get('/api/test-supabase', async (req, res) => {
   }
 });
 
+// MSA Cost Index Lookup
+app.get('/api/msa-lookup', async (req, res) => {
+  const { zip } = req.query;
+  
+  if (!zip) {
+    return res.status(400).json({ error: 'ZIP code required' });
+  }
+  
+  try {
+    // Join zip_msa_mapping + msa_cost_indexes
+    const result = await pool.query(`
+      SELECT 
+        m.msa_code,
+        m.msa_name,
+        m.material_index,
+        m.labor_index
+      FROM zip_msa_mapping z
+      JOIN msa_cost_indexes m ON z.msa_code = m.msa_code
+      WHERE z.zip_code = $1
+      LIMIT 1
+    `, [zip]);
+    
+    if (result.rows.length === 0) {
+      // Fallback to national average
+      return res.json({
+        msa_code: '00000',
+        msa_name: 'National Average',
+        material_index: 1.00,
+        labor_index: 1.00
+      });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ MSA lookup error:', error);
+    res.status(500).json({ error: 'MSA lookup failed' });
+  }
+});
 
 
 // Start server
