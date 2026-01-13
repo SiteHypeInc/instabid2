@@ -2252,29 +2252,39 @@ app.get('/api/test-supabase', async (req, res) => {
 });
 
 // MSA Cost Index Lookup
+// MSA Cost Index Lookup
 app.get('/api/msa-lookup', async (req, res) => {
   const { zip } = req.query;
+  
+  console.log(`🔍 MSA lookup requested for ZIP: ${zip}`);
   
   if (!zip) {
     return res.status(400).json({ error: 'ZIP code required' });
   }
   
   try {
-    // Join zip_msa_mapping + msa_cost_indexes
+    // Test connection first
+    console.log('📊 Testing database connection...');
+    await pool.query('SELECT NOW()');
+    console.log('✅ Database connected');
+    
+    // Query zip_metro table
+    console.log(`🔎 Querying zip_metro for ZIP ${zip}...`);
     const result = await pool.query(`
       SELECT 
-        m.msa_code,
-        m.msa_name,
-        m.material_index,
-        m.labor_index
-      FROM zip_msa_mapping z
-      JOIN msa_cost_indexes m ON z.msa_code = m.msa_code
-      WHERE z.zip_code = $1
+        metro_code as msa_code,
+        metro_name as msa_name,
+        material_multiplier as material_index,
+        labor_multiplier as labor_index
+      FROM zip_metro
+      WHERE zip_code = $1
       LIMIT 1
     `, [zip]);
     
+    console.log(`📦 Query returned ${result.rows.length} rows`);
+    
     if (result.rows.length === 0) {
-      // Fallback to national average
+      console.log(`⚠️ No MSA data found for ZIP ${zip}, using national average`);
       return res.json({
         msa_code: '00000',
         msa_name: 'National Average',
@@ -2283,10 +2293,19 @@ app.get('/api/msa-lookup', async (req, res) => {
       });
     }
     
+    console.log(`✅ MSA data found: ${result.rows[0].msa_name}`);
     res.json(result.rows[0]);
+    
   } catch (error) {
-    console.error('❌ MSA lookup error:', error);
-    res.status(500).json({ error: 'MSA lookup failed' });
+    console.error('❌ MSA lookup error:', error.message);
+    console.error('📋 Error details:', error);
+    
+    return res.json({
+      msa_code: '00000',
+      msa_name: 'National Average',
+      material_index: 1.00,
+      labor_index: 1.00
+    });
   }
 });
 
