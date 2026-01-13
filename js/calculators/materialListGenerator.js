@@ -37,6 +37,8 @@ async function generateMaterialList(estimateId) {
     
     // Step 6: Display in dashboard (if container exists)
     displayMaterialList(materialListData, estimateId);
+
+
     
     // Step 7: Download CSV
     const filename = `material-list-${estimate.customerName.replace(/\s+/g, '-')}-${Date.now()}.csv`;
@@ -172,7 +174,7 @@ function generateBasicRoofingList(estimate, projectDetails) {
   ];
 }
 
-function displayMaterialList(materialListData, estimateId) {
+/*function displayMaterialList(materialListData, estimateId) {
   // Find or create material list container in dashboard
   let container = document.getElementById('material-list-display');
   
@@ -324,7 +326,177 @@ function displayMaterialList(materialListData, estimateId) {
     `;
     document.head.appendChild(style);
   }
-}
+}*/
+
+function displayMaterialList(materialListData, estimateId) {
+  // Find the material list button
+  const button = document.querySelector(`[onclick="generateMaterialList(${estimateId})"]`);
+  
+  if (!button) {
+    console.warn('⚠️ Material list button not found, skipping display');
+    return;
+  }
+  
+  // Find or create container right after the button
+  let container = document.getElementById(`material-list-${estimateId}`);
+  
+  if (!container) {
+    container = document.createElement('div');
+    container.id = `material-list-${estimateId}`;
+    container.className = 'material-list-container';
+    
+    // Insert right after the button's parent
+    button.parentElement.insertAdjacentElement('afterend', container);
+  }
+  
+  const { materials, summary, msaName, materialIndex } = materialListData;
+  
+  // Build HTML table
+  let html = `
+    <div class="material-list-header">
+      <h3>📦 Material List</h3>
+      <div class="msa-info">
+        <strong>Region:</strong> ${msaName} 
+        <span class="cost-multiplier">(${(materialIndex * 100).toFixed(0)}% of national avg)</span>
+      </div>
+    </div>
+    
+    <table class="material-list-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Unit</th>
+          <th>Unit Cost</th>
+          <th>Total</th>
+          <th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  
+  materials.forEach(item => {
+    html += `
+      <tr>
+        <td><strong>${item.item}</strong></td>
+        <td>${item.quantity}</td>
+        <td>${item.unit}</td>
+        <td>$${item.unitCost.toFixed(2)}</td>
+        <td><strong>$${item.totalCost.toFixed(2)}</strong></td>
+        <td><span class="category-badge">${item.category}</span></td>
+      </tr>
+    `;
+  });
+  
+  html += `
+      </tbody>
+    </table>
+    
+    <div class="material-list-summary">
+      <div class="summary-row">
+        <span>Total Items:</span>
+        <strong>${summary.totalItems}</strong>
+      </div>
+      <div class="summary-row">
+        <span>National Avg Cost:</span>
+        <strong>$${summary.nationalCost.toFixed(2)}</strong>
+      </div>
+      <div class="summary-row total">
+        <span>Regional Total Cost:</span>
+        <strong>$${summary.totalCost.toFixed(2)}</strong>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = html;
+  
+  // Add basic styling if not present
+  if (!document.getElementById('material-list-styles')) {
+    const style = document.createElement('style');
+    style.id = 'material-list-styles';
+    style.textContent = `
+      .material-list-container {
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e5e7eb;
+      }
+      .material-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e5e7eb;
+      }
+      .material-list-header h3 {
+        margin: 0;
+        color: #111827;
+      }
+      .msa-info {
+        font-size: 14px;
+        color: #6b7280;
+      }
+      .cost-multiplier {
+        color: #2563eb;
+        font-weight: 600;
+      }
+      .material-list-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .material-list-table th {
+        background: #f3f4f6;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #e5e7eb;
+        color: #374151;
+      }
+      .material-list-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .material-list-table tbody tr:hover {
+        background: #f9fafb;
+      }
+      .category-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        background: #dbeafe;
+        color: #1e40af;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+      .material-list-summary {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 6px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        color: #374151;
+      }
+      .summary-row.total {
+        border-top: 2px solid #2563eb;
+        margin-top: 10px;
+        padding-top: 15px;
+        font-size: 18px;
+        color: #2563eb;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  console.log('✅ Material list displayed on screen');
+} 
 
 function generateMaterialCSV(materialListData) {
   const { tradeType, customerName, address, city, state, zipCode, msaName, materialIndex, materials, summary } = materialListData;
