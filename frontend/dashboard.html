@@ -1558,6 +1558,16 @@ async function checkCalendarStatus() {
   }
 }
 
+<!-- Supabase Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabase = window.supabase.createClient(
+    'https://audvkmgaufxzylebtmpx.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1ZHZrbWdhdWZ4enlsZWJ0bXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU2OTMxMTUsImV4cCI6MjA1MTI2OTExNX0.0KkQs7vLqM_k7cFV-TT-VxJpLKvxZOWfDKF5e2JF6Ag'
+  );
+  console.log('✅ Supabase initialized');
+</script>
+
 <!-- InstaBid Material Calculator Scripts -->
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/roofingCalculatorEnhanced.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialMatcher.js"></script>
