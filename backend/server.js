@@ -1095,6 +1095,73 @@ app.post('/api/estimate', async (req, res) => {
   }
 });
 
+// GET all estimates
+app.get('/api/estimates', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id,
+        contractor_id as "contractorId",
+        customer_name as "customerName",
+        customer_email as "customerEmail",
+        customer_phone as "customerPhone",
+        address,
+        city,
+        state,
+        zip_code as "zipCode",
+        trade,
+        materials_cost as "materialsCost",
+        labor_cost as "laborCost",
+        total_cost as "totalCost",
+        created_at as "createdAt"
+      FROM estimates 
+      ORDER BY created_at DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching estimates:', error);
+    res.status(500).json({ error: 'Failed to fetch estimates' });
+  }
+});
+
+// GET single estimate by ID
+app.get('/api/estimates/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(`
+      SELECT 
+        id,
+        contractor_id as "contractorId",
+        customer_name as "customerName",
+        customer_email as "customerEmail",
+        customer_phone as "customerPhone",
+        address,
+        city,
+        state,
+        zip_code as "zipCode",
+        trade,
+        materials_cost as "materialsCost",
+        labor_cost as "laborCost",
+        total_cost as "totalCost",
+        project_details as "projectDetails",
+        created_at as "createdAt"
+      FROM estimates 
+      WHERE id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Estimate not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching estimate:', error);
+    res.status(500).json({ error: 'Failed to fetch estimate' });
+  }
+});
+
 // ============================================
 // STANDALONE PDF/CONTRACT GENERATION (PUBLIC)
 // ============================================

@@ -1570,5 +1570,52 @@ async function checkCalendarStatus() {
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialMatcher.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialListGenerator.js"></script>
 
+
+<script>
+// MAIN TAB SWITCHING
+document.querySelectorAll('.main-tab').forEach(button => {
+  button.addEventListener('click', function() {
+    const targetSection = this.getAttribute('data-main');
+    
+    // Remove active class from all main tabs
+    document.querySelectorAll('.main-tab').forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked tab
+    this.classList.add('active');
+    
+    // Hide all main content sections
+    document.querySelectorAll('.main-content').forEach(content => content.classList.remove('active'));
+    
+    // Show target section
+    document.getElementById(targetSection).classList.add('active');
+    
+    // If switching to estimate tracker, load estimates
+    if (targetSection === 'estimate-tracker') {
+      loadEstimates();
+    }
+  });
+});
+
+// SUB TAB SWITCHING (for Price Adjustments)
+document.querySelectorAll('.sub-tab').forEach(button => {
+  button.addEventListener('click', function() {
+    const targetSection = this.getAttribute('data-sub');
+    
+    // Remove active class from all sub tabs
+    document.querySelectorAll('.sub-tab').forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked tab
+    this.classList.add('active');
+    
+    // Hide all sub content sections
+    document.querySelectorAll('.sub-content').forEach(content => content.classList.remove('active'));
+    
+    // Show target section
+    document.getElementById(targetSection).classList.add('active');
+  });
+});
+</script>
+
+
 </body>
 </html>
