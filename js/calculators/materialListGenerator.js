@@ -174,22 +174,25 @@ function generateBasicRoofingList(estimate, projectDetails) {
   ];
 }
 
-/*function displayMaterialList(materialListData, estimateId) {
-  // Find or create material list container in dashboard
-  let container = document.getElementById('material-list-display');
+function displayMaterialList(materialListData, estimateId) {
+  // Find the material list button by ID
+  const button = document.getElementById('generateMaterialListBtn');
+  
+  if (!button) {
+    console.warn('⚠️ Material list button not found, skipping display');
+    return;
+  }
+  
+  // Find or create container right after the button
+  let container = document.getElementById(`material-list-${estimateId}`);
   
   if (!container) {
-    // Create container if it doesn't exist
-    const detailsPanel = document.querySelector('.estimate-details-panel');
-    if (!detailsPanel) {
-      console.warn('⚠️ No details panel found, skipping display');
-      return;
-    }
-    
     container = document.createElement('div');
-    container.id = 'material-list-display';
+    container.id = `material-list-${estimateId}`;
     container.className = 'material-list-container';
-    detailsPanel.appendChild(container);
+    
+    // Insert right after the button
+    button.insertAdjacentElement('afterend', container);
   }
   
   const { materials, summary, msaName, materialIndex } = materialListData;
@@ -264,6 +267,7 @@ function generateBasicRoofingList(estimate, projectDetails) {
         background: white;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e5e7eb;
       }
       .material-list-header {
         display: flex;
@@ -272,6 +276,10 @@ function generateBasicRoofingList(estimate, projectDetails) {
         margin-bottom: 20px;
         padding-bottom: 10px;
         border-bottom: 2px solid #e5e7eb;
+      }
+      .material-list-header h3 {
+        margin: 0;
+        color: #111827;
       }
       .msa-info {
         font-size: 14px;
@@ -291,10 +299,14 @@ function generateBasicRoofingList(estimate, projectDetails) {
         text-align: left;
         font-weight: 600;
         border-bottom: 2px solid #e5e7eb;
+        color: #374151;
       }
       .material-list-table td {
         padding: 10px 12px;
         border-bottom: 1px solid #e5e7eb;
+      }
+      .material-list-table tbody tr:hover {
+        background: #f9fafb;
       }
       .category-badge {
         display: inline-block;
@@ -304,6 +316,7 @@ function generateBasicRoofingList(estimate, projectDetails) {
         border-radius: 4px;
         font-size: 12px;
         font-weight: 600;
+        text-transform: capitalize;
       }
       .material-list-summary {
         margin-top: 20px;
@@ -315,6 +328,7 @@ function generateBasicRoofingList(estimate, projectDetails) {
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
+        color: #374151;
       }
       .summary-row.total {
         border-top: 2px solid #2563eb;
@@ -326,11 +340,13 @@ function generateBasicRoofingList(estimate, projectDetails) {
     `;
     document.head.appendChild(style);
   }
-}*/
+  
+  console.log('✅ Material list displayed on screen');
+}
 
 function displayMaterialList(materialListData, estimateId) {
   // Find the material list button
-  const button = document.querySelector(`[onclick="generateMaterialList(${estimateId})"]`);
+  const button = document.getElementById('generateMaterialListBtn');
   
   if (!button) {
     console.warn('⚠️ Material list button not found, skipping display');
