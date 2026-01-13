@@ -1147,6 +1147,28 @@ async function checkCalendarStatus() {
 <script src="js/calculators/roofingCalculatorEnhanced.js"></script>
 <script src="js/calculators/materialMatcher.js"></script>
 <script src="js/calculators/materialListGenerator.js"></script>
+
+
+<!-- InstaBid Material Calculator Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/roofingCalculatorEnhanced.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialMatcher.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialListGenerator.js"></script>
+
+<!-- Material List Button -->
+<button id="generateMaterialListBtn" 
+        style="background:#007bff; color:white; padding:12px 24px; border:none; border-radius:5px; cursor:pointer; font-size:16px; margin:20px 0;">
+  📋 Generate Material List
+</button>
+
+<script>
+// Hook up the button to your estimates
+document.getElementById('generateMaterialListBtn').addEventListener('click', function() {
+  // This will grab the currently selected estimate from your dashboard
+  // We'll need to see how your dashboard stores the active estimate ID
+  const estimateId = 'PLACEHOLDER'; // We'll fix this next
+  generateMaterialList(estimateId);
+});
 </script>
 
 </body>
