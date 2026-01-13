@@ -1,4 +1,3 @@
-cat > js/calculators/roofingCalculatorEnhanced.js << 'EOF'
 // Enhanced Roofing Calculator - Bolt.new formulas
 function calculateRoofingEnhanced(criteria) {
   const {
