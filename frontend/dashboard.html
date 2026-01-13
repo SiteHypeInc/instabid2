@@ -282,15 +282,17 @@ body {
     
     <div class="main-content active" id="price-adjustments">
       
-      <div class="sub-tabs">
-        <button class="sub-tab active" data-sub="roofing">🏠 Roofing</button>
-        <button class="sub-tab" data-sub="hvac">❄️ HVAC</button>
-        <button class="sub-tab" data-sub="electrical">⚡ Electrical</button>
-        <button class="sub-tab" data-sub="plumbing">🚰 Plumbing</button>
-        <button class="sub-tab" data-sub="flooring">📐 Flooring</button>
-        <button class="sub-tab" data-sub="painting">🎨 Painting</button>
-        <button class="sub-tab" data-sub="regional">🗺️ Regional</button>
-      </div>
+  <div class="sub-tabs">
+    <button class="sub-tab active" data-sub="roofing">🏠 Roofing</button>
+    <button class="sub-tab" data-sub="hvac">❄️ HVAC</button>
+    <button class="sub-tab" data-sub="electrical">⚡ Electrical</button>
+    <button class="sub-tab" data-sub="plumbing">🚰 Plumbing</button>
+    <button class="sub-tab" data-sub="flooring">📐 Flooring</button>
+    <button class="sub-tab" data-sub="painting">🎨 Painting</button>
+    <button class="sub-tab" data-sub="drywall">🧱 Drywall</button>
+    <button class="sub-tab" data-sub="siding">🏘️ Siding</button>
+    <button class="sub-tab" data-sub="regional">🗺️ Regional</button>
+  </div>
 
       <div class="sub-content active" id="roofing">
         <h2 class="section-title">Roofing Configuration</h2>
@@ -826,6 +828,185 @@ body {
         <div class="status-message" id="painting-status"></div>
       </div>
 
+      <div class="sub-content" id="drywall">
+  <h2 class="section-title">Drywall Configuration</h2>
+  
+  <div class="config-grid">
+    <div class="config-card">
+      <h3>📏 Material Costs</h3>
+      <div class="config-item">
+        <label>Drywall Sheet (4x8):</label>
+        <input type="number" step="1" id="drywall_sheet" value="15">
+      </div>
+      <div class="config-item">
+        <label>Joint Compound (per sqft):</label>
+        <input type="number" step="0.05" id="drywall_compound" value="0.35">
+      </div>
+      <div class="config-item">
+        <label>Tape (per sqft):</label>
+        <input type="number" step="0.05" id="drywall_tape" value="0.15">
+      </div>
+      <div class="config-item">
+        <label>Screws (per sheet):</label>
+        <input type="number" step="0.1" id="drywall_screws" value="0.50">
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>👷 Labor Rates (per sqft)</h3>
+      <div class="config-item">
+        <label>Hanging Rate:</label>
+        <input type="number" step="0.01" id="drywall_hang_rate" value="0.02">
+      </div>
+      <div class="config-item">
+        <label>Taping/Mudding Rate:</label>
+        <input type="number" step="0.01" id="drywall_tape_rate" value="0.03">
+      </div>
+      <div class="config-item">
+        <label>Texture Rate:</label>
+        <input type="number" step="0.01" id="drywall_texture_rate" value="0.015">
+      </div>
+      <div class="config-item">
+        <label>Hourly Labor Cost:</label>
+        <input type="number" step="1" id="drywall_hourly" value="45">
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>🔧 Complexity Multipliers</h3>
+      <div class="config-item">
+        <label>Standard Install:</label>
+        <input type="number" step="0.05" id="drywall_standard" value="1.0">
+      </div>
+      <div class="config-item">
+        <label>High Ceiling (10ft+):</label>
+        <input type="number" step="0.05" id="drywall_high_ceiling" value="1.2">
+      </div>
+      <div class="config-item">
+        <label>Smooth Finish (Level 5):</label>
+        <input type="number" step="0.05" id="drywall_smooth" value="1.3">
+      </div>
+      <div class="config-item">
+        <label>Textured Finish:</label>
+        <input type="number" step="0.05" id="drywall_textured" value="1.15">
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>🛠️ Additional Costs</h3>
+      <div class="config-item">
+        <label>Repair Patch (minor):</label>
+        <input type="number" step="10" id="drywall_repair_minor" value="75">
+      </div>
+      <div class="config-item">
+        <label>Repair Patch (moderate):</label>
+        <input type="number" step="10" id="drywall_repair_moderate" value="200">
+      </div>
+      <div class="config-item">
+        <label>Repair Patch (extensive):</label>
+        <input type="number" step="10" id="drywall_repair_extensive" value="500">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-save" onclick="saveConfig('drywall')">💾 Save Drywall Config</button>
+  <div class="status-message" id="drywall-status"></div>
+</div>
+
+
+<div class="sub-content" id="siding">
+  <h2 class="section-title">Siding Configuration</h2>
+  
+  <div class="config-grid">
+    <div class="config-card">
+      <h3>🏠 Material Costs (per sqft)</h3>
+      <div class="config-item">
+        <label>Vinyl Siding:</label>
+        <input type="number" step="0.5" id="siding_vinyl" value="4.50">
+      </div>
+      <div class="config-item">
+        <label>Fiber Cement:</label>
+        <input type="number" step="0.5" id="siding_fiber_cement" value="8.00">
+      </div>
+      <div class="config-item">
+        <label>Wood Cedar:</label>
+        <input type="number" step="0.5" id="siding_wood" value="12.00">
+      </div>
+      <div class="config-item">
+        <label>Metal/Aluminum:</label>
+        <input type="number" step="0.5" id="siding_metal" value="6.50">
+      </div>
+      <div class="config-item">
+        <label>Stucco:</label>
+        <input type="number" step="0.5" id="siding_stucco" value="9.00">
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>👷 Labor Rates (per sqft)</h3>
+      <div class="config-item">
+        <label>Vinyl Installation:</label>
+        <input type="number" step="0.5" id="siding_vinyl_labor" value="3.00">
+      </div>
+      <div class="config-item">
+        <label>Fiber Cement Installation:</label>
+        <input type="number" step="0.5" id="siding_fiber_labor" value="5.00">
+      </div>
+      <div class="config-item">
+        <label>Wood Installation:</label>
+        <input type="number" step="0.5" id="siding_wood_labor" value="6.00">
+      </div>
+      <div class="config-item">
+        <label>Metal Installation:</label>
+        <input type="number" step="0.5" id="siding_metal_labor" value="4.00">
+      </div>
+      <div class="config-item">
+        <label>Stucco Installation:</label>
+        <input type="number" step="0.5" id="siding_stucco_labor" value="7.00">
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>🏗️ Story Multipliers</h3>
+      <div class="config-item">
+        <label>1 Story:</label>
+        <input type="number" step="0.05" id="siding_1_story" value="1.0">
+      </div>
+      <div class="config-item">
+        <label>2 Story:</label>
+        <input type="number" step="0.05" id="siding_2_story" value="1.2">
+      </div>
+      <div class="config-item">
+        <label>3+ Story:</label>
+        <input type="number" step="0.05" id="siding_3_story" value="1.5">
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>💵 Additional Costs</h3>
+      <div class="config-item">
+        <label>Old Siding Removal (per sqft):</label>
+        <input type="number" step="0.25" id="siding_removal" value="1.50">
+      </div>
+      <div class="config-item">
+        <label>House Wrap (per sqft):</label>
+        <input type="number" step="0.1" id="siding_wrap" value="0.75">
+      </div>
+      <div class="config-item">
+        <label>Trim (per linear ft):</label>
+        <input type="number" step="0.5" id="siding_trim" value="4.00">
+      </div>
+      <div class="config-item">
+        <label>Window Trim (per window):</label>
+        <input type="number" step="5" id="siding_window_trim" value="50">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-save" onclick="saveConfig('siding')">💾 Save Siding Config</button>
+  <div class="status-message" id="siding-status"></div>
+</div>
+
       <div class="sub-content" id="regional">
         <h2 class="section-title">Regional Cost Multipliers</h2>
         
@@ -923,48 +1104,282 @@ body {
     </div>
 
     <div class="main-content" id="estimate-tracker">
-      <h2 class="section-title">📊 Estimate Tracker</h2>
-      
-      <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
-        <h3>📅 Google Calendar Integration</h3>
-        
-        <div id="calendarStatusBox">
-          <div id="notConnected" style="display: none;">
-            <p style="margin-bottom: 15px; color: #666;">
-              Connect your Google Calendar to automatically block out busy dates for customer scheduling.
-            </p>
-            <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
-              🔗 Connect Google Calendar
-            </button>
-          </div>
-
-          <div id="connected" style="display: none;">
-            <p style="color: #28a745; margin-bottom: 10px;">
-              ✅ <span id="connectedEmail"></span>
-            </p>
-            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
-              Last synced: <span id="lastSync">Never</span>
-            </p>
-            <button class="btn-save" onclick="syncCalendar()" style="margin-right: 10px;">
-              🔄 Sync Now
-            </button>
-            <button class="btn-cancel" onclick="disconnectCalendar()">
-              ❌ Disconnect
-            </button>
-          </div>
-        </div>
-        
-        <div class="status-message" id="calendar-status"></div>
+  <h2 class="section-title">📊 Estimate Tracker</h2>
+  
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+    <h3>📅 Google Calendar Integration</h3>
+    
+    <div id="calendarStatusBox">
+      <div id="notConnected" style="display: none;">
+        <p style="margin-bottom: 15px; color: #666;">
+          Connect your Google Calendar to automatically block out busy dates for customer scheduling.
+        </p>
+        <button class="btn-save" onclick="connectGoogleCalendar()" style="margin-top: 0;">
+          🔗 Connect Google Calendar
+        </button>
       </div>
-      
-      <div class="config-card" style="max-width: 100%;">
-        <h3>📋 Recent Estimates</h3>
-        <div class="placeholder-content">
-          <p>View all estimates, track status, conversion rates</p>
-          <p style="margin-top: 20px; color: #667eea; font-weight: 600;">Coming Soon</p>
-        </div>
+
+      <div id="connected" style="display: none;">
+        <p style="color: #28a745; margin-bottom: 10px;">
+          ✅ <span id="connectedEmail"></span>
+        </p>
+        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">
+          Last synced: <span id="lastSync">Never</span>
+        </p>
+        <button class="btn-save" onclick="syncCalendar()" style="margin-right: 10px;">
+          🔄 Sync Now
+        </button>
+        <button class="btn-cancel" onclick="disconnectCalendar()">
+          ❌ Disconnect
+        </button>
       </div>
     </div>
+    
+    <div class="status-message" id="calendar-status"></div>
+  </div>
+  
+  <!-- ESTIMATE LIST AND DETAILS -->
+  <div class="config-card" style="max-width: 100%; padding: 0;">
+    <div style="display: grid; grid-template-columns: 350px 1fr; min-height: 600px;">
+      
+      <!-- LEFT SIDEBAR: ESTIMATE QUEUE -->
+      <div style="border-right: 1px solid #e0e0e0; padding: 20px; background: #f8f9fa;">
+        <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #333;">📋 Estimates Queue</h3>
+        
+        <div id="estimatesList" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Estimates will load here -->
+          <div style="text-align: center; padding: 40px 20px; color: #999;">
+            <p>Loading estimates...</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- RIGHT PANEL: ESTIMATE DETAILS -->
+      <div id="estimateDetails" style="padding: 30px; background: white;">
+        <div style="text-align: center; padding: 80px 40px; color: #999;">
+          <p style="font-size: 18px; margin-bottom: 10px;">👈 Select an estimate</p>
+          <p style="font-size: 14px;">Click any estimate from the queue to view details</p>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<script>
+// ESTIMATE TRACKER FUNCTIONALITY
+const RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';
+let currentEstimate = null;
+
+// Load estimates on page load
+async function loadEstimates() {
+  const container = document.getElementById('estimatesList');
+  
+  try {
+    const response = await fetch(`${RAILWAY_API}/api/estimates`);
+    
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
+    
+    const estimates = await response.json();
+    
+    if (!estimates || estimates.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #999;">
+          <p>No estimates yet</p>
+          <p style="font-size: 12px; margin-top: 10px;">Estimates will appear here when customers submit quote requests</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Render estimate cards
+    container.innerHTML = estimates.map(est => `
+      <div class="estimate-card" onclick="viewEstimateDetails('${est.id}')" style="
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+      " onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='#e0e0e0'">
+        
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <div>
+            <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 4px;">
+              ${est.customerName || 'Unknown Customer'}
+            </div>
+            <div style="font-size: 12px; color: #999;">
+              ${est.customerEmail || ''}
+            </div>
+          </div>
+          <span style="
+            background: ${getTradeColor(est.trade)};
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+          ">${est.trade || 'General'}</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0;">
+          <div style="font-size: 20px; font-weight: 700; color: #667eea;">
+            $${parseFloat(est.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+          </div>
+          <div style="font-size: 11px; color: #999;">
+            ${new Date(est.createdAt).toLocaleDateString()}
+          </div>
+        </div>
+        
+      </div>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Error loading estimates:', error);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; color: #dc3545;">
+        <p style="font-weight: 600; margin-bottom: 10px;">⚠️ Connection Error</p>
+        <p style="font-size: 12px;">Unable to load estimates. Railway backend may be down.</p>
+        <button onclick="loadEstimates()" style="
+          margin-top: 15px;
+          padding: 8px 16px;
+          background: #667eea;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+        ">🔄 Retry</button>
+      </div>
+    `;
+  }
+}
+
+// Get color based on trade type
+function getTradeColor(trade) {
+  const colors = {
+    'roofing': '#dc3545',
+    'hvac': '#007bff',
+    'electrical': '#ffc107',
+    'plumbing': '#17a2b8',
+    'flooring': '#6c757d',
+    'painting': '#28a745',
+    'drywall': '#fd7e14',
+    'siding': '#6f42c1'
+  };
+  return colors[trade?.toLowerCase()] || '#667eea';
+}
+
+// View estimate details
+async function viewEstimateDetails(estimateId) {
+  const detailsPanel = document.getElementById('estimateDetails');
+  
+  try {
+    const response = await fetch(`${RAILWAY_API}/api/estimates/${estimateId}`);
+    const estimate = await response.json();
+    currentEstimate = estimate;
+    
+    detailsPanel.innerHTML = `
+      <div style="max-width: 700px;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
+          <div>
+            <h2 style="margin: 0 0 10px 0; color: #333;">${estimate.customerName}</h2>
+            <p style="color: #666; margin: 0;">${estimate.customerEmail} • ${estimate.customerPhone || 'No phone'}</p>
+          </div>
+          <span style="
+            background: ${getTradeColor(estimate.trade)};
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+          ">${estimate.trade}</span>
+        </div>
+        
+        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+          <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📍 Project Address</h3>
+          <p style="margin: 0; color: #666; line-height: 1.6;">
+            ${estimate.address || 'No address provided'}<br>
+            ${estimate.city ? estimate.city + ', ' : ''}${estimate.state || ''} ${estimate.zipCode || ''}
+          </p>
+        </div>
+        
+        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+          <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">💰 Estimate Breakdown</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Materials</div>
+              <div style="font-size: 20px; font-weight: 600; color: #333;">
+                $${parseFloat(estimate.materialsCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Labor</div>
+              <div style="font-size: 20px; font-weight: 600; color: #333;">
+                $${parseFloat(estimate.laborCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+              </div>
+            </div>
+          </div>
+          <div style="border-top: 2px solid #dee2e6; margin-top: 15px; padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="font-size: 14px; font-weight: 600; color: #666;">TOTAL</div>
+              <div style="font-size: 28px; font-weight: 700; color: #667eea;">
+                $${parseFloat(estimate.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        ${estimate.trade === 'roofing' ? `
+          <button id="generateMaterialListBtn" onclick="generateMaterialList('${estimate.id}')" style="
+            width: 100%;
+            background: #667eea;
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+          " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
+            📋 Generate Material List
+          </button>
+        ` : `
+          <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404;">
+            📋 Material list generation currently available for roofing estimates only
+          </div>
+        `}
+        
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
+          Created: ${new Date(estimate.createdAt).toLocaleString()}
+        </div>
+      </div>
+    `;
+    
+  } catch (error) {
+    console.error('Error loading estimate details:', error);
+    detailsPanel.innerHTML = `
+      <div style="text-align: center; padding: 80px 40px; color: #dc3545;">
+        <p style="font-size: 18px; margin-bottom: 10px;">⚠️ Error Loading Details</p>
+        <p style="font-size: 14px;">Unable to fetch estimate information</p>
+      </div>
+    `;
+  }
+}
+
+// Initialize on tab switch
+document.addEventListener('DOMContentLoaded', function() {
+  // Load estimates when Estimate Tracker tab is clicked
+  const estimateTrackerBtn = document.querySelector('[onclick="showSection(\'estimate-tracker\')"]');
+  if (estimateTrackerBtn) {
+    estimateTrackerBtn.addEventListener('click', loadEstimates);
+  }
+});
+</script>
 
     <div class="main-content" id="company-profile">
       <div class="placeholder-content">
