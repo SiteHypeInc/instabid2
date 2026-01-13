@@ -1,13 +1,47 @@
-cat > js/calculators/materialListGenerator.js << 'EOF'
-// Material List Generator - Combines calculations + matching + CSV
-async function generateMaterialList(tradeType, criteria) {
+// Material List Generator - Fetches estimate, generates materials, downloads CSV
+async function generateMaterialList(estimateId) {
+  try {
+    // Step 1: Fetch estimate data from Railway
+    const response = await fetch(`https://roofbid-backend-production.up.railway.app/api/estimates/${estimateId}`);
+    if (!response.ok) throw new Error('Failed to fetch estimate');
+    
+    const estimate = await response.json();
+    
+    // Step 2: Check if trade is supported
+    if (estimate.trade !== 'roofing') {
+      alert(`Material lists are currently only available for roofing estimates.\n\nThis is a ${estimate.trade} estimate.`);
+      return;
+    }
+    
+    // Step 3: Parse trade details (project specifics)
+    const projectDetails = typeof estimate.projectDetails === 'string' 
+      ? JSON.parse(estimate.projectDetails) 
+      : estimate.projectDetails || {};
+    
+    // Step 4: Generate material list
+    const materialListData = await generateMaterialListForTrade(estimate.trade, projectDetails, estimate);
+    
+    // Step 5: Download CSV
+    const filename = `material-list-${estimate.customerName.replace(/\s+/g, '-')}-${Date.now()}.csv`;
+    downloadMaterialCSV(materialListData, filename);
+    
+  } catch (error) {
+    console.error('Error generating material list:', error);
+    alert('Failed to generate material list. Please try again.');
+  }
+}
+
+async function generateMaterialListForTrade(tradeType, projectDetails, estimate) {
   let materialList = [];
 
   switch(tradeType) {
     case 'roofing':
       if (typeof calculateRoofingEnhanced !== 'undefined') {
-        const result = calculateRoofingEnhanced(criteria);
-        materialList = result.materialList;
+        const result = calculateRoofingEnhanced(projectDetails);
+        materialList = result.materialList || [];
+      } else {
+        // Fallback: basic material list from estimate data
+        materialList = generateBasicRoofingList(estimate, projectDetails);
       }
       break;
     
@@ -18,7 +52,7 @@ async function generateMaterialList(tradeType, criteria) {
     case 'painting':
     case 'drywall':
     case 'siding':
-      materialList = generateGenericMaterialList(tradeType, criteria);
+      materialList = generateGenericMaterialList(tradeType, estimate);
       break;
     
     default:
@@ -26,41 +60,78 @@ async function generateMaterialList(tradeType, criteria) {
       return null;
   }
 
+  // Enhance with Supabase product data if available
   if (typeof enhanceMaterialListWithProducts !== 'undefined') {
     materialList = await enhanceMaterialListWithProducts(materialList);
   }
 
   return {
     tradeType,
-    criteria,
+    customerName: estimate.customerName,
+    address: estimate.address,
     materials: materialList,
     summary: {
       totalItems: materialList.length,
       exactMatches: materialList.filter(m => m.storeMatch).length,
       estimatedItems: materialList.filter(m => !m.storeMatch).length,
-      totalCost: materialList.reduce((sum, m) => sum + m.totalCost, 0)
+      totalCost: materialList.reduce((sum, m) => sum + (m.totalCost || 0), 0)
     }
   };
 }
 
-function generateGenericMaterialList(tradeType, criteria) {
+function generateBasicRoofingList(estimate, projectDetails) {
+  // Basic fallback if calculator not loaded
+  const sqft = projectDetails.roofArea || projectDetails.squareFeet || 2000;
+  const squares = sqft / 100;
+  
+  return [
+    {
+      item: 'Roofing Shingles',
+      quantity: Math.ceil(squares * 3), // 3 bundles per square
+      unit: 'bundle',
+      unitCost: 35,
+      totalCost: Math.ceil(squares * 3) * 35,
+      category: 'shingles'
+    },
+    {
+      item: 'Roofing Nails',
+      quantity: Math.ceil(squares * 2),
+      unit: 'lb',
+      unitCost: 8,
+      totalCost: Math.ceil(squares * 2) * 8,
+      category: 'fasteners'
+    },
+    {
+      item: 'Underlayment',
+      quantity: Math.ceil(squares * 1.1),
+      unit: 'roll',
+      unitCost: 45,
+      totalCost: Math.ceil(squares * 1.1) * 45,
+      category: 'underlayment'
+    }
+  ];
+}
+
+function generateGenericMaterialList(tradeType, estimate) {
   return [
     {
       item: `${tradeType.charAt(0).toUpperCase() + tradeType.slice(1)} Materials`,
       quantity: 1,
       unit: 'lot',
-      unitCost: 0,
-      totalCost: 0,
+      unitCost: estimate.materialsCost || 0,
+      totalCost: estimate.materialsCost || 0,
       category: 'general',
-      note: 'RS Means API integration pending'
+      note: 'Detailed material breakdown coming soon'
     }
   ];
 }
 
 function generateMaterialCSV(materialListData) {
-  const { tradeType, materials, summary } = materialListData;
+  const { tradeType, customerName, address, materials, summary } = materialListData;
   
   let csv = 'Material List\n';
+  csv += `Customer: ${customerName}\n`;
+  csv += `Address: ${address}\n`;
   csv += `Trade: ${tradeType.toUpperCase()}\n`;
   csv += `Generated: ${new Date().toLocaleString()}\n\n`;
   csv += 'Item,Quantity,Unit,SKU,Brand,Unit Cost,Total Cost,Match Type\n';
