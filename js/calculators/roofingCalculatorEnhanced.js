@@ -168,14 +168,18 @@ function calculateRoofingEnhanced(criteria) {
   const ventilationCost = ventCount * ventUnitCost;
 
   // === OSB SHEATHING (only if tearoff) ===
-  let osbSheets = 0;
-  let osbCost = 0;
-  if (tearOff) {
-    // Assume 20% damage replacement on tearoffs
-    osbSheets = Math.ceil((adjustedSqft * 0.20) / 32);
-    const osbUnitCost = 28.00;
-    osbCost = osbSheets * osbUnitCost;
-  }
+  // === OSB SHEATHING - Based on user input sqft ===
+let osbSheets = 0;
+let osbCost = 0;
+
+// Check if user provided OSB square footage
+const osbSqft = parseFloat(criteria.osbSqft || criteria.plywoodSqft || 0);
+
+if (osbSqft > 0) {
+  osbSheets = Math.ceil((osbSqft * wasteMultiplier) / 32);
+  const osbUnitCost = 28.00;
+  osbCost = osbSheets * osbUnitCost;
+}
 
   // === DISPOSAL ===
   const disposalLoads = tearOff ? Math.ceil(squareFeet / 100) : 0;

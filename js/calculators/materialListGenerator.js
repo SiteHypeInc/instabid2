@@ -76,15 +76,17 @@ async function generateMaterialListForTrade(tradeType, projectDetails, estimate,
         console.log('🔧 Calling calculateRoofingEnhanced...');
         
         // Build complete criteria object
-        const criteria = {
-          squareFeet: parseFloat(projectDetails.squareFeet || projectDetails.roofArea || 2000),
-          pitch: projectDetails.pitch || projectDetails.roofPitch || 'medium',
-          tearOff: projectDetails.tearOff === 'yes' || projectDetails.existingRoofType !== 'none',
-          layers: parseInt(projectDetails.layers || projectDetails.tearOffLayers || 1),
-          chimneys: parseInt(projectDetails.chimneys || 0),
-          skylights: parseInt(projectDetails.skylights || 0),
-          valleys: parseInt(projectDetails.valleys || 0)
-        };
+       
+const criteria = {
+  squareFeet: parseFloat(projectDetails.squareFeet || projectDetails.roofArea || 2000),
+  pitch: projectDetails.pitch || projectDetails.roofPitch || 'medium',
+  tearOff: projectDetails.tearOff === 'yes' || projectDetails.existingRoofType !== 'none',
+  osbSqft: parseFloat(projectDetails.osbSqft || projectDetails.plywoodSqft || 0), // NEW LINE
+  layers: parseInt(projectDetails.layers || projectDetails.tearOffLayers || 1),
+  chimneys: parseInt(projectDetails.chimneys || 0),
+  skylights: parseInt(projectDetails.skylights || 0),
+  valleys: parseInt(projectDetails.valleys || 0)
+};
         
         console.log('📊 Calculator criteria:', criteria);
         
