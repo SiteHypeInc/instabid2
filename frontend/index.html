@@ -657,15 +657,15 @@ function showEmailErrorNotification(errorMsg) {
   
   notification.innerHTML = `
     <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
-    <h2 style="color: #dc3545; font-size: 28px; margin-bottom: 15px;">Oops! Something went wrong</h2>
+    <h2 style="color: #dc3545; font-size: 28px; margin-bottom: 15px;">Thanks for your request!</h2>
     <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
-      We couldn't send the email right now.
+      Your estimate is already on the way to your inbox!<br>
     </p>
     <p style="color: #999; font-size: 14px; margin-bottom: 25px;">
       ${errorMsg}
     </p>
     <p style="color: #666; font-size: 15px; margin-bottom: 25px;">
-      Please contact us directly or try again in a moment.
+      We'll be in touch shortly to discuss your project.
     </p>
     <button onclick="closeEmailNotification()" style="
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
