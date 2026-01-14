@@ -940,6 +940,27 @@ app.post('/api/estimate', async (req, res) => {
       });
     }
 
+     // ✅✅✅ ADD THE REGIONAL FALLBACK CODE HERE ✅✅✅
+    // Regional Data Lookup with Fallback
+    const finalZip = zip || zipCode; // Handle both field names
+    let msa = 'National Average';
+    let regionalMultiplier = 1.0;
+
+    try {
+      const zipResult = await pool.query('SELECT msa_name FROM zip_metro WHERE zip_code = $1', [finalZip]);
+      
+      if (zipResult.rows && zipResult.rows.length > 0) {
+        msa = zipResult.rows[0].msa_name || 'National Average';
+        // regionalMultiplier = zipResult.rows[0].regional_multiplier || 1.0; // Future use
+      } else {
+        console.log(`⚠️ No regional data found for ZIP: ${finalZip} - using National Average`);
+      }
+    } catch (error) {
+      console.error('❌ Regional lookup error:', error);
+      // Continue with defaults
+    }
+    // ✅✅✅ END REGIONAL FALLBACK CODE ✅✅✅
+
     const contractor_id = contractor.id;
 
     const finalCustomerName = customerName || customer_name || req.body.name;
@@ -1073,7 +1094,8 @@ app.post('/api/estimate', async (req, res) => {
       subtotal: estimate.totalCost,
       tax: estimate.totalCost * 0.0825,
       total: estimate.totalCost * 1.0825,
-      msa: finalCity + ', ' + finalState,
+      /*msa: finalCity + ', ' + finalState,*/
+      msa: msa,
       timeline: Math.ceil(estimate.laborHours / 8) + ' days',
       estimate: {
         totalCost: estimate.totalCost,
