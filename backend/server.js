@@ -1991,6 +1991,115 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
+// ============================================
+// SESSION VERIFICATION MIDDLEWARE
+// ============================================
+
+function verifySession(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    return res.status(401).json({ success: false, error: 'No session token provided' });
+  }
+  
+  // Query sessions table to verify token is valid
+  pool.query(
+    'SELECT contractor_id FROM contractor_sessions WHERE session_token = $1 AND expires_at > NOW()',
+    [token],
+    (err, result) => {
+      if (err || result.rows.length === 0) {
+        return res.status(401).json({ success: false, error: 'Invalid or expired session' });
+      }
+      
+      req.contractor_id = result.rows[0].contractor_id;
+      next();
+    }
+  );
+}
+
+// ============================================
+// COMPANY SETTINGS ENDPOINTS (PROTECTED)
+// ============================================
+
+// GET contractor profile data
+app.get('/api/contractors/:id', verifySession, async (req, res) => {
+  const { id } = req.params;
+  
+  // Security: Ensure contractor can only access their own data
+  if (parseInt(id) !== req.contractor_id) {
+    return res.status(403).json({ success: false, error: 'Unauthorized access' });
+  }
+  
+  try {
+    const result = await pool.query(
+      'SELECT * FROM contractors WHERE id = $1',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Contractor not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('❌ Error fetching contractor:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch contractor data' });
+  }
+});
+
+// UPDATE contractor profile data
+app.put('/api/contractors/:id', verifySession, async (req, res) => {
+  const { id } = req.params;
+  
+  // Security: Ensure contractor can only update their own data
+  if (parseInt(id) !== req.contractor_id) {
+    return res.status(403).json({ success: false, error: 'Unauthorized access' });
+  }
+  
+  const {
+    company_name, phone, email, address, city, state, zip,
+    license_number, primary_color, secondary_color, accent_color,
+    tax_rate, default_markup, logo_url
+  } = req.body;
+  
+  try {
+    const result = await pool.query(`
+      UPDATE contractors SET
+        company_name = COALESCE($1, company_name),
+        phone = COALESCE($2, phone),
+        email = COALESCE($3, email),
+        address = $4,
+        city = $5,
+        state = $6,
+        zip = $7,
+        license_number = $8,
+        primary_color = COALESCE($9, primary_color),
+        secondary_color = COALESCE($10, secondary_color),
+        accent_color = COALESCE($11, accent_color),
+        tax_rate = $12,
+        default_markup = $13,
+        logo_url = $14,
+        updated_at = NOW()
+      WHERE id = $15
+      RETURNING *
+    `, [
+      company_name, phone, email, address, city, state, zip,
+      license_number, primary_color, secondary_color, accent_color,
+      tax_rate, default_markup, logo_url, id
+    ]);
+    
+    console.log('✅ Contractor profile updated:', result.rows[0].email);
+    
+    res.json({ success: true, contractor: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error updating contractor:', error);
+    res.status(500).json({ success: false, error: 'Failed to update contractor data' });
+  }
+});
+
+
 // TEST SCRAPER - Single material only (SAFE)
 /*app.get('/api/test-scraper-single', requireAuth, async (req, res) => {
   console.log('🧪 SINGLE MATERIAL TEST STARTED');
