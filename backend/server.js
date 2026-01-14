@@ -968,8 +968,8 @@ app.post('/api/estimate', async (req, res) => {
     const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
     const finalPropertyAddress = propertyAddress || address || '';
     const finalZipCode = zipCode || zip || '';
-    const finalCity = req.body.city || 'Unknown';
-    const finalState = req.body.state || 'Unknown';
+    const finalCity = city || 'Unknown';  // ← FIXED
+    const finalState = state || 'Unknown';  // ← FIXED
 
     console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
@@ -1002,24 +1002,24 @@ app.post('/api/estimate', async (req, res) => {
     `;
 
     const values = [
-      contractor_id,
-      finalCustomerName,
-      finalCustomerEmail,
-      finalCustomerPhone,
-      finalPropertyAddress,
-      city,
-      state,
-      finalZipCode,
-      trade,
-      JSON.stringify(tradeSpecificFields),
-      estimate.laborHours,
-      estimate.laborRate,
-      estimate.laborCost,
-      estimate.materialCost,
-      estimate.equipmentCost || 0,
-      estimate.totalCost,
-      JSON.stringify(tradeSpecificFields.photos || []), 
-    ];
+  contractor_id,                                  // $1
+  finalCustomerName,                              // $2
+  finalCustomerEmail,                             // $3
+  finalCustomerPhone,                             // $4
+  finalPropertyAddress,                           // $5
+  finalCity,                                      // $6 ← CHANGED
+  finalState,                                     // $7 ← CHANGED
+  finalZipCode,                                   // $8
+  trade,                                          // $9
+  JSON.stringify(tradeSpecificFields),            // $10
+  estimate.laborHours,                            // $11
+  estimate.laborRate,                             // $12
+  estimate.laborCost,                             // $13
+  estimate.materialCost,                          // $14
+  estimate.equipmentCost || 0,                    // $15
+  estimate.totalCost,                             // $16
+  JSON.stringify(tradeSpecificFields.photos || []) // $17
+];
 
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
