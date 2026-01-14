@@ -1373,6 +1373,11 @@ async function viewEstimateDetails(estimateId) {
     const estimate = await response.json();
     currentEstimate = estimate;
     
+    // ✅ DEBUG: CHECK PHOTOS
+    console.log('📸 Full estimate object:', estimate);
+    console.log('📸 estimate.photos:', estimate.photos);
+    console.log('📸 Photos conditional result:', estimate.photos && estimate.photos.length > 0);
+
     detailsPanel.innerHTML = `
       <div style="max-width: 700px;">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
