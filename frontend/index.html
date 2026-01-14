@@ -88,11 +88,37 @@ body {
   margin: 20px 0;
   border: 2px solid #ddd;
   border-radius: 6px;
-  height: 250px;
+  height: 500px;
   overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
 }
 
-#map {
+.map-view {
+  position: relative;
+  height: 100%;
+}
+
+.map-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9em;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+#aerialMap {
+  width: 100%;
+  height: 100%;
+}
+
+#streetView {
   width: 100%;
   height: 100%;
 }
@@ -283,7 +309,14 @@ body {
         </div>
 
         <div class="map-container">
-          <div id="map"></div>
+          <div class="map-view">
+            <div class="map-label">🛰️ Aerial View</div>
+            <div id="aerialMap"></div>
+          </div>
+          <div class="map-view">
+            <div class="map-label">🚗 Street View</div>
+            <div id="streetView"></div>
+          </div>
         </div>
 
         <button type="submit" class="btn-primary" id="submitBtn">Get Instant Estimate</button>
@@ -295,7 +328,7 @@ body {
         <h2>Your Estimate</h2>
         <div class="cost-breakdown" id="costBreakdown"></div>
         <div class="action-buttons">
-          <button class="btn-action btn-email" id="emailBtn">📧 Email Sent!</button>
+          <button class="btn-action btn-email" id="emailBtn">📧 Email</button>
           <button class="btn-action btn-pdf" id="pdfBtn">📄 PDF</button>
           <button class="btn-action btn-contract" id="contractBtn">📝 Contract</button>
         </div>
@@ -452,40 +485,39 @@ var TRADE_FORM_SCHEMA = {
     { name: 'colorChangeDramatic', label: 'Dramatic Color Change?', type: 'radio', options: ['yes', 'no'], required: false }
   ],
 
+  drywall: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'projectType', label: 'Project Type', type: 'select', options: ['new_construction', 'repair'], required: true },
+    { name: 'rooms', label: 'Number of Rooms', type: 'number', required: true },
+    { name: 'ceilingHeight', label: 'Ceiling Height', type: 'select', options: ['8ft', '9ft', '10ft', '12ft+'], required: true },
+    { name: 'finishLevel', label: 'Finish Level', type: 'select', options: ['level_3_standard', 'level_4_smooth', 'level_5_glass'], required: false },
+    { name: 'textureType', label: 'Texture Type', type: 'select', options: ['none', 'orange_peel', 'knockdown', 'popcorn'], required: false },
+    { name: 'damageExtent', label: 'Damage Extent (Repair)', type: 'select', options: ['minor', 'moderate', 'extensive'], required: false }
+  ],
 
-drywall: [
-  { name: 'name', label: 'Full Name', type: 'text', required: true },
-  { name: 'email', label: 'Email', type: 'email', required: true },
-  { name: 'phone', label: 'Phone', type: 'tel', required: true },
-  { name: 'address', label: 'Property Address', type: 'text', required: true },
-  { name: 'city', label: 'City', type: 'text', required: true },
-  { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
-  { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
-  { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
-  { name: 'projectType', label: 'Project Type', type: 'select', options: ['new_construction', 'repair'], required: true },
-  { name: 'rooms', label: 'Number of Rooms', type: 'number', required: true },
-  { name: 'ceilingHeight', label: 'Ceiling Height', type: 'select', options: ['8ft', '9ft', '10ft', '12ft+'], required: true },
-  { name: 'finishLevel', label: 'Finish Level', type: 'select', options: ['level_3_standard', 'level_4_smooth', 'level_5_glass'], required: false },
-  { name: 'textureType', label: 'Texture Type', type: 'select', options: ['none', 'orange_peel', 'knockdown', 'popcorn'], required: false },
-  { name: 'damageExtent', label: 'Damage Extent (Repair)', type: 'select', options: ['minor', 'moderate', 'extensive'], required: false }
-],
-
-siding: [
-  { name: 'name', label: 'Full Name', type: 'text', required: true },
-  { name: 'email', label: 'Email', type: 'email', required: true },
-  { name: 'phone', label: 'Phone', type: 'tel', required: true },
-  { name: 'address', label: 'Property Address', type: 'text', required: true },
-  { name: 'city', label: 'City', type: 'text', required: true },
-  { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
-  { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
-  { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
-  { name: 'sidingType', label: 'Siding Type', type: 'select', options: ['vinyl', 'fiber_cement', 'wood_cedar', 'metal_aluminum', 'stucco'], required: true },
-  { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
-  { name: 'needsRemoval', label: 'Remove Existing Siding?', type: 'radio', options: ['yes', 'no'], required: true },
-  { name: 'windowCount', label: 'Number of Windows', type: 'number', required: false },
-  { name: 'doorCount', label: 'Number of Doors', type: 'number', required: false },
-  { name: 'trimLinearFeet', label: 'Trim (Linear Feet)', type: 'number', required: false }
-],
+  siding: [
+    { name: 'name', label: 'Full Name', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true },
+    { name: 'address', label: 'Property Address', type: 'text', required: true },
+    { name: 'city', label: 'City', type: 'text', required: true },
+    { name: 'state', label: 'State', type: 'select', options: ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'], required: true },
+    { name: 'zip', label: 'ZIP Code', type: 'text', required: true },
+    { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true },
+    { name: 'sidingType', label: 'Siding Type', type: 'select', options: ['vinyl', 'fiber_cement', 'wood_cedar', 'metal_aluminum', 'stucco'], required: true },
+    { name: 'stories', label: 'Number of Stories', type: 'number', required: true },
+    { name: 'needsRemoval', label: 'Remove Existing Siding?', type: 'radio', options: ['yes', 'no'], required: true },
+    { name: 'windowCount', label: 'Number of Windows', type: 'number', required: false },
+    { name: 'doorCount', label: 'Number of Doors', type: 'number', required: false },
+    { name: 'trimLinearFeet', label: 'Trim (Linear Feet)', type: 'number', required: false }
+  ],
 
   general_contracting: [
     { name: 'name', label: 'Full Name', type: 'text', required: true },
@@ -502,10 +534,169 @@ siding: [
 };
 
 var selectedTrade = null;
-var map = null;
+var aerialMap = null;
+var streetViewPanorama = null;
 var marker = null;
 var uploadedPhotos = [];
 var currentEstimateData = null;
+
+// ============================================
+// EMAIL NOTIFICATION STYLES (ADD ANIMATIONS)
+// ============================================
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  @keyframes slideIn {
+    from { transform: translate(-50%, -60%); opacity: 0; }
+    to { transform: translate(-50%, -50%); opacity: 1; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .email-notification button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+`;
+document.head.appendChild(styleSheet);
+
+// ============================================
+// EMAIL NOTIFICATION FUNCTIONS (GLOBAL SCOPE)
+// ============================================
+
+function showEmailNotification() {
+  const overlay = document.createElement('div');
+  overlay.className = 'email-notification-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  const notification = document.createElement('div');
+  notification.className = 'email-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 40px 50px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 10000;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+    max-width: 500px;
+  `;
+  
+  notification.innerHTML = `
+    <div style="font-size: 60px; margin-bottom: 20px;">📧</div>
+    <h2 style="color: #28a745; font-size: 28px; margin-bottom: 15px;">Thanks for your request!</h2>
+    <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+      Your estimate is already on the way to your inbox!<br>
+      We'll be in touch shortly to discuss your project.
+    </p>
+    <button onclick="closeEmailNotification()" style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    ">Got it!</button>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.appendChild(notification);
+  
+  overlay.onclick = closeEmailNotification;
+  setTimeout(closeEmailNotification, 5000);
+}
+
+function showEmailErrorNotification(errorMsg) {
+  const overlay = document.createElement('div');
+  overlay.className = 'email-notification-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  const notification = document.createElement('div');
+  notification.className = 'email-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 40px 50px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 10000;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+    max-width: 500px;
+  `;
+  
+  notification.innerHTML = `
+    <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+    <h2 style="color: #dc3545; font-size: 28px; margin-bottom: 15px;">Oops! Something went wrong</h2>
+    <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
+      We couldn't send the email right now.
+    </p>
+    <p style="color: #999; font-size: 14px; margin-bottom: 25px;">
+      ${errorMsg}
+    </p>
+    <p style="color: #666; font-size: 15px; margin-bottom: 25px;">
+      Please contact us directly or try again in a moment.
+    </p>
+    <button onclick="closeEmailNotification()" style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    ">Okay</button>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.appendChild(notification);
+  
+  overlay.onclick = closeEmailNotification;
+}
+
+function closeEmailNotification() {
+  const overlay = document.querySelector('.email-notification-overlay');
+  const notification = document.querySelector('.email-notification');
+  
+  if (overlay) overlay.remove();
+  if (notification) notification.remove();
+}
+
+// ============================================
+// TRADE SELECTOR
+// ============================================
 
 document.getElementById('tradeSelector').addEventListener('change', function() {
   selectedTrade = this.value;
@@ -522,7 +713,6 @@ function renderForm(trade) {
   
   var schema = TRADE_FORM_SCHEMA[trade];
   
-  // Field-specific helpers
   var helpers = {
     squareFeet: { placeholder: '2000', hint: '' },
     pitch: { placeholder: '6/12 or 8/12', hint: 'Enter as ratio (e.g., 4/12, 6/12, 9/12)' },
@@ -604,7 +794,6 @@ function renderForm(trade) {
         input = document.createElement('input');
         input.type = field.type;
         
-        // Add placeholder and default value
         if (helper.placeholder) {
           input.placeholder = helper.placeholder;
         }
@@ -612,7 +801,6 @@ function renderForm(trade) {
           input.value = helper.default;
         }
         
-        // Add min attribute for number fields
         if (field.type === 'number' && !field.required) {
           input.min = '0';
         }
@@ -624,7 +812,6 @@ function renderForm(trade) {
       
       formGroup.appendChild(input);
       
-      // Add helper text
       if (helper.hint) {
         var small = document.createElement('small');
         small.textContent = helper.hint;
@@ -639,8 +826,12 @@ function renderForm(trade) {
     container.appendChild(formGroup);
   }
   
-  setTimeout(initMap, 100);
+  setTimeout(initMaps, 100);
 }
+
+// ============================================
+// PHOTO UPLOAD
+// ============================================
 
 document.getElementById('photoInput').addEventListener('change', function(e) {
   var files = Array.prototype.slice.call(e.target.files);
@@ -672,29 +863,79 @@ function removePhoto(index) {
   renderPhotos();
 }
 
-function initMap() {
-  var mapDiv = document.getElementById('map');
-  map = new google.maps.Map(mapDiv, {
+// ============================================
+// GOOGLE MAPS - SPLIT VIEW (AERIAL + STREET)
+// ============================================
+
+function initMaps() {
+  // Initialize Aerial Map (Top)
+  aerialMap = new google.maps.Map(document.getElementById('aerialMap'), {
     center: { lat: 39.8283, lng: -98.5795 },
     zoom: 4,
-    mapTypeId: 'satellite'
+    mapTypeId: 'satellite',
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+      style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+      position: google.maps.ControlPosition.TOP_RIGHT
+    },
+    fullscreenControl: true,
+    zoomControl: true
   });
   
+  // Initialize Street View (Bottom)
+  streetViewPanorama = new google.maps.StreetViewPanorama(
+    document.getElementById('streetView'),
+    {
+      position: { lat: 39.8283, lng: -98.5795 },
+      pov: { heading: 34, pitch: 10 },
+      addressControl: true,
+      visible: false
+    }
+  );
+  
+  // Setup address autocomplete
   var addressInput = document.getElementById('address');
   if (addressInput) {
     var autocomplete = new google.maps.places.Autocomplete(addressInput);
     autocomplete.addListener('place_changed', function() {
       var place = autocomplete.getPlace();
       if (place.geometry) {
-        map.setCenter(place.geometry.location);
-        map.setZoom(18);
+        var location = place.geometry.location;
+        
+        // Update Aerial Map
+        aerialMap.setCenter(location);
+        aerialMap.setZoom(19);
         
         if (marker) marker.setMap(null);
         marker = new google.maps.Marker({
-          position: place.geometry.location,
-          map: map
+          position: location,
+          map: aerialMap,
+          title: 'Property Location'
         });
-  
+        
+        // Update Street View
+        var streetViewService = new google.maps.StreetViewService();
+        streetViewService.getPanorama(
+          { location: location, radius: 50 },
+          function(data, status) {
+            if (status === 'OK') {
+              streetViewPanorama.setPosition(location);
+              streetViewPanorama.setPov({
+                heading: 34,
+                pitch: 10
+              });
+              streetViewPanorama.setVisible(true);
+            } else {
+              // Street View not available
+              document.getElementById('streetView').innerHTML = 
+                '<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; color: #666; font-size: 1.1em;">' +
+                '🚫 Street View not available at this location' +
+                '</div>';
+            }
+          }
+        );
+        
+        // Auto-fill city, state, zip
         var components = place.address_components;
         for (var i = 0; i < components.length; i++) {
           var comp = components[i];
@@ -713,18 +954,20 @@ function initMap() {
   }
 }
 
-  document.getElementById('estimateForm').addEventListener('submit', function(e) {
+// ============================================
+// FORM SUBMISSION
+// ============================================
+
+document.getElementById('estimateForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
   var formData = new FormData(e.target);
   var data = {};
   
-  // Handle regular fields
   formData.forEach(function(value, key) {
     data[key] = value;
   });
   
-  // Handle unchecked checkboxes (they don't appear in FormData)
   var checkboxes = e.target.querySelectorAll('input[type="checkbox"]');
   for (var i = 0; i < checkboxes.length; i++) {
     var cb = checkboxes[i];
@@ -733,26 +976,20 @@ function initMap() {
     }
   }
 
-  // STORE THE ORIGINAL FORM DATA (NOT THE RESPONSE!)
-   
   currentEstimateData = Object.assign({}, data);
-    // ADD THESE TWO LINES:
-data.trade = selectedTrade;
-data.photos = uploadedPhotos;
-
+  data.trade = selectedTrade;
+  data.photos = uploadedPhotos;
+  data.api_key = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+  
   var submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ Calculating...';
   
-  // ADD API KEY TO REQUEST
-data.api_key = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be'; // 👈 Get this from your database contractors table
-  
-
-fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data)
-})
+  fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
   .then(function(response) {
     console.log('Response received:', response);
     return response.json().then(function(result) {
@@ -760,17 +997,16 @@ fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
       return { ok: response.ok, result: result };
     });
   })
- .then(function(data) {
-  if (data.ok) {
-    displayResults(data.result);
-  } else {
-    // 👈 Show user-friendly message if subscription inactive
-    var errorMsg = data.result.user_message || data.result.error || 'Failed to calculate estimate';
-    showError(errorMsg);
-  }
-  submitBtn.disabled = false;
-  submitBtn.textContent = 'Get Instant Estimate';
-})
+  .then(function(data) {
+    if (data.ok) {
+      displayResults(data.result);
+    } else {
+      var errorMsg = data.result.user_message || data.result.error || 'Failed to calculate estimate';
+      showError(errorMsg);
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Get Instant Estimate';
+  })
   .catch(function(error) {
     showError('Network error: ' + error.message);
     submitBtn.disabled = false;
@@ -802,28 +1038,8 @@ function showError(message) {
 }
 
 // ============================================
-// EMAIL NOTIFICATION STYLES (ADD ANIMATIONS)
+// EMAIL BUTTON HANDLER
 // ============================================
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  @keyframes slideIn {
-    from { transform: translate(-50%, -60%); opacity: 0; }
-    to { transform: translate(-50%, -50%); opacity: 1; }
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  .email-notification button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-`;
-document.head.appendChild(styleSheet);
-
-
 
 document.getElementById('emailBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
@@ -843,158 +1059,27 @@ document.getElementById('emailBtn').addEventListener('click', function() {
       return { ok: response.ok, result: result };
     });
   })
-  then(function(data) {
-  if (data.ok) {
-    showEmailNotification(); // ← NEW
-  } else {
-    showEmailErrorNotification(data.result.error || 'Unknown error'); // ← NEW
-  }
-  self.disabled = false;
-  self.textContent = '📧 Email';
-})
-.catch(function(error) {
-  showEmailErrorNotification('Network error: ' + error.message); // ← NEW
-  self.disabled = false;
-  self.textContent = '📧 Email';
+  .then(function(data) {
+    if (data.ok) {
+      showEmailNotification();
+    } else {
+      showEmailErrorNotification(data.result.error || 'Unknown error');
+    }
+    self.disabled = false;
+    self.textContent = '📧 Email';
+  })
+  .catch(function(error) {
+    showEmailErrorNotification('Network error: ' + error.message);
+    self.disabled = false;
+    self.textContent = '📧 Email';
+  });
 });
 
-// SUCCESS NOTIFICATION
-function showEmailNotification() {
-  // Create overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'email-notification-overlay';
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 9999;
-    animation: fadeIn 0.3s ease;
-  `;
-  
-  // Create notification
-  const notification = document.createElement('div');
-  notification.className = 'email-notification';
-  notification.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 40px 50px;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    z-index: 10000;
-    text-align: center;
-    animation: slideIn 0.3s ease;
-    max-width: 500px;
-  `;
-  
-  notification.innerHTML = `
-    <div style="font-size: 60px; margin-bottom: 20px;">📧</div>
-    <h2 style="color: #28a745; font-size: 28px; margin-bottom: 15px;">Thanks for your request!</h2>
-    <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
-      Your estimate is already on the way to your inbox!<br>
-      We'll be in touch shortly to discuss your project.
-    </p>
-    <button onclick="closeEmailNotification()" style="
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 12px 30px;
-      font-size: 16px;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    ">Got it!</button>
-  `;
-  
-  document.body.appendChild(overlay);
-  document.body.appendChild(notification);
-  
-  // Click overlay to close
-  overlay.onclick = closeEmailNotification;
-  
-  // Auto-close after 5 seconds
-  setTimeout(closeEmailNotification, 5000);
-}
+// ============================================
+// PDF BUTTON HANDLER
+// ============================================
 
-// ERROR NOTIFICATION
-function showEmailErrorNotification(errorMsg) {
-  const overlay = document.createElement('div');
-  overlay.className = 'email-notification-overlay';
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 9999;
-    animation: fadeIn 0.3s ease;
-  `;
-  
-  const notification = document.createElement('div');
-  notification.className = 'email-notification';
-  notification.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 40px 50px;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    z-index: 10000;
-    text-align: center;
-    animation: slideIn 0.3s ease;
-    max-width: 500px;
-  `;
-  
-  notification.innerHTML = `
-    <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
-    <h2 style="color: #dc3545; font-size: 28px; margin-bottom: 15px;">Oops! Something went wrong</h2>
-    <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
-      We couldn't send the email right now.
-    </p>
-    <p style="color: #999; font-size: 14px; margin-bottom: 25px;">
-      ${errorMsg}
-    </p>
-    <p style="color: #666; font-size: 15px; margin-bottom: 25px;">
-      Please contact us directly or try again in a moment.
-    </p>
-    <button onclick="closeEmailNotification()" style="
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 12px 30px;
-      font-size: 16px;
-      font-weight: 600;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    ">Okay</button>
-  `;
-  
-  document.body.appendChild(overlay);
-  document.body.appendChild(notification);
-  
-  overlay.onclick = closeEmailNotification;
-}
-
-// CLOSE FUNCTION
-function closeEmailNotification() {
-  const overlay = document.querySelector('.email-notification-overlay');
-  const notification = document.querySelector('.email-notification');
-  
-  if (overlay) overlay.remove();
-  if (notification) notification.remove();
-}
-
-  document.getElementById('pdfBtn').addEventListener('click', function() {
+document.getElementById('pdfBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   
   this.disabled = true;
@@ -1035,7 +1120,10 @@ function closeEmailNotification() {
   });
 });
 
-  // Standalone Contract generation endpoint
+// ============================================
+// CONTRACT BUTTON HANDLER
+// ============================================
+
 document.getElementById('contractBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   
