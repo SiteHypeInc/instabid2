@@ -1381,13 +1381,323 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-    <div class="main-content" id="company-profile">
-      <div class="placeholder-content">
-        <h2>🏢 Company Profile</h2>
-        <p>Edit company name, logo, contact info, license numbers</p>
-        <p style="margin-top: 20px; color: #667eea; font-weight: 600;">Coming Soon</p>
+<div class="main-content" id="company-profile">
+  <h2 class="section-title">🏢 Company Profile Settings</h2>
+
+  <!-- SECTION 1: COMPANY INFORMATION -->
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+    <h3>📋 Company Information</h3>
+    <div style="display: grid; gap: 15px;">
+      <div class="config-item" style="display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #ddd; padding: 12px 0;">
+        <label style="font-weight: 600;">Company Name <span style="color: red;">*</span></label>
+        <input type="text" id="profile_company_name" required style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+      </div>
+      <div class="config-item" style="display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #ddd; padding: 12px 0;">
+        <label style="font-weight: 600;">Phone <span style="color: red;">*</span></label>
+        <input type="tel" id="profile_phone" required style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+      </div>
+      <div class="config-item" style="display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #ddd; padding: 12px 0;">
+        <label style="font-weight: 600;">Email <span style="color: red;">*</span></label>
+        <input type="email" id="profile_email" required style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+      </div>
+      <div class="config-item" style="display: grid; grid-template-columns: 150px 1fr; border-bottom: 1px solid #ddd; padding: 12px 0;">
+        <label style="font-weight: 600;">Street Address</label>
+        <input type="text" id="profile_address" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+      </div>
+      <div style="display: grid; grid-template-columns: 150px 1fr 1fr 120px; gap: 10px; border-bottom: 1px solid #ddd; padding: 12px 0;">
+        <label style="font-weight: 600; grid-column: 1;">City, State, ZIP</label>
+        <input type="text" id="profile_city" placeholder="City" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+        <input type="text" id="profile_state" placeholder="State" maxlength="2" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px; text-transform: uppercase;">
+        <input type="text" id="profile_zip" placeholder="ZIP" maxlength="10" style="padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
+      </div>
+      <div class="config-item" style="display: grid; grid-template-columns: 150px 1fr; padding: 12px 0;">
+        <label style="font-weight: 600;">License Number</label>
+        <input type="text" id="profile_license" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px;">
       </div>
     </div>
+  </div>
+
+  <!-- SECTION 2: LOGO UPLOAD -->
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+    <h3>🎨 Company Logo</h3>
+    <div id="logoDropZone" style="
+      border: 3px dashed #ddd;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: white;
+    " onclick="document.getElementById('logoFileInput').click()">
+      <div id="logoPreview" style="display: none; margin-bottom: 20px;">
+        <img id="logoImg" style="max-width: 200px; max-height: 100px; border-radius: 8px;">
+      </div>
+      <div id="logoPlaceholder">
+        <div style="font-size: 48px; margin-bottom: 10px;">📷</div>
+        <p style="color: #666; font-weight: 600; margin-bottom: 5px;">Click to upload logo</p>
+        <p style="color: #999; font-size: 14px;">PNG, JPG, or SVG • Max 2MB</p>
+      </div>
+      <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
+    </div>
+  </div>
+
+  <!-- SECTION 3: BRAND COLORS -->
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+    <h3>🎨 Brand Colors</h3>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+      <div style="text-align: center;">
+        <label style="display: block; font-weight: 600; margin-bottom: 10px;">Primary Color</label>
+        <input type="color" id="profile_primary_color" value="#4CAF50" style="width: 100%; height: 60px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="profile_primary_hex" value="#4CAF50" readonly style="width: 100%; margin-top: 8px; padding: 6px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+      </div>
+      <div style="text-align: center;">
+        <label style="display: block; font-weight: 600; margin-bottom: 10px;">Secondary Color</label>
+        <input type="color" id="profile_secondary_color" value="#2196F3" style="width: 100%; height: 60px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="profile_secondary_hex" value="#2196F3" readonly style="width: 100%; margin-top: 8px; padding: 6px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+      </div>
+      <div style="text-align: center;">
+        <label style="display: block; font-weight: 600; margin-bottom: 10px;">Accent Color</label>
+        <input type="color" id="profile_accent_color" value="#FF9800" style="width: 100%; height: 60px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+        <input type="text" id="profile_accent_hex" value="#FF9800" readonly style="width: 100%; margin-top: 8px; padding: 6px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: BUSINESS SETTINGS -->
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+    <h3>⚙️ Business Settings</h3>
+    <div class="config-item">
+      <label style="font-weight: 600;">Tax Rate (%)</label>
+      <input type="number" id="profile_tax_rate" step="0.01" min="0" max="100" placeholder="8.5" style="width: 140px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
+    </div>
+    <div class="config-item">
+      <label style="font-weight: 600;">Default Markup (%)</label>
+      <input type="number" id="profile_default_markup" step="0.01" min="0" max="100" placeholder="20" style="width: 140px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
+    </div>
+  </div>
+
+  <!-- SECTION 5: SUBSCRIPTION INFO (READ-ONLY) -->
+  <div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: #f0f8ff;">
+    <h3>💳 Subscription</h3>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;">
+      <div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Plan</div>
+        <div id="profile_subscription_level" style="font-size: 20px; font-weight: 700; color: #667eea;">Free</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Status</div>
+        <div id="profile_subscription_status" style="font-size: 20px; font-weight: 700; color: #28a745;">Active</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Renewal</div>
+        <div id="profile_renewal_date" style="font-size: 20px; font-weight: 700; color: #333;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE BUTTON -->
+  <button class="btn-save" onclick="saveCompanyProfile()">💾 Save Company Profile</button>
+  <div class="status-message" id="profile-status"></div>
+</div>
+
+<script>
+// COMPANY PROFILE FUNCTIONALITY
+const RAILWAY_API = '[https://roofbid-backend-production.up.railway.app](https://roofbid-backend-production.up.railway.app)';
+
+// Load profile when Company Profile tab is clicked
+document.querySelector('[data-main="company-profile"]').addEventListener('click', loadCompanyProfile);
+
+// Color picker sync
+['primary', 'secondary', 'accent'].forEach(color => {
+  const picker = document.getElementById(`profile_${color}_color`);
+  const hex = document.getElementById(`profile_${color}_hex`);
+  
+  picker.addEventListener('input', (e) => {
+    hex.value = e.target.value.toUpperCase();
+  });
+});
+
+// Logo upload handler
+document.getElementById('logoFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 2 * 1024 * 1024) {
+    alert('File too large! Max 2MB');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    document.getElementById('logoImg').src = event.target.result;
+    document.getElementById('logoPreview').style.display = 'block';
+    document.getElementById('logoPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+});
+
+// Drag & drop for logo
+const dropZone = document.getElementById('logoDropZone');
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = '#667eea';
+  dropZone.style.background = '#f0f4ff';
+});
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.style.borderColor = '#ddd';
+  dropZone.style.background = 'white';
+});
+
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = '#ddd';
+  dropZone.style.background = 'white';
+  
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    document.getElementById('logoFileInput').files = e.dataTransfer.files;
+    document.getElementById('logoFileInput').dispatchEvent(new Event('change'));
+  }
+});
+
+// Load contractor profile
+async function loadCompanyProfile() {
+  const contractorId = localStorage.getItem('contractor_id');
+  const sessionToken = localStorage.getItem('session_token');
+  
+  if (!contractorId || !sessionToken) {
+    window.location.href = '/login.html';
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${RAILWAY_API}/api/contractors/${contractorId}`, {
+      headers: {
+        'Authorization': `Bearer ${sessionToken}`
+      }
+    });
+    
+    if (response.status === 401 || response.status === 403) {
+      localStorage.clear();
+      window.location.href = '/login.html';
+      return;
+    }
+    
+    const contractor = await response.json();
+    
+    // Populate form fields
+    document.getElementById('profile_company_name').value = contractor.company_name || '';
+    document.getElementById('profile_phone').value = contractor.phone || '';
+    document.getElementById('profile_email').value = contractor.email || '';
+    document.getElementById('profile_address').value = contractor.address || '';
+    document.getElementById('profile_city').value = contractor.city || '';
+    document.getElementById('profile_state').value = contractor.state || '';
+    document.getElementById('profile_zip').value = contractor.zip || '';
+    document.getElementById('profile_license').value = contractor.license_number || '';
+    
+    // Colors
+    if (contractor.primary_color) {
+      document.getElementById('profile_primary_color').value = contractor.primary_color;
+      document.getElementById('profile_primary_hex').value = contractor.primary_color;
+    }
+    if (contractor.secondary_color) {
+      document.getElementById('profile_secondary_color').value = contractor.secondary_color;
+      document.getElementById('profile_secondary_hex').value = contractor.secondary_color;
+    }
+    if (contractor.accent_color) {
+      document.getElementById('profile_accent_color').value = contractor.accent_color;
+      document.getElementById('profile_accent_hex').value = contractor.accent_color;
+    }
+    
+    // Business settings
+    document.getElementById('profile_tax_rate').value = contractor.tax_rate || '';
+    document.getElementById('profile_default_markup').value = contractor.default_markup || '';
+    
+    // Logo
+    if (contractor.logo_url) {
+      document.getElementById('logoImg').src = contractor.logo_url;
+      document.getElementById('logoPreview').style.display = 'block';
+      document.getElementById('logoPlaceholder').style.display = 'none';
+    }
+    
+    // Subscription info
+    document.getElementById('profile_subscription_level').textContent = contractor.subscription_level || 'Free';
+    document.getElementById('profile_subscription_status').textContent = contractor.subscription_status || 'Active';
+    document.getElementById('profile_renewal_date').textContent = contractor.renewal_date ? new Date(contractor.renewal_date).toLocaleDateString() : '—';
+    
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    alert('Failed to load company profile');
+  }
+}
+
+// Save company profile
+async function saveCompanyProfile() {
+  const contractorId = localStorage.getItem('contractor_id');
+  const sessionToken = localStorage.getItem('session_token');
+  
+  if (!contractorId || !sessionToken) {
+    window.location.href = '/login.html';
+    return;
+  }
+  
+  const statusDiv = document.getElementById('profile-status');
+  statusDiv.textContent = '⏳ Saving...';
+  statusDiv.className = 'status-message';
+  statusDiv.style.display = 'block';
+  
+  // Collect form data
+  const profileData = {
+    company_name: document.getElementById('profile_company_name').value,
+    phone: document.getElementById('profile_phone').value,
+    email: document.getElementById('profile_email').value,
+    address: document.getElementById('profile_address').value,
+    city: document.getElementById('profile_city').value,
+    state: document.getElementById('profile_state').value.toUpperCase(),
+    zip: document.getElementById('profile_zip').value,
+    license_number: document.getElementById('profile_license').value,
+    primary_color: document.getElementById('profile_primary_color').value,
+    secondary_color: document.getElementById('profile_secondary_color').value,
+    accent_color: document.getElementById('profile_accent_color').value,
+    tax_rate: parseFloat(document.getElementById('profile_tax_rate').value) || null,
+    default_markup: parseFloat(document.getElementById('profile_default_markup').value) || null,
+    logo_url: document.getElementById('logoImg').src || null
+  };
+  
+  try {
+    const response = await fetch(`${RAILWAY_API}/api/contractors/${contractorId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`
+      },
+      body: JSON.stringify(profileData)
+    });
+    
+    if (response.status === 401 || response.status === 403) {
+      localStorage.clear();
+      window.location.href = '/login.html';
+      return;
+    }
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      statusDiv.textContent = '✅ Profile saved successfully!';
+      statusDiv.className = 'status-message success';
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+    } else {
+      throw new Error(result.error || 'Save failed');
+    }
+    
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    statusDiv.textContent = '❌ Error: ' + error.message;
+    statusDiv.className = 'status-message error';
+  }
+}
+</script>
 
     <div class="main-content" id="contracts">
       <div class="placeholder-content">
