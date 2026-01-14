@@ -305,7 +305,7 @@ body {
   </div>
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&callback=initMap&libraries=places" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
 <script>
 var TRADE_FORM_SCHEMA = {
   roofing: [
@@ -672,7 +672,7 @@ function removePhoto(index) {
   renderPhotos();
 }
 
-/*function initMap() {
+function initMap() {
   var mapDiv = document.getElementById('map');
   map = new google.maps.Map(mapDiv, {
     center: { lat: 39.8283, lng: -98.5795 },
@@ -693,53 +693,7 @@ function removePhoto(index) {
         marker = new google.maps.Marker({
           position: place.geometry.location,
           map: map
-        });*/
- function initMap() {
-            const defaultCenter = { lat: 32.7767, lng: -96.7970 };
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 20,
-                center: defaultCenter,
-                mapTypeId: 'satellite',
-                tilt: 0,
-                disableDefaultUI: true,
-                zoomControl: true
-            });
-            marker = new google.maps.Marker({
-                map: map,
-                position: defaultCenter,
-                draggable: false
-            });
-            geocoder = new google.maps.Geocoder();
-        }
-        window.initMap = initMap;
-
-        function showAerialView(address) {
-            if (!geocoder || !address || address.length < 10) return;
-            geocoder.geocode({ address: address }, (results, status) => {
-                if (status === 'OK' && results[0]) {
-                    const location = results[0].geometry.location;
-                    map.setCenter(location);
-                    map.setZoom(20);
-                    marker.setPosition(location);
-                    document.getElementById('aerialViewContainer').classList.add('active');
-                }
-            });
-        }
-
-        document.getElementById('address').addEventListener('input', function() {
-            if (this.value.length > 15) showAerialView(this.value);
         });
-
-        document.getElementById('address').addEventListener('blur', function() {
-            if (this.value.length > 10) showAerialView(this.value);
-        });
-
-
-
-
-
-
-  
   
         var components = place.address_components;
         for (var i = 0; i < components.length; i++) {
