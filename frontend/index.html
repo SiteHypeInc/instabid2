@@ -801,6 +801,30 @@ function showError(message) {
   errorDiv.style.display = 'block';
 }
 
+// ============================================
+// EMAIL NOTIFICATION STYLES (ADD ANIMATIONS)
+// ============================================
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  @keyframes slideIn {
+    from { transform: translate(-50%, -60%); opacity: 0; }
+    to { transform: translate(-50%, -50%); opacity: 1; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .email-notification button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+`;
+document.head.appendChild(styleSheet);
+
+
+
 document.getElementById('emailBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
   
@@ -820,21 +844,155 @@ document.getElementById('emailBtn').addEventListener('click', function() {
     });
   })
   .then(function(data) {
-    if (data.ok) {
-      alert('✅ Email sent successfully!');
-    } else {
-      alert('❌ Failed to send email: ' + (data.result.error || 'Unknown error'));
-    }
-    self.disabled = false;
-    self.textContent = '📧 Email';
-  })
-  .catch(function(error) {
-    alert('❌ Network error: ' + error.message);
-    self.disabled = false;
-    self.textContent = '📧 Email';
-  });
+  if (data.ok) {
+    showEmailNotification();
+  } else {
+    showEmailErrorNotification(data.result.error || 'Unknown error');
+  }
+  self.disabled = false;
+  self.textContent = '📧 Email';
+})
+.catch(function(error) {
+  showEmailErrorNotification('Network error: ' + error.message);
+  self.disabled = false;
+  self.textContent = '📧 Email';
 });
 
+// SUCCESS NOTIFICATION
+function showEmailNotification() {
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'email-notification-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  // Create notification
+  const notification = document.createElement('div');
+  notification.className = 'email-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 40px 50px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 10000;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+    max-width: 500px;
+  `;
+  
+  notification.innerHTML = `
+    <div style="font-size: 60px; margin-bottom: 20px;">📧</div>
+    <h2 style="color: #28a745; font-size: 28px; margin-bottom: 15px;">Thanks for your request!</h2>
+    <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+      Your estimate is already on the way to your inbox!<br>
+      We'll be in touch shortly to discuss your project.
+    </p>
+    <button onclick="closeEmailNotification()" style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    ">Got it!</button>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.appendChild(notification);
+  
+  // Click overlay to close
+  overlay.onclick = closeEmailNotification;
+  
+  // Auto-close after 5 seconds
+  setTimeout(closeEmailNotification, 5000);
+}
+
+// ERROR NOTIFICATION
+function showEmailErrorNotification(errorMsg) {
+  const overlay = document.createElement('div');
+  overlay.className = 'email-notification-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  const notification = document.createElement('div');
+  notification.className = 'email-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 40px 50px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 10000;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+    max-width: 500px;
+  `;
+  
+  notification.innerHTML = `
+    <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+    <h2 style="color: #dc3545; font-size: 28px; margin-bottom: 15px;">Oops! Something went wrong</h2>
+    <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 10px;">
+      We couldn't send the email right now.
+    </p>
+    <p style="color: #999; font-size: 14px; margin-bottom: 25px;">
+      ${errorMsg}
+    </p>
+    <p style="color: #666; font-size: 15px; margin-bottom: 25px;">
+      Please contact us directly or try again in a moment.
+    </p>
+    <button onclick="closeEmailNotification()" style="
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    ">Okay</button>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.appendChild(notification);
+  
+  overlay.onclick = closeEmailNotification;
+}
+
+// CLOSE FUNCTION
+function closeEmailNotification() {
+  const overlay = document.querySelector('.email-notification-overlay');
+  const notification = document.querySelector('.email-notification');
+  
+  if (overlay) overlay.remove();
+  if (notification) notification.remove();
+}
 
   document.getElementById('pdfBtn').addEventListener('click', function() {
   if (!currentEstimateData) return;
