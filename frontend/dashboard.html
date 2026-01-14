@@ -262,6 +262,7 @@ body {
   margin-bottom: 10px;
 }
 </style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
 </head>
 <body>
 
@@ -1137,6 +1138,8 @@ body {
     
     <div class="status-message" id="calendar-status"></div>
   </div>
+
+ 
   
   <!-- ESTIMATE LIST AND DETAILS -->
   <div class="config-card" style="max-width: 100%; padding: 0;">
@@ -1273,6 +1276,81 @@ function getTradeColor(trade) {
   return colors[trade?.toLowerCase()] || '#667eea';
 }
 
+ // Google Maps instances
+let aerialMap = null;
+let streetViewPanorama = null;
+let mapMarker = null;
+
+function initializeDashboardMaps(address) {
+  const mapContainer = document.getElementById('dashboardMapContainer');
+  if (!mapContainer) return;
+  
+  // Initialize Geocoder
+  const geocoder = new google.maps.Geocoder();
+  
+  geocoder.geocode({ address: address }, function(results, status) {
+    if (status === 'OK' && results[0]) {
+      const location = results[0].geometry.location;
+      
+      // Initialize Aerial Map
+      aerialMap = new google.maps.Map(document.getElementById('dashboardAerialMap'), {
+        center: location,
+        zoom: 19,
+        mapTypeId: 'satellite',
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: google.maps.ControlPosition.TOP_RIGHT
+        },
+        fullscreenControl: true,
+        streetViewControl: false
+      });
+      
+      // Add marker
+      mapMarker = new google.maps.Marker({
+        position: location,
+        map: aerialMap,
+        title: 'Property Location'
+      });
+      
+      // Initialize Street View
+      streetViewPanorama = new google.maps.StreetViewPanorama(
+        document.getElementById('dashboardStreetView'),
+        {
+          position: location,
+          pov: { heading: 34, pitch: 10 },
+          addressControl: true,
+          visible: false
+        }
+      );
+      
+      // Check Street View availability
+      const streetViewService = new google.maps.StreetViewService();
+      streetViewService.getPanorama({ location: location, radius: 50 }, function(data, status) {
+        if (status === 'OK') {
+          streetViewPanorama.setPosition(data.location.latLng);
+          streetViewPanorama.setPov({ heading: 34, pitch: 10 });
+          streetViewPanorama.setVisible(true);
+        } else {
+          document.getElementById('dashboardStreetView').innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; color: #666; font-size: 14px;">
+              🚫 Street View not available at this location
+            </div>
+          `;
+        }
+      });
+      
+    } else {
+      console.error('Geocoding failed:', status);
+      mapContainer.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #999;">
+          📍 Unable to load map for this address
+        </div>
+      `;
+    }
+  });
+}
+
 // View estimate details
 async function viewEstimateDetails(estimateId) {
   const detailsPanel = document.getElementById('estimateDetails');
@@ -1306,6 +1384,44 @@ async function viewEstimateDetails(estimateId) {
             ${estimate.city ? estimate.city + ', ' : ''}${estimate.state || ''} ${estimate.zipCode || ''}
           </p>
         </div>
+        
+        <!-- ✅ NEW: GOOGLE MAPS SPLIT VIEW -->
+        ${estimate.address && estimate.city && estimate.state && estimate.zipCode ? `
+          <div id="dashboardMapContainer" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">🗺️ Property Views</h3>
+            <div style="height: 500px; display: grid; grid-template-rows: 1fr 1fr; gap: 0; border: 2px solid #ddd; border-radius: 6px; overflow: hidden;">
+              <div style="position: relative; height: 100%;">
+                <div style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  🛰️ Aerial View
+                </div>
+                <div id="dashboardAerialMap" style="width: 100%; height: 100%;"></div>
+              </div>
+              <div style="position: relative; height: 100%;">
+                <div style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  🚗 Street View
+                </div>
+                <div id="dashboardStreetView" style="width: 100%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <!-- ✅ NEW: CUSTOMER PHOTOS SECTION -->
+        ${estimate.photos && estimate.photos.length > 0 ? `
+          <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📸 Customer Photos (${estimate.photos.length})</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+              ${estimate.photos.map((photo, index) => `
+                <div style="position: relative; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;" onclick="openPhotoModal('${photo}', ${index})">
+                  <img src="${photo}" alt="Customer photo ${index + 1}" style="width: 100%; height: 150px; object-fit: cover;">
+                  <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                    ${index + 1}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
         
         <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
           <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">💰 Estimate Breakdown</h3>
@@ -1360,6 +1476,12 @@ async function viewEstimateDetails(estimateId) {
       </div>
     `;
     
+    // ✅ AUTO-LOAD MAPS AFTER DOM RENDERS
+    if (estimate.address && estimate.city && estimate.state && estimate.zipCode) {
+      const fullAddress = `${estimate.address}, ${estimate.city}, ${estimate.state} ${estimate.zipCode}`;
+      setTimeout(() => initializeDashboardMaps(fullAddress), 300);
+    }
+    
   } catch (error) {
     console.error('Error loading estimate details:', error);
     detailsPanel.innerHTML = `
@@ -1369,6 +1491,21 @@ async function viewEstimateDetails(estimateId) {
       </div>
     `;
   }
+}
+
+function openPhotoModal(photoSrc, index) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; cursor: pointer;';
+  
+  modal.innerHTML = `
+    <div style="position: relative; max-width: 90%; max-height: 90%;">
+      <img src="${photoSrc}" style="max-width: 100%; max-height: 90vh; border-radius: 8px;">
+      <div style="position: absolute; top: -40px; right: 0; color: white; font-size: 32px; cursor: pointer;">×</div>
+    </div>
+  `;
+  
+  modal.onclick = () => modal.remove();
+  document.body.appendChild(modal);
 }
 
 // Initialize on tab switch

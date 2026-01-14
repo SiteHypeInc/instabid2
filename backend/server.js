@@ -995,9 +995,9 @@ app.post('/api/estimate', async (req, res) => {
         property_address, city, state, zip_code,
         trade, trade_details,
         labor_hours, labor_rate, labor_cost,
-        material_cost, equipment_cost, total_cost,
+        material_cost, equipment_cost, total_cost, photos,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 17, NOW())
       RETURNING id
     `;
 
@@ -1017,7 +1017,8 @@ app.post('/api/estimate', async (req, res) => {
       estimate.laborCost,
       estimate.materialCost,
       estimate.equipmentCost || 0,
-      estimate.totalCost
+      estimate.totalCost,
+      JSON.stringify(tradeSpecificFields.photos || []), 
     ];
 
     const result = await pool.query(insertQuery, values);
@@ -1168,6 +1169,7 @@ app.get('/api/estimates/:id', async (req, res) => {
         labor_cost as "laborCost",
         total_cost as "totalCost",
         trade_details as "projectDetails",
+        photos,
         created_at as "createdAt"
       FROM estimates 
       WHERE id = $1
@@ -1177,12 +1179,31 @@ app.get('/api/estimates/:id', async (req, res) => {
       return res.status(404).json({ error: 'Estimate not found' });
     }
     
-    res.json(result.rows[0]);
+     // ✅ ADD THIS BLOCK HERE:
+    const estimate = result.rows[0];
+    
+    // Parse photos from JSONB to array
+    if (estimate.photos) {
+      try {
+        estimate.photos = typeof estimate.photos === 'string' 
+          ? JSON.parse(estimate.photos) 
+          : estimate.photos;
+      } catch (e) {
+        console.error('Error parsing photos:', e);
+        estimate.photos = [];
+      }
+    } else {
+      estimate.photos = [];
+    }
+    
+    res.json(estimate);  // ← CHANGED FROM result.rows[0] to estimate
+    
   } catch (error) {
     console.error('Error fetching estimate:', error);
     res.status(500).json({ error: 'Failed to fetch estimate' });
   }
 });
+
 
 // ============================================
 // STANDALONE PDF/CONTRACT GENERATION (PUBLIC)
