@@ -1449,6 +1449,52 @@ app.get('/api/estimates/:id', async (req, res) => {
   }
 });
 
+// MSA Lookup endpoint for material list generator
+app.get('/api/msa-lookup', async (req, res) => {
+  const { zip } = req.query;
+  
+  if (!zip) {
+    return res.json({ 
+      material_index: 1.00, 
+      labor_index: 1.00, 
+      msa_name: 'National Average' 
+    });
+  }
+  
+  try {
+    // Try ZIP lookup first
+    const zipResult = await pool.query(
+      'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
+      [zip]
+    );
+    
+    if (zipResult.rows.length > 0) {
+      // Found MSA - return with index (we can add actual indices to the table later)
+      return res.json({
+        msa_name: zipResult.rows[0].msa_name,
+        material_index: 1.00, // TODO: Get from metro_areas table
+        labor_index: 1.00
+      });
+    }
+    
+    // Fallback to state from ZIP (first 2 chars often indicate state, but not reliable)
+    // For now, just return national average
+    console.log(`⚠️ No MSA found for ZIP ${zip}`);
+    return res.json({ 
+      material_index: 1.00, 
+      labor_index: 1.00, 
+      msa_name: 'National Average' 
+    });
+    
+  } catch (error) {
+    console.error('❌ MSA lookup error:', error);
+    return res.json({ 
+      material_index: 1.00, 
+      labor_index: 1.00, 
+      msa_name: 'National Average' 
+    });
+  }
+});
 
 // ============================================
 // STANDALONE PDF/CONTRACT GENERATION (PUBLIC)
