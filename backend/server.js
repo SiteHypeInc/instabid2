@@ -383,24 +383,49 @@ app.get('/', (req, res) => {
 // ========== LABOR RATE LOOKUP ==========
 async function getHourlyRate(state, zipCode) {
   try {
+    // Try BLS data first (by state code and occupation)
     const result = await pool.query(
-      'SELECT hourly_rate FROM labor_rates WHERE state = $1 AND (msa_name IS NULL OR zip_code = $2) ORDER BY msa_name DESC LIMIT 1',
-      [state, zipCode]
-    );
-    
-    if (result.rows.length > 0) {
-      return parseFloat(result.rows[0].hourly_rate);
-    }
-    
-    // Fallback to state average
-    const stateResult = await pool.query(
-      'SELECT AVG(hourly_rate) as avg_rate FROM labor_rates WHERE state = $1',
+      `SELECT hourly_mean 
+       FROM bls_labor_rates 
+       WHERE state_code = $1 
+       AND occupation_code IN ('47-2181', '47-2111', '47-0000')
+       ORDER BY occupation_code 
+       LIMIT 1`,
       [state]
     );
     
-    return stateResult.rows.length > 0 ? parseFloat(stateResult.rows[0].avg_rate) : 45.00;
+    if (result.rows.length > 0 && result.rows[0].hourly_mean) {
+      const rate = parseFloat(result.rows[0].hourly_mean);
+      console.log(`✅ BLS labor rate for ${state}: $${rate}/hr`);
+      return rate;
+    }
+    
+    console.log(`⚠️ No BLS data for ${state} - using state fallback`);
+    
+    // Fallback to hardcoded state averages
+    const stateLaborRates = {
+      'CA': 58.50, 'NY': 62.00, 'MA': 59.00, 'HI': 55.00,
+      'WA': 52.00, 'OR': 48.00, 'CO': 47.00, 'IL': 51.00, 'VA': 46.00,
+      'TX': 42.00, 'FL': 41.00, 'GA': 39.00, 'OH': 43.00,
+      'TN': 38.00, 'AL': 37.00, 'AZ': 44.00, 'WY': 45.00,
+      'MT': 43.00, 'ID': 40.00, 'NV': 48.00, 'UT': 42.00,
+      'NM': 39.00, 'ND': 46.00, 'SD': 41.00, 'NE': 42.00,
+      'KS': 41.00, 'OK': 38.00, 'AR': 37.00, 'LA': 40.00,
+      'MS': 36.00, 'KY': 39.00, 'WV': 38.00, 'SC': 39.00,
+      'NC': 41.00, 'IN': 42.00, 'MI': 45.00, 'WI': 46.00,
+      'MN': 50.00, 'IA': 43.00, 'MO': 42.00, 'PA': 48.00,
+      'NJ': 56.00, 'CT': 54.00, 'RI': 52.00, 'VT': 47.00,
+      'NH': 49.00, 'ME': 44.00, 'DE': 47.00, 'MD': 50.00,
+      'DC': 58.00, 'AK': 65.00
+    };
+    
+    const fallbackRate = stateLaborRates[state] || 45.00;
+    console.log(`✅ Using fallback rate for ${state}: $${fallbackRate}/hr`);
+    return fallbackRate;
+    
   } catch (error) {
     console.error('❌ Labor rate lookup error:', error);
+    console.log('⚠️ Using national average: $45.00/hr');
     return 45.00; // National fallback
   }
 }
