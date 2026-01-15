@@ -670,7 +670,7 @@ async function generateEstimatePDF(estimateData) {
 
       // ========== 📸 CUSTOMER PHOTOS SECTION ==========
       if (estimateData.photos && estimateData.photos.length > 0) {
-        doc.fontSize(14).fillColor('#000').text(`📸 Customer Photos (${estimateData.photos.length})`, { underline: true });
+        doc.fontSize(14).fillColor('#000').text(`Customer Photos (${estimateData.photos.length})`, { underline: true });
         doc.moveDown(0.5);
 
         const axios = require('axios');
