@@ -405,6 +405,8 @@ async function getHourlyRate(state, zipCode) {
   }
 }
 
+
+
 // ========== TRADE CALCULATION FUNCTION ==========
 async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   console.log(`🔧 Starting estimate calculation for ${trade}`);
@@ -999,26 +1001,51 @@ app.post('/api/estimate', async (req, res) => {
       });
     }
 
-     // ✅✅✅ ADD THE REGIONAL FALLBACK CODE HERE ✅✅✅
-    // Regional Data Lookup with Fallback
-    const finalZip = zip || zipCode; // Handle both field names
-    let msa = 'National Average';
-    let regionalMultiplier = 1.0;
 
-    try {
-      const zipResult = await pool.query('SELECT msa_name FROM zip_metro WHERE zip_code = $1', [finalZip]);
-      
-      if (zipResult.rows && zipResult.rows.length > 0) {
-        msa = zipResult.rows[0].msa_name || 'National Average';
-        // regionalMultiplier = zipResult.rows[0].regional_multiplier || 1.0; // Future use
-      } else {
-        console.log(`⚠️ No regional data found for ZIP: ${finalZip} - using National Average`);
-      }
-    } catch (error) {
-      console.error('❌ Regional lookup error:', error);
-      // Continue with defaults
-    }
-    // ✅✅✅ END REGIONAL FALLBACK CODE ✅✅✅
+    // ✅ ROBUST FALLBACK: ZIP → STATE → NATIONAL
+let regionalMultiplier = 1.0;
+let msa = 'National Average';
+
+try {
+  // Try ZIP lookup first
+  const zipResult = await pool.query(
+    'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1', 
+    [finalZip]
+  );
+  
+  if (zipResult.rows && zipResult.rows.length > 0) {
+    msa = zipResult.rows[0].msa_name;
+    console.log(`✅ Found MSA for ZIP ${finalZip}: ${msa}`);
+  } else {
+    console.log(`⚠️ ZIP ${finalZip} not found - falling back to state average`);
+    
+    // Fallback to state-level multiplier
+    const stateMultipliers = {
+      'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40,
+      'WA': 1.15, 'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05,
+      'TX': 0.95, 'FL': 0.95, 'GA': 0.90, 'OH': 0.92, 
+      'TN': 0.88, 'AL': 0.85, 'AZ': 0.95, 'WY': 0.90,
+      'MT': 0.92, 'ID': 0.88, 'NV': 1.05, 'UT': 0.93,
+      'NM': 0.87, 'ND': 0.95, 'SD': 0.89, 'NE': 0.91,
+      'KS': 0.90, 'OK': 0.87, 'AR': 0.86, 'LA': 0.89,
+      'MS': 0.84, 'KY': 0.88, 'WV': 0.86, 'SC': 0.88,
+      'NC': 0.92, 'IN': 0.90, 'MI': 0.93, 'WI': 0.94,
+      'MN': 0.98, 'IA': 0.91, 'MO': 0.89, 'PA': 1.02,
+      'NJ': 1.28, 'CT': 1.22, 'RI': 1.18, 'VT': 1.05,
+      'NH': 1.08, 'ME': 1.00, 'DE': 1.05, 'MD': 1.12,
+      'DC': 1.25, 'AK': 1.45
+    };
+    
+    regionalMultiplier = stateMultipliers[state] || 1.0;
+    msa = `${state} State Average (${regionalMultiplier}x)`;
+    console.log(`✅ Using state multiplier for ${state}: ${regionalMultiplier}x`);
+  }
+} catch (error) {
+  console.error('❌ Regional lookup error:', error);
+  console.log('⚠️ Using national average (1.0x)');
+}
+
+
 
     const contractor_id = contractor.id;
 
