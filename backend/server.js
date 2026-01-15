@@ -1273,6 +1273,9 @@ app.post('/api/generate-pdf', async (req, res) => {
   try {
     const data = req.body;
     
+    console.log('📸 Received photos in request:', data.photos);
+    console.log('📸 Photo count:', data.photos?.length || 0);
+    
     const hourlyRate = await getHourlyRate(data.state, data.zip);
     
     const estimate = await calculateTradeEstimate(
@@ -1294,6 +1297,7 @@ app.post('/api/generate-pdf', async (req, res) => {
       zipCode: data.zip,
       trade: data.trade,
       tradeDetails: data,
+      photos: data.photos || [],  // ✅ ADD THIS LINE
       ...estimate
     });
     
@@ -1301,7 +1305,7 @@ app.post('/api/generate-pdf', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="estimate-${data.name.replace(/\s+/g, '-')}.pdf"`);
     res.send(pdfBuffer);
     
-    console.log(`📄 PDF downloaded by ${data.name}`);
+    console.log(`📄 PDF downloaded by ${data.name} with ${data.photos?.length || 0} photos`);
     
   } catch (error) {
     console.error('❌ PDF generation error:', error);
