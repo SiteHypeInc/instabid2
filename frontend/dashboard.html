@@ -1501,27 +1501,26 @@ async function viewEstimateDetails(estimateId) {
           </div>
         </div>
         
-        ${estimate.trade === 'roofing' ? `
-          <button id="generateMaterialListBtn" onclick="generateMaterialList('${estimate.id}')" style="
-            width: 100%;
-            background: #667eea;
-            color: white;
-            padding: 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-          " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
-            📋 Generate Material List
-          </button>
-        ` : `
-          <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404;">
-            📋 Material list generation currently available for roofing estimates only
-          </div>
-        `}
-        
+        ${['roofing', 'painting', 'hvac', 'electrical', 'plumbing', 'flooring', 'drywall', 'siding'].includes(estimate.trade) ? `
+  <button id="generateMaterialListBtn" onclick="generateMaterialList('${estimate.id}')" style="
+    width: 100%;
+    background: #667eea;
+    color: white;
+    padding: 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
+    📋 Generate Material List
+  </button>
+` : `
+  <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404;">
+    📋 Material list generation not yet available for ${estimate.trade} estimates
+  </div>
+`}
         <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
           Created: ${new Date(estimate.createdAt).toLocaleString()}
         </div>
