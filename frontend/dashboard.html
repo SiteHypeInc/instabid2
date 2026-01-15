@@ -1201,12 +1201,31 @@ body {
 /*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
 let currentEstimate = null;
 
+// ✅ AUTH HELPER - ADDS AUTHORIZATION HEADER TO ALL FETCH CALLS
+function authFetch(url, options = {}) {
+  const token = localStorage.getItem('session_token');
+  
+  if (!token) {
+    console.error('❌ No session token - redirecting to login');
+    window.location.href = '/login-html/';
+    return Promise.reject('Not authenticated');
+  }
+  
+  // Add Authorization header
+  options.headers = {
+    ...options.headers,
+    'Authorization': `Bearer ${token}`
+  };
+  
+  return fetch(url, options);
+}
+
 // Load estimates on page load
 async function loadEstimates() {
   const container = document.getElementById('estimatesList');
   
   try {
-   const response = await fetch(`${window.RAILWAY_API}/api/estimates`);
+   const response = await authFetch(`${window.RAILWAY_API}/api/estimates`);
 
     
     if (!response.ok) {
@@ -1384,7 +1403,7 @@ async function viewEstimateDetails(estimateId) {
   const detailsPanel = document.getElementById('estimateDetails');
   
   try {
-    const response = await fetch(`${window.RAILWAY_API}/api/estimates/${estimateId}`);
+    const response = await authFetch(`${window.RAILWAY_API}/api/estimates/${estimateId}`);
     const estimate = await response.json();
     currentEstimate = estimate;
     
@@ -1912,7 +1931,7 @@ window.addEventListener('load', function() {
 });
 
 function loadConfig(section) {
-  fetch(`${API_BASE}/api/config/${section}`)
+  authFetch(`${API_BASE}/api/config/${section}`)
     .then(res => res.json())
     .then(data => {
       if (data.success && data.config) {
@@ -1941,7 +1960,7 @@ function saveConfig(section) {
   statusDiv.className = 'status-message';
   statusDiv.style.display = 'block';
   
-  fetch(`${API_BASE}/api/config/${section}`, {
+  authFetch(`${API_BASE}/api/config/${section}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ config })
@@ -1969,7 +1988,7 @@ function getContractorId() {
 async function connectGoogleCalendar() {
   try {
     const contractorId = getContractorId();
-    const res = await fetch(`${API_BASE}/api/google/auth-url?contractor_id=${contractorId}`);
+    const res = await authFetch(`${API_BASE}/api/google/auth-url?contractor_id=${contractorId}`);
     const data = await res.json();
     
     const popup = window.open(data.auth_url, 'google-auth', 'width=500,height=600');
@@ -1988,7 +2007,7 @@ async function connectGoogleCalendar() {
 async function syncCalendar() {
   try {
     const contractorId = getContractorId();
-    const res = await fetch(`${API_BASE}/api/google/sync`, {
+    const res = await authFetch(`${API_BASE}/api/google/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contractor_id: contractorId })
@@ -2006,7 +2025,7 @@ async function disconnectCalendar() {
   
   try {
     const contractorId = getContractorId();
-    await fetch(`${API_BASE}/api/google/disconnect`, {
+    await authFetch(`${API_BASE}/api/google/disconnect`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contractor_id: contractorId })
@@ -2020,7 +2039,7 @@ async function disconnectCalendar() {
 async function checkCalendarStatus() {
   try {
     const contractorId = getContractorId();
-    const res = await fetch(`${API_BASE}/api/google/status?contractor_id=${contractorId}`);
+    const res = await authFetch(`${API_BASE}/api/google/status?contractor_id=${contractorId}`);
     const data = await res.json();
     
     if (data.connected) {
