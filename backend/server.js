@@ -1096,6 +1096,7 @@ app.post('/api/estimate', async (req, res) => {
       zipCode: finalZipCode,
       trade,
       tradeDetails: tradeSpecificFields,
+      photos: tradeSpecificFields.photos || [],
       laborHours: estimate.laborHours,
       laborRate: estimate.laborRate,
       laborCost: estimate.laborCost,
@@ -1137,6 +1138,7 @@ app.post('/api/estimate', async (req, res) => {
         state,
         zipCode: finalZipCode,
         trade,
+        photos: tradeSpecificFields.photos || [],
         ...estimate
       },
       pdfBuffer,
