@@ -635,9 +635,9 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
 
 // ========== PDF GENERATION FUNCTION ==========
 async function generateEstimatePDF(estimateData) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 50, size: 'LETTER' });
       const chunks = [];
 
       doc.on('data', chunk => chunks.push(chunk));
@@ -667,6 +667,65 @@ async function generateEstimatePDF(estimateData) {
       const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
       doc.text(`Service: ${tradeName}`);
       doc.moveDown(2);
+
+      // ========== 📸 CUSTOMER PHOTOS SECTION ==========
+      if (estimateData.photos && estimateData.photos.length > 0) {
+        doc.fontSize(14).fillColor('#000').text(`📸 Customer Photos (${estimateData.photos.length})`, { underline: true });
+        doc.moveDown(0.5);
+
+        const axios = require('axios');
+        const photosPerRow = 2;
+        const photoWidth = 220;
+        const photoHeight = 165;
+        const photoSpacing = 20;
+        const startX = 50;
+        let currentX = startX;
+        let currentY = doc.y;
+
+        for (let i = 0; i < estimateData.photos.length; i++) {
+          try {
+            // Fetch image from URL
+            const response = await axios.get(estimateData.photos[i], { 
+              responseType: 'arraybuffer',
+              timeout: 5000 
+            });
+            const imageBuffer = Buffer.from(response.data, 'binary');
+
+            // Check if we need a new page
+            if (currentY + photoHeight > doc.page.height - 100) {
+              doc.addPage();
+              currentY = 50;
+              currentX = startX;
+            }
+
+            // Add image to PDF
+            doc.image(imageBuffer, currentX, currentY, {
+              width: photoWidth,
+              height: photoHeight,
+              fit: [photoWidth, photoHeight],
+              align: 'center',
+              valign: 'center'
+            });
+
+            // Move to next position
+            currentX += photoWidth + photoSpacing;
+            
+            // Move to next row after 2 photos
+            if ((i + 1) % photosPerRow === 0) {
+              currentX = startX;
+              currentY += photoHeight + photoSpacing;
+            }
+          } catch (photoError) {
+            console.error(`Failed to load photo ${i + 1}:`, photoError.message);
+            // Skip broken images silently
+          }
+        }
+
+        // Move cursor below photos
+        doc.y = currentY + photoHeight + 30;
+        doc.moveDown(1);
+      }
+      // ========== END PHOTOS SECTION ==========
 
       // Cost Breakdown
       doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
