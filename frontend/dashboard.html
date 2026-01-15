@@ -262,23 +262,34 @@ body {
   margin-bottom: 10px;
 }
 </style>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
-<!-- Supabase Client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // GLOBAL CONSTANTS
-  
-  const RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';
-  
-  const supabase = window.supabase.createClient(
-    'https://audvkmgaufxzylebtmpx.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1ZHZrbWdhdWZ4enlsZWJ0bXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU2OTMxMTUsImV4cCI6MjA1MTI2OTExNX0.0KkQs7vLqM_k7cFV-TT-VxJpLKvxZOWfDKF5e2JF6Ag'
-  );
-  console.log('✅ Supabase initialized');
-  console.log('✅ Railway API configured');
-</script>
+
 </head>
 <body>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
+
+  <!-- ✅ GLOBAL CONSTANTS - DECLARED FIRST THING IN BODY -->
+<script>
+  window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';
+  window.INSTABID_API_KEY = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+  console.log('✅ window.RAILWAY_API loaded:', window.RAILWAY_API);
+</script>
+
+<!-- ✅ SUPABASE INITIALIZATION -->
+<script>
+  // Wait for Supabase library to load, then initialize
+  window.addEventListener('load', function() {
+    if (window.supabase && window.supabase.createClient) {
+      window.supabaseClient = window.supabase.createClient(
+        'https://audvkmgaufxzylebtmpx.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1ZHZrbWdhdWZ4enlsZWJ0bXB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU2OTMxMTUsImV4cCI6MjA1MTI2OTExNX0.0KkQs7vLqM_k7cFV-TT-VxJpLKvxZOWfDKF5e2JF6Ag'
+      );
+      console.log('✅ Supabase initialized');
+    } else {
+      console.error('❌ Supabase library not loaded');
+    }
+  });
+</script>
 
 <div class="container">
   <div class="header">
@@ -437,7 +448,6 @@ body {
               <input type="number" step="100" id="hvac_furnace" value="3500">
             </div>
             <div class="config-item">
-              <label>AC Unit (Central):</label>
               <input type="number" step="100" id="hvac_ac" value="4000">
             </div>
             <div class="config-item">
@@ -447,7 +457,8 @@ body {
             <div class="config-item">
               <label>Mini-Split (per head):</label>
               <input type="number" step="100" id="hvac_minisplit" value="2500">
-            </div>
+            </div>              <label>AC Unit (Central):</label>
+
           </div>
 
           <div class="config-card">
@@ -1185,7 +1196,7 @@ body {
 
 <script>
 // ESTIMATE TRACKER FUNCTIONALITY
-/*const RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
+/*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
 let currentEstimate = null;
 
 // Load estimates on page load
@@ -1193,7 +1204,8 @@ async function loadEstimates() {
   const container = document.getElementById('estimatesList');
   
   try {
-    const response = await fetch(`${RAILWAY_API}/api/estimates`);
+   const response = await fetch(`${window.RAILWAY_API}/api/estimates`);
+
     
     if (!response.ok) {
       throw new Error(`API returned ${response.status}`);
@@ -1370,7 +1382,7 @@ async function viewEstimateDetails(estimateId) {
   const detailsPanel = document.getElementById('estimateDetails');
   
   try {
-    const response = await fetch(`${RAILWAY_API}/api/estimates/${estimateId}`);
+    const response = await fetch(`${window.RAILWAY_API}/api/estimates/${estimateId}`);
     const estimate = await response.json();
     currentEstimate = estimate;
     
@@ -1658,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // COMPANY PROFILE FUNCTIONALITY
-/*const RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
+/*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
 
 // Load profile when Company Profile tab is clicked
 document.querySelector('[data-main="company-profile"]').addEventListener('click', loadCompanyProfile);
@@ -1728,7 +1740,7 @@ async function loadCompanyProfile() {
   }
   
   try {
-    const response = await fetch(`${RAILWAY_API}/api/contractors/${contractorId}`, {
+    const response = await fetch(`${window.RAILWAY_API}/api/contractors/${contractorId}`, {
       headers: {
         'Authorization': `Bearer ${sessionToken}`
       }
@@ -1822,7 +1834,7 @@ async function saveCompanyProfile() {
   };
   
   try {
-    const response = await fetch(`${RAILWAY_API}/api/contractors/${contractorId}`, {
+    const response = await fetch(`${window.RAILWAY_API}/api/contractors/${contractorId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
