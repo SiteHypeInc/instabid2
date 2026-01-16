@@ -1254,6 +1254,12 @@ try {
     );
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
+
+    // Calculate tax values for database storage
+const taxRate = 8.25;
+const taxAmount = estimate.totalCost * 0.0825;
+const totalWithTax = estimate.totalCost * 1.0825;
+
 const insertQuery = `
       INSERT INTO estimates (
         contractor_id,
@@ -1270,35 +1276,34 @@ const insertQuery = `
     `;
 
     const values = [
-      contractor_id,                                  // $1
-      finalCustomerName,                              // $2
-      finalCustomerEmail,                             // $3
-      finalCustomerPhone,                             // $4
-      finalPropertyAddress,                           // $5
-      finalCity,                                      // $6
-      finalState,                                     // $7
-      finalZipCode,                                   // $8
-      trade,                                          // $9
-      JSON.stringify(tradeSpecificFields),            // $10
-      estimate.laborHours,                            // $11
-      estimate.laborRate,                             // $12
-      estimate.laborCost,                             // $13
-      estimate.materialCost,                          // $14
-      estimate.equipmentCost || 0,                    // $15
-      estimate.totalCost,                             // $16
-      estimate.taxRate || 0,                          // $17
-      estimate.taxAmount || 0,                        // $18
-      estimate.totalWithTax || estimate.totalCost,    // $19
-      JSON.stringify(tradeSpecificFields.photos || []) // $20
-    ];
+  contractor_id,                                  // $1
+  finalCustomerName,                              // $2
+  finalCustomerEmail,                             // $3
+  finalCustomerPhone,                             // $4
+  finalPropertyAddress,                           // $5
+  finalCity,                                      // $6
+  finalState,                                     // $7
+  finalZipCode,                                   // $8
+  trade,                                          // $9
+  JSON.stringify(tradeSpecificFields),            // $10
+  estimate.laborHours,                            // $11
+  estimate.laborRate,                             // $12
+  estimate.laborCost,                             // $13
+  estimate.materialCost,                          // $14
+  estimate.equipmentCost || 0,                    // $15
+  estimate.totalCost,                             // $16
+  taxRate,                                        // $17
+  taxAmount,                                      // $18
+  totalWithTax,                                   // $19
+  JSON.stringify(tradeSpecificFields.photos || []) // $20
+];
 
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
 
     console.log(`✅ Estimate #${estimateId} saved to database for contractor ${contractor_id}`);
     
-    
-    const pdfBuffer = await generateEstimatePDF({
+      const pdfBuffer = await generateEstimatePDF({
       id: estimateId,
       customerName: finalCustomerName,
       customerEmail: finalCustomerEmail,
