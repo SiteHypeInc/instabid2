@@ -1254,45 +1254,50 @@ try {
     );
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
-
-    const insertQuery = `
+const insertQuery = `
       INSERT INTO estimates (
         contractor_id,
         customer_name, customer_email, customer_phone,
         property_address, city, state, zip_code,
         trade, trade_details,
         labor_hours, labor_rate, labor_cost,
-        material_cost, equipment_cost, total_cost, photos,
+        material_cost, equipment_cost, total_cost,
+        tax_rate, tax_amount, total_with_tax,
+        photos,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
       RETURNING id
     `;
 
     const values = [
-  contractor_id,                                  // $1
-  finalCustomerName,                              // $2
-  finalCustomerEmail,                             // $3
-  finalCustomerPhone,                             // $4
-  finalPropertyAddress,                           // $5
-  finalCity,                                      // $6 ← CHANGED
-  finalState,                                     // $7 ← CHANGED
-  finalZipCode,                                   // $8
-  trade,                                          // $9
-  JSON.stringify(tradeSpecificFields),            // $10
-  estimate.laborHours,                            // $11
-  estimate.laborRate,                             // $12
-  estimate.laborCost,                             // $13
-  estimate.materialCost,                          // $14
-  estimate.equipmentCost || 0,                    // $15
-  estimate.totalCost,                             // $16
-  JSON.stringify(tradeSpecificFields.photos || []) // $17
-];
+      contractor_id,                                  // $1
+      finalCustomerName,                              // $2
+      finalCustomerEmail,                             // $3
+      finalCustomerPhone,                             // $4
+      finalPropertyAddress,                           // $5
+      finalCity,                                      // $6
+      finalState,                                     // $7
+      finalZipCode,                                   // $8
+      trade,                                          // $9
+      JSON.stringify(tradeSpecificFields),            // $10
+      estimate.laborHours,                            // $11
+      estimate.laborRate,                             // $12
+      estimate.laborCost,                             // $13
+      estimate.materialCost,                          // $14
+      estimate.equipmentCost || 0,                    // $15
+      estimate.totalCost,                             // $16
+      estimate.taxRate || 0,                          // $17
+      estimate.taxAmount || 0,                        // $18
+      estimate.totalWithTax || estimate.totalCost,    // $19
+      JSON.stringify(tradeSpecificFields.photos || []) // $20
+    ];
 
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
 
     console.log(`✅ Estimate #${estimateId} saved to database for contractor ${contractor_id}`);
-
+    
+    
     const pdfBuffer = await generateEstimatePDF({
       id: estimateId,
       customerName: finalCustomerName,
