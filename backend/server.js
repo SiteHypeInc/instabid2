@@ -1208,7 +1208,7 @@ app.post('/api/estimate', async (req, res) => {
     const finalCity = city || 'Unknown';  // ← FIXED
     const finalState = state || 'Unknown';  // ← FIXED
 
-    // ✅ ROBUST FALLBACK: ZIP → STATE → NATIONAL
+   // ✅ ROBUST FALLBACK: ZIP → STATE → NATIONAL
 let regionalMultiplier = 1.0;
 let msa = 'National Average';
 
@@ -1225,32 +1225,15 @@ try {
   } else {
     console.log(`⚠️ ZIP ${finalZipCode} not found - falling back to state average`);
     
-    // Fallback to state-level multiplier
-    const stateMultipliers = {
-      'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40,
-      'WA': 1.15, 'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05,
-      'TX': 0.95, 'FL': 0.95, 'GA': 0.90, 'OH': 0.92, 
-      'TN': 0.88, 'AL': 0.85, 'AZ': 0.95, 'WY': 0.90,
-      'MT': 0.92, 'ID': 0.88, 'NV': 1.05, 'UT': 0.93,
-      'NM': 0.87, 'ND': 0.95, 'SD': 0.89, 'NE': 0.91,
-      'KS': 0.90, 'OK': 0.87, 'AR': 0.86, 'LA': 0.89,
-      'MS': 0.84, 'KY': 0.88, 'WV': 0.86, 'SC': 0.88,
-      'NC': 0.92, 'IN': 0.90, 'MI': 0.93, 'WI': 0.94,
-      'MN': 0.98, 'IA': 0.91, 'MO': 0.89, 'PA': 1.02,
-      'NJ': 1.28, 'CT': 1.22, 'RI': 1.18, 'VT': 1.05,
-      'NH': 1.08, 'ME': 1.00, 'DE': 1.05, 'MD': 1.12,
-      'DC': 1.25, 'AK': 1.45
-    };
-    
-    regionalMultiplier = stateMultipliers[state] || 1.0;
+    // Fallback to state-level multiplier from cache
+    regionalMultiplier = STATE_MULTIPLIERS_CACHE[state] || 1.0;
     msa = `${state} State Average (${regionalMultiplier}x)`;
-    console.log(`✅ Using state multiplier for ${state}: ${regionalMultiplier}x`);
+    console.log(`✅ Using cached state multiplier for ${state}: ${regionalMultiplier}x`);
   }
 } catch (error) {
   console.error('❌ Regional lookup error:', error);
   console.log('⚠️ Using national average (1.0x)');
 }
-
 
 
     const contractor_id = contractor.id;
@@ -1497,7 +1480,7 @@ app.get('/api/estimates/:id', async (req, res) => {
 
 // MSA Lookup endpoint for material list generator
 app.get('/api/msa-lookup', async (req, res) => {
-  const { zip, state } = req.query;  // ← Add state parameter
+  const { zip, state } = req.query;
   
   if (!zip) {
     return res.json({ 
@@ -1518,15 +1501,10 @@ app.get('/api/msa-lookup', async (req, res) => {
       const msaName = zipResult.rows[0].msa_name;
       const msaState = zipResult.rows[0].state;
       
-      // Get regional multiplier for this state
-      const stateMultipliers = {
-        'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40,
-        'WA': 1.15, 'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05,
-        'TX': 0.95, 'FL': 0.95, 'GA': 0.90, 'OH': 0.92,
-        'TN': 0.88, 'AL': 0.85, 'AZ': 0.95, 'WY': 0.90
-      };
+      // Get regional multiplier from cache
+      const multiplier = STATE_MULTIPLIERS_CACHE[msaState] || 1.00;
       
-      const multiplier = stateMultipliers[msaState] || 1.00;
+      console.log(`✅ Found MSA for ZIP ${zip}: ${msaName} (${msaState}) - multiplier: ${multiplier}x`);
       
       return res.json({
         msa_name: msaName,
@@ -1537,16 +1515,10 @@ app.get('/api/msa-lookup', async (req, res) => {
     
     // ZIP not found - use state multiplier if provided
     if (state) {
-      const stateMultipliers = {
-        'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40,
-        'WA': 1.15, 'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05,
-        'TX': 0.95, 'FL': 0.95, 'GA': 0.90, 'OH': 0.92,
-        'TN': 0.88, 'AL': 0.85, 'AZ': 0.95, 'WY': 0.90
-      };
-      
-      const multiplier = stateMultipliers[state] || 1.00;
+      const multiplier = STATE_MULTIPLIERS_CACHE[state] || 1.00;
       
       console.log(`⚠️ No MSA found for ZIP ${zip} - using ${state} state multiplier: ${multiplier}x`);
+      
       return res.json({ 
         material_index: multiplier, 
         labor_index: multiplier, 
@@ -1555,7 +1527,8 @@ app.get('/api/msa-lookup', async (req, res) => {
     }
     
     // No ZIP or state - return national average
-    console.log(`⚠️ No MSA found for ZIP ${zip}`);
+    console.log(`⚠️ No MSA or state found for ZIP ${zip} - using national average`);
+    
     return res.json({ 
       material_index: 1.00, 
       labor_index: 1.00, 
@@ -1564,6 +1537,7 @@ app.get('/api/msa-lookup', async (req, res) => {
     
   } catch (error) {
     console.error('❌ MSA lookup error:', error);
+    
     return res.json({ 
       material_index: 1.00, 
       labor_index: 1.00, 
