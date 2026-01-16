@@ -372,29 +372,6 @@ const DEFAULT_PRICING = {
     paint_moderate: 1.25,
     paint_complex: 1.5
   },
-  
-  regional: {
-    // High-cost markets
-    region_CA: 1.35,
-    region_NY: 1.30,
-    region_MA: 1.25,
-    region_HI: 1.40,
-    // Medium-cost markets
-    region_WA: 1.15,
-    region_OR: 1.10,
-    region_CO: 1.10,
-    region_IL: 1.08,
-    region_VA: 1.05,
-    // Low-cost markets
-    region_TX: 0.95,
-    region_FL: 0.95,
-    region_GA: 0.90,
-    region_OH: 0.92,
-    region_TN: 0.88,
-    region_AL: 0.85,
-    // Default
-    region_default: 1.00
-  }
 };
 
 // ============================================
