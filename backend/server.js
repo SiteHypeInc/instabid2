@@ -1145,6 +1145,9 @@ app.post('/api/estimate', async (req, res) => {
       });
     }
 
+    const finalZipCode = zipCode || zip || '';
+    const finalCity = city || 'Unknown';  // ← FIXED
+    const finalState = state || 'Unknown';  // ← FIXED
 
     // ✅ ROBUST FALLBACK: ZIP → STATE → NATIONAL
 let regionalMultiplier = 1.0;
@@ -1197,10 +1200,7 @@ try {
     const finalCustomerEmail = customerEmail || customer_email || req.body.email;
     const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
     const finalPropertyAddress = propertyAddress || address || '';
-    const finalZipCode = zipCode || zip || '';
-    const finalCity = city || 'Unknown';  // ← FIXED
-    const finalState = state || 'Unknown';  // ← FIXED
-
+    
     console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
     console.log(`🔐 Contractor: ${contractor.company_name} (ID: ${contractor_id})`);
