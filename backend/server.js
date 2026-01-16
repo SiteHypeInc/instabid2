@@ -70,15 +70,73 @@ async function requireAuth(req, res, next) {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Database connection
+// ========================================
+// DATABASE CONNECTION
+// ========================================
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// ========================================
+// GLOBAL CACHE - STATE MULTIPLIERS
+// Loaded once at startup from regional_multipliers table
+// ========================================
+let STATE_MULTIPLIERS_CACHE = {};
+
+async function loadStateMultipliers() {
+  try {
+    const result = await pool.query('SELECT state_code, multiplier FROM regional_multipliers ORDER BY state_code');
+    
+    STATE_MULTIPLIERS_CACHE = {};
+    result.rows.forEach(row => {
+      STATE_MULTIPLIERS_CACHE[row.state_code] = parseFloat(row.multiplier);
+    });
+    
+    console.log(`✅ Loaded ${result.rows.length} state multipliers from database`);
+    console.log(`📊 Sample: CA=${STATE_MULTIPLIERS_CACHE['CA']}, TX=${STATE_MULTIPLIERS_CACHE['TX']}, NY=${STATE_MULTIPLIERS_CACHE['NY']}`);
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to load state multipliers:', error);
+    console.log('⚠️  Using hardcoded fallback');
+    
+    // Safety fallback if DB fails
+    STATE_MULTIPLIERS_CACHE = {
+      'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40, 'WA': 1.15,
+      'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05, 'TX': 0.95,
+      'FL': 0.95, 'GA': 0.90, 'OH': 0.92, 'PA': 1.02, 'TN': 0.88,
+      'AL': 0.85, 'AZ': 0.95, 'WY': 0.90, 'NJ': 1.28, 'MT': 0.92,
+      'ID': 0.88, 'NV': 1.05, 'UT': 0.93, 'CT': 1.22, 'NM': 0.87,
+      'ND': 0.95, 'SD': 0.89, 'NE': 0.91, 'RI': 1.18, 'KS': 0.90,
+      'OK': 0.87, 'AR': 0.86, 'LA': 0.89, 'VT': 1.05, 'MS': 0.84,
+      'KY': 0.88, 'WV': 0.86, 'SC': 0.88, 'NH': 1.08, 'NC': 0.92,
+      'IN': 0.90, 'MI': 0.93, 'WI': 0.94, 'ME': 1.00, 'MN': 0.98,
+      'IA': 0.91, 'MO': 0.89, 'DE': 1.05, 'MD': 1.12, 'DC': 1.25,
+      'AK': 1.45
+    };
+    
+    return false;
+  }
+}
+
+// Connect to database and load pricing data
 pool.connect()
-  .then(() => console.log('✅ Database connected'))
-  .catch(err => console.error('❌ Database connection error:', err));
+  .then(() => {
+    console.log('✅ Database connected');
+    return loadStateMultipliers();
+  })
+  .then((success) => {
+    if (success) {
+      console.log('✅ Pricing data loaded and cached');
+    } else {
+      console.log('⚠️  Running with fallback values');
+    }
+  })
+  .catch(err => {
+    console.error('❌ Startup error:', err);
+  });
+
 
 // ========== EMAIL SETUP ==========
 const transporter = nodemailer.createTransport(sgTransport({
@@ -86,6 +144,7 @@ const transporter = nodemailer.createTransport(sgTransport({
     api_key: process.env.SENDGRID_API_KEY
   }
 }));
+
 
 // Initialize database tables
 async function initDatabase() {
