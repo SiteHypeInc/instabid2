@@ -26,9 +26,12 @@ if (!supportedTrades.includes(estimate.trade)) {
     
     console.log('📦 Project details:', projectDetails);
     
+    
     // Step 4: Fetch MSA regional cost index
-    const msaData = await fetchMSACostIndex(estimate.zipCode, estimate.state);
-    console.log('📍 MSA data:', msaData);
+console.log('🔍 DEBUG - estimate object:', estimate);
+console.log('🔍 DEBUG - zipCode:', estimate.zipCode, 'state:', estimate.state);
+const msaData = await fetchMSACostIndex(estimate.zipCode, estimate.state);
+console.log('📍 MSA data:', msaData);
     
     // Step 5: Generate material list with regional pricing
     const materialListData = await generateMaterialListForTrade(
