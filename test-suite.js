@@ -50,6 +50,74 @@ const testCases = [
     ridgeVentFeet: '30'
   },
 
+   // STATE MULTIPLIER CACHE TESTS (New!)
+  {
+    trade: 'roofing',
+    name: 'Cache Test - High Cost CA',
+    email: 'test@test.com',
+    phone: '555-1234',
+    address: '123 Test St, Los Angeles, CA',
+    city: 'Los Angeles',
+    state: 'CA',
+    zip: '90001',
+    squareFeet: '2000',
+    pitch: '6/12',
+    stories: '1',
+    material: 'Architectural Shingles ($3.50/sqft)',
+    existingRoofType: 'asphalt',
+    needsPlywood: 'no',
+    layers: '1',
+    valleys: '2',
+    chimneys: '1',
+    skylights: '0',
+    ridgeVentFeet: '40',
+    _expectedMultiplier: 1.35  // For validation
+  },
+  {
+    trade: 'roofing',
+    name: 'Cache Test - Low Cost TX',
+    email: 'test@test.com',
+    phone: '555-1234',
+    address: '456 Test St, Dallas, TX',
+    city: 'Dallas',
+    state: 'TX',
+    zip: '75201',
+    squareFeet: '2000',
+    pitch: '6/12',
+    stories: '1',
+    material: 'Architectural Shingles ($3.50/sqft)',
+    existingRoofType: 'asphalt',
+    needsPlywood: 'no',
+    layers: '1',
+    valleys: '2',
+    chimneys: '1',
+    skylights: '0',
+    ridgeVentFeet: '40',
+    _expectedMultiplier: 1.05
+  },
+  {
+    trade: 'roofing',
+    name: 'Cache Test - Cheapest MS',
+    email: 'test@test.com',
+    phone: '555-1234',
+    address: '789 Test St, Jackson, MS',
+    city: 'Jackson',
+    state: 'MS',
+    zip: '39201',
+    squareFeet: '2000',
+    pitch: '6/12',
+    stories: '1',
+    material: 'Architectural Shingles ($3.50/sqft)',
+    existingRoofType: 'asphalt',
+    needsPlywood: 'no',
+    layers: '1',
+    valleys: '2',
+    chimneys: '1',
+    skylights: '0',
+    ridgeVentFeet: '40',
+    _expectedMultiplier: 0.84
+  },
+
   // PAINTING TESTS
   {
     trade: 'painting',
@@ -188,6 +256,16 @@ async function runTests() {
         hasLaborHours: estimate.labor_hours && estimate.labor_hours > 0,
         notNull: estimate.total_cost !== null
       };
+
+      // Check state multiplier if expected value provided
+      if (testCase._expectedMultiplier && estimate.regional_multiplier) {
+        const multiplierMatch = Math.abs(estimate.regional_multiplier - testCase._expectedMultiplier) < 0.01;
+        checks.correctMultiplier = multiplierMatch;
+        
+        if (!multiplierMatch) {
+          console.log(`   ⚠️  Multiplier mismatch: Expected ${testCase._expectedMultiplier}, Got ${estimate.regional_multiplier}`);
+        }
+      }
 
       const allPassed = Object.values(checks).every(v => v === true);
 
