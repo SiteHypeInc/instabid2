@@ -34,6 +34,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// Admin API Key authentication middleware
+function requireAdminKey(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No API key provided' });
+  }
+  
+  const apiKey = authHeader.split(' ')[1];
+  const validKey = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+  
+  if (apiKey !== validKey) {
+    return res.status(403).json({ error: 'Invalid API key' });
+  }
+  
+  next();
+}
+
 // Session authentication middleware
 async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -1695,6 +1713,77 @@ app.put('/api/config/:section', requireAuth, (req, res) => {
     overrideCount: Object.keys(overrides).length,
     totalFields: Object.keys(DEFAULT_PRICING[section]).length
   });
+});
+
+// ============================================
+// ADMIN PRICING ROUTES - /api/admin/pricing
+// ============================================
+
+// GET all state multipliers
+app.get('/api/admin/pricing/states', requireAdminKey, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, state_code, cost_tier, multiplier, notes, updated_at 
+      FROM regional_multipliers 
+      ORDER BY state_code ASC
+    `);
+    
+    res.json({
+      success: true,
+      states: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching state multipliers:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch state multipliers' });
+  }
+});
+
+// POST update state multipliers (batch)
+app.post('/api/admin/pricing/states', requireAdminKey, async (req, res) => {
+  const { changes } = req.body;
+  
+  if (!changes || Object.keys(changes).length === 0) {
+    return res.status(400).json({ success: false, error: 'No changes provided' });
+  }
+  
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    const updates = [];
+    for (const [stateCode, change] of Object.entries(changes)) {
+      const newTier = change.new >= 1.15 ? 'high' : (change.new >= 0.95 ? 'medium' : 'low');
+      
+      await client.query(`
+        UPDATE regional_multipliers 
+        SET multiplier = $1, cost_tier = $2, updated_at = NOW() 
+        WHERE state_code = $3
+      `, [change.new, newTier, stateCode]);
+      
+      updates.push({ state: stateCode, old: change.old, new: change.new, tier: newTier });
+    }
+    
+    await client.query('COMMIT');
+    
+    // Refresh the in-memory cache
+    await loadStateMultipliers();
+    
+    console.log(`✅ Admin updated ${updates.length} state multipliers:`, updates);
+    
+    res.json({
+      success: true,
+      message: `Updated ${updates.length} state multiplier(s)`,
+      updates
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error updating state multipliers:', error);
+    res.status(500).json({ success: false, error: 'Failed to update state multipliers' });
+  } finally {
+    client.release();
+  }
 });
 
 // ============================================
