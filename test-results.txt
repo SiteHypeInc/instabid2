@@ -1,0 +1,58 @@
+INSTABID TEST SUITE RESULTS
+Run Date: 2026-01-16T06:19:18.167Z
+================================================================================
+
+SUMMARY:
+Passed: 0/9
+Failed: 9/9
+Success Rate: 0.0%
+
+================================================================================
+
+DETAILED RESULTS:
+
+TEST #1: ROOFING
+Location: Phoenix, AZ 85001
+Status: ERROR
+Error: Invalid URL
+
+TEST #2: ROOFING
+Location: Tempe, AZ 85281
+Status: ERROR
+Error: Invalid URL
+
+TEST #3: PAINTING
+Location: Seattle, WA 98101
+Status: ERROR
+Error: Invalid URL
+
+TEST #4: HVAC
+Location: Austin, TX 78701
+Status: ERROR
+Error: Invalid URL
+
+TEST #5: ELECTRICAL
+Location: Denver, CO 80201
+Status: ERROR
+Error: Invalid URL
+
+TEST #6: PLUMBING
+Location: Miami, FL 33101
+Status: ERROR
+Error: Invalid URL
+
+TEST #7: FLOORING
+Location: Portland, OR 97201
+Status: ERROR
+Error: Invalid URL
+
+TEST #8: DRYWALL
+Location: Atlanta, GA 30301
+Status: ERROR
+Error: Invalid URL
+
+TEST #9: SIDING
+Location: Boston, MA 02101
+Status: ERROR
+Error: Invalid URL
+
