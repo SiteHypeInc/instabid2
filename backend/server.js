@@ -465,7 +465,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa) {
   let equipmentCost = 0;
 
   // Get regional multiplier
-  const regionalMultiplier = getPrice('regional', `region_${state}`) || getPrice('regional', 'region_default');
+  const regionalMultiplier = STATE_MULTIPLIERS_CACHE[state] || 1.0;
 
   switch(trade.toLowerCase()) {
 

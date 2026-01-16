@@ -1,10 +1,10 @@
 INSTABID TEST SUITE RESULTS
-Run Date: 2026-01-16T06:59:43.839Z
+Run Date: 2026-01-16T09:33:53.106Z
 ================================================================================
 
 SUMMARY:
-Passed: 0/9
-Failed: 9/9
+Passed: 0/12
+Failed: 12/12
 Success Rate: 0.0%
 
 ================================================================================
@@ -19,31 +19,43 @@ TEST #2: ROOFING
 Location: Tempe, AZ 85281
 Status: FAILED
 
-TEST #3: PAINTING
+TEST #3: ROOFING
+Location: Los Angeles, CA 90001
+Status: FAILED
+
+TEST #4: ROOFING
+Location: Dallas, TX 75201
+Status: FAILED
+
+TEST #5: ROOFING
+Location: Jackson, MS 39201
+Status: FAILED
+
+TEST #6: PAINTING
 Location: Seattle, WA 98101
 Status: FAILED
 
-TEST #4: HVAC
+TEST #7: HVAC
 Location: Austin, TX 78701
 Status: FAILED
 
-TEST #5: ELECTRICAL
+TEST #8: ELECTRICAL
 Location: Denver, CO 80201
 Status: FAILED
 
-TEST #6: PLUMBING
+TEST #9: PLUMBING
 Location: Miami, FL 33101
 Status: FAILED
 
-TEST #7: FLOORING
+TEST #10: FLOORING
 Location: Portland, OR 97201
 Status: FAILED
 
-TEST #8: DRYWALL
+TEST #11: DRYWALL
 Location: Atlanta, GA 30301
 Status: FAILED
 
-TEST #9: SIDING
+TEST #12: SIDING
 Location: Boston, MA 02101
 Status: FAILED
 
