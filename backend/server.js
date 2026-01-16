@@ -1415,6 +1415,9 @@ app.get('/api/estimates', async (req, res) => {
         material_cost as "materialsCost",
         labor_cost as "laborCost",
         total_cost as "totalCost",
+        tax_rate as "taxRate",
+        tax_amount as "taxAmount",
+        total_with_tax as "totalWithTax",
         created_at as "createdAt"
       FROM estimates 
       ORDER BY created_at DESC
@@ -1447,6 +1450,9 @@ app.get('/api/estimates/:id', async (req, res) => {
         material_cost as "materialsCost",
         labor_cost as "laborCost",
         total_cost as "totalCost",
+        tax_rate as "taxRate",
+        tax_amount as "taxAmount",
+        total_with_tax as "totalWithTax",
         trade_details as "projectDetails",
         photos,
         created_at as "createdAt"
@@ -1458,24 +1464,7 @@ app.get('/api/estimates/:id', async (req, res) => {
       return res.status(404).json({ error: 'Estimate not found' });
     }
     
-     // ✅ ADD THIS BLOCK HERE:
-    const estimate = result.rows[0];
-    
-    // Parse photos from JSONB to array
-    if (estimate.photos) {
-      try {
-        estimate.photos = typeof estimate.photos === 'string' 
-          ? JSON.parse(estimate.photos) 
-          : estimate.photos;
-      } catch (e) {
-        console.error('Error parsing photos:', e);
-        estimate.photos = [];
-      }
-    } else {
-      estimate.photos = [];
-    }
-    
-    res.json(estimate);  // ← CHANGED FROM result.rows[0] to estimate
+    res.json(result.rows[0]);
     
   } catch (error) {
     console.error('Error fetching estimate:', error);

@@ -1475,31 +1475,45 @@ async function viewEstimateDetails(estimateId) {
           </div>
         ` : ''}
         
-        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-          <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">💰 Estimate Breakdown</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div>
-              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Materials</div>
-              <div style="font-size: 20px; font-weight: 600; color: #333;">
-                $${parseFloat(estimate.materialsCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
-              </div>
-            </div>
-            <div>
-              <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Labor</div>
-              <div style="font-size: 20px; font-weight: 600; color: #333;">
-                $${parseFloat(estimate.laborCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
-              </div>
-            </div>
-          </div>
-          <div style="border-top: 2px solid #dee2e6; margin-top: 15px; padding-top: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="font-size: 14px; font-weight: 600; color: #666;">TOTAL</div>
-              <div style="font-size: 28px; font-weight: 700; color: #667eea;">
-                $${parseFloat(estimate.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
-              </div>
-            </div>
-          </div>
-        </div>
+<div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+  <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">💰 Estimate Breakdown</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div>
+      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Materials</div>
+      <div style="font-size: 20px; font-weight: 600; color: #333;">
+        $${parseFloat(estimate.materialsCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+      </div>
+    </div>
+    <div>
+      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Labor</div>
+      <div style="font-size: 20px; font-weight: 600; color: #333;">
+        $${parseFloat(estimate.laborCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+      </div>
+    </div>
+  </div>
+  <div style="border-top: 1px solid #dee2e6; margin-top: 15px; padding-top: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <div style="font-size: 13px; color: #666;">Subtotal</div>
+      <div style="font-size: 16px; font-weight: 600; color: #333;">
+        $${parseFloat(estimate.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <div style="font-size: 13px; color: #666;">Tax (${parseFloat(estimate.taxRate || 8.25).toFixed(2)}%)</div>
+      <div style="font-size: 16px; font-weight: 600; color: #333;">
+        $${parseFloat(estimate.taxAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+      </div>
+    </div>
+  </div>
+  <div style="border-top: 2px solid #dee2e6; margin-top: 10px; padding-top: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-size: 14px; font-weight: 600; color: #666;">TOTAL (incl. tax)</div>
+      <div style="font-size: 28px; font-weight: 700; color: #667eea;">
+        $${parseFloat(estimate.totalWithTax || estimate.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+      </div>
+    </div>
+  </div>
+</div>
         
         ${['roofing', 'painting', 'hvac', 'electrical', 'plumbing', 'flooring', 'drywall', 'siding'].includes(estimate.trade) ? `
   <button id="generateMaterialListBtn" onclick="generateMaterialList('${estimate.id}')" style="
