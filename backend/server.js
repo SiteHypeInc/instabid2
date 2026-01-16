@@ -1449,11 +1449,9 @@ app.get('/api/estimates/:id', async (req, res) => {
   }
 });
 
-// ============================================
-// MSA LOOKUP ENDPOINT (for material list generator)
-// ============================================
+// MSA Lookup endpoint for material list generator
 app.get('/api/msa-lookup', async (req, res) => {
-  const { zip } = req.query;
+  const { zip, state } = req.query;  // ← Add state parameter
   
   if (!zip) {
     return res.json({ 
@@ -1466,27 +1464,52 @@ app.get('/api/msa-lookup', async (req, res) => {
   try {
     // Try ZIP lookup first
     const zipResult = await pool.query(
-      'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1',
+      'SELECT msa_name, state FROM zip_metro_mapping WHERE zip_code = $1',
       [zip]
     );
     
     if (zipResult.rows.length > 0) {
       const msaName = zipResult.rows[0].msa_name;
-      console.log(`✅ Found MSA for ZIP ${zip}: ${msaName}`);
+      const msaState = zipResult.rows[0].state;
       
-      // TODO: Get actual material/labor indices from metro_areas table
-      // For now, use 1.0 (we can add indices later)
+      // Get regional multiplier for this state
+      const stateMultipliers = {
+        'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40,
+        'WA': 1.15, 'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05,
+        'TX': 0.95, 'FL': 0.95, 'GA': 0.90, 'OH': 0.92,
+        'TN': 0.88, 'AL': 0.85, 'AZ': 0.95, 'WY': 0.90
+      };
+      
+      const multiplier = stateMultipliers[msaState] || 1.00;
+      
       return res.json({
         msa_name: msaName,
-        material_index: 1.00,
-        labor_index: 1.00
+        material_index: multiplier,
+        labor_index: multiplier
       });
     }
     
-    // ZIP not found - try to infer state and use state multiplier
-    console.log(`⚠️ No MSA found for ZIP ${zip} - using state fallback`);
+    // ZIP not found - use state multiplier if provided
+    if (state) {
+      const stateMultipliers = {
+        'CA': 1.35, 'NY': 1.30, 'MA': 1.25, 'HI': 1.40,
+        'WA': 1.15, 'OR': 1.10, 'CO': 1.10, 'IL': 1.08, 'VA': 1.05,
+        'TX': 0.95, 'FL': 0.95, 'GA': 0.90, 'OH': 0.92,
+        'TN': 0.88, 'AL': 0.85, 'AZ': 0.95, 'WY': 0.90
+      };
+      
+      const multiplier = stateMultipliers[state] || 1.00;
+      
+      console.log(`⚠️ No MSA found for ZIP ${zip} - using ${state} state multiplier: ${multiplier}x`);
+      return res.json({ 
+        material_index: multiplier, 
+        labor_index: multiplier, 
+        msa_name: `${state} State Average` 
+      });
+    }
     
-    // Get state from the estimate (we don't have it here, so fall back to national)
+    // No ZIP or state - return national average
+    console.log(`⚠️ No MSA found for ZIP ${zip}`);
     return res.json({ 
       material_index: 1.00, 
       labor_index: 1.00, 

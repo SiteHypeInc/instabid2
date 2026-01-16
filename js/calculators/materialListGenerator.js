@@ -27,7 +27,7 @@ if (!supportedTrades.includes(estimate.trade)) {
     console.log('📦 Project details:', projectDetails);
     
     // Step 4: Fetch MSA regional cost index
-    const msaData = await fetchMSACostIndex(estimate.zipCode);
+    const msaData = await fetchMSACostIndex(estimate.zipCode, estimate.state);
     console.log('📍 MSA data:', msaData);
     
     // Step 5: Generate material list with regional pricing
@@ -55,9 +55,9 @@ if (!supportedTrades.includes(estimate.trade)) {
   }
 }
 
-async function fetchMSACostIndex(zipCode) {
+async function fetchMSACostIndex(zipCode, state) {
   try {
-    const response = await fetch(`https://roofbid-backend-production.up.railway.app/api/msa-lookup?zip=${zipCode}`);
+    const response = await fetch(`https://roofbid-backend-production.up.railway.app/api/msa-lookup?zip=${zipCode}&state=${state}`);
     if (!response.ok) {
       console.warn('⚠️ MSA lookup failed, using national average');
       return { material_index: 1.00, labor_index: 1.00, msa_name: 'National Average' };
