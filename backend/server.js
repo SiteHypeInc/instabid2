@@ -1449,7 +1449,9 @@ app.get('/api/estimates/:id', async (req, res) => {
   }
 });
 
-// MSA Lookup endpoint for material list generator
+// ============================================
+// MSA LOOKUP ENDPOINT (for material list generator)
+// ============================================
 app.get('/api/msa-lookup', async (req, res) => {
   const { zip } = req.query;
   
@@ -1469,17 +1471,22 @@ app.get('/api/msa-lookup', async (req, res) => {
     );
     
     if (zipResult.rows.length > 0) {
-      // Found MSA - return with index (we can add actual indices to the table later)
+      const msaName = zipResult.rows[0].msa_name;
+      console.log(`✅ Found MSA for ZIP ${zip}: ${msaName}`);
+      
+      // TODO: Get actual material/labor indices from metro_areas table
+      // For now, use 1.0 (we can add indices later)
       return res.json({
-        msa_name: zipResult.rows[0].msa_name,
-        material_index: 1.00, // TODO: Get from metro_areas table
+        msa_name: msaName,
+        material_index: 1.00,
         labor_index: 1.00
       });
     }
     
-    // Fallback to state from ZIP (first 2 chars often indicate state, but not reliable)
-    // For now, just return national average
-    console.log(`⚠️ No MSA found for ZIP ${zip}`);
+    // ZIP not found - try to infer state and use state multiplier
+    console.log(`⚠️ No MSA found for ZIP ${zip} - using state fallback`);
+    
+    // Get state from the estimate (we don't have it here, so fall back to national)
     return res.json({ 
       material_index: 1.00, 
       labor_index: 1.00, 
@@ -1495,6 +1502,8 @@ app.get('/api/msa-lookup', async (req, res) => {
     });
   }
 });
+
+
 
 // ============================================
 // STANDALONE PDF/CONTRACT GENERATION (PUBLIC)
