@@ -1323,6 +1323,71 @@ function getTradeColor(trade) {
   return colors[trade?.toLowerCase()] || '#667eea';
 }
 
+// Render trade-specific details
+function renderTradeDetails(trade, details) {
+  if (!details || typeof details !== 'object') return '<p style="color: #999;">No additional details</p>';
+  
+  // Parse if it's a string
+  if (typeof details === 'string') {
+    try {
+      details = JSON.parse(details);
+    } catch (e) {
+      return '<p style="color: #999;">Unable to parse details</p>';
+    }
+  }
+  
+  const fieldLabels = {
+    squareFeet: 'Square Feet', stories: 'Stories', pitch: 'Roof Pitch',
+    material: 'Material', layers: 'Existing Layers', chimneys: 'Chimneys',
+    valleys: 'Valleys', skylights: 'Skylights', needsPlywood: 'Needs Plywood',
+    plywoodSqft: 'Plywood Sq Ft', ridgeVentFeet: 'Ridge Vent (ft)',
+    existingRoofType: 'Existing Roof', systemType: 'System Type',
+    units: 'Units', registers: 'Registers', accessType: 'Access Type',
+    existingDucts: 'Existing Ducts', zoning: 'Zoning', tonnage: 'Tonnage',
+    efficiency: 'Efficiency', gasLineNeeded: 'Gas Line Needed',
+    electricalUpgrade: 'Electrical Upgrade', serviceType: 'Service Type',
+    amperage: 'Amperage', receptacles: 'Receptacles', switches: 'Switches',
+    lightFixtures: 'Light Fixtures', ceilingFans: 'Ceiling Fans',
+    gfciOutlets: 'GFCI Outlets', bathrooms: 'Bathrooms', kitchens: 'Kitchens',
+    laundryRooms: 'Laundry Rooms', heaterType: 'Water Heater Type',
+    floorType: 'Floor Type', rooms: 'Rooms', needRemoval: 'Remove Existing',
+    stairs: 'Include Stairs', stairSteps: 'Stair Steps', paintType: 'Paint Type',
+    coats: 'Coats', includeCeilings: 'Include Ceilings', includeTrim: 'Include Trim',
+    doorCount: 'Doors', windowCount: 'Windows', projectType: 'Project Type',
+    ceilingHeight: 'Ceiling Height', finishLevel: 'Finish Level',
+    textureType: 'Texture Type', sidingType: 'Siding Type',
+    needsRemoval: 'Remove Existing', trimLinearFeet: 'Trim (Linear Ft)',
+    projectDetails: 'Project Details'
+  };
+  
+  const skipFields = ['name', 'email', 'phone', 'address', 'city', 'state', 'zip', 'photos'];
+  let html = '';
+  
+  for (const [key, value] of Object.entries(details)) {
+    if (value === null || value === undefined || value === '' || skipFields.includes(key)) continue;
+    if (Array.isArray(value)) continue;
+    
+    const label = fieldLabels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    let displayValue = value;
+    
+    if (value === 'yes') displayValue = '✓ Yes';
+    else if (value === 'no') displayValue = '✗ No';
+    else if (typeof value === 'number') displayValue = value.toLocaleString();
+    else if (typeof value === 'string' && value.includes('_')) {
+      displayValue = value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+    
+    html += `
+      <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e0e0e0;">
+        <div style="font-size: 11px; color: #999; margin-bottom: 4px; text-transform: uppercase;">${label}</div>
+        <div style="font-size: 15px; font-weight: 600; color: #333;">${displayValue}</div>
+      </div>
+    `;
+  }
+  
+  return html || '<p style="color: #999;">No additional specifications</p>';
+}
+
  // Google Maps instances
 let aerialMap = null;
 let streetViewPanorama = null;
@@ -1437,6 +1502,17 @@ async function viewEstimateDetails(estimateId) {
           </p>
         </div>
         
+         <!-- ✅ PROJECT SPECIFICATIONS -->
+        ${estimate.projectDetails ? `
+          <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📋 Project Specifications</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+              ${renderTradeDetails(estimate.trade, estimate.projectDetails)}
+            </div>
+          </div>
+        ` : ''}
+
+
         <!-- ✅ NEW: GOOGLE MAPS SPLIT VIEW -->
         ${estimate.address && estimate.city && estimate.state && estimate.zipCode ? `
           <div id="dashboardMapContainer" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
