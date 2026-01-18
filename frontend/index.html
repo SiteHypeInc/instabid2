@@ -360,7 +360,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'plywoodSqft', label: 'Plywood Square Feet', type: 'number', required: false },
     { name: 'existingRoofType', label: 'Existing Roof Type', type: 'select', options: ['asphalt', 'tile', 'metal', 'wood_shake'], required: false },
     { name: 'skylights', label: 'Number of Skylights', type: 'number', required: false },
-    { name: 'ridgeVentFeet', label: 'Ridge Vent (Linear Feet)', type: 'number', required: false }
+    { name: 'ridgeVentFeet', label: 'Ridge Vent (Linear Feet)', type: 'number', required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   hvac: [
@@ -382,7 +383,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'tonnage', label: 'Tonnage', type: 'select', options: ['1.5', '2', '2.5', '3', '3.5', '4', '5'], required: false },
     { name: 'efficiency', label: 'Efficiency Rating', type: 'select', options: ['standard_14', 'high_16_20', 'premium_20plus'], required: false },
     { name: 'gasLineNeeded', label: 'Gas Line Needed?', type: 'radio', options: ['yes', 'no'], required: false },
-    { name: 'electricalUpgrade', label: 'Electrical Upgrade Needed?', type: 'radio', options: ['yes', 'no'], required: false }
+    { name: 'electricalUpgrade', label: 'Electrical Upgrade Needed?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   electrical: [
@@ -406,7 +408,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'arcFaultBreakers', label: 'Arc-Fault Breakers Required?', type: 'radio', options: ['yes', 'no'], required: false },
     { name: 'gfciOutlets', label: 'Number of GFCI Outlets', type: 'number', required: false },
     { name: 'ceilingFans', label: 'Number of Ceiling Fans', type: 'number', required: false },
-    { name: 'smartHome', label: 'Smart Home Integration?', type: 'radio', options: ['yes', 'no'], required: false }
+    { name: 'smartHome', label: 'Smart Home Integration?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   plumbing: [
@@ -432,7 +435,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'garbageDisposal', label: 'Garbage Disposal?', type: 'radio', options: ['yes', 'no'], required: false },
     { name: 'iceMaker', label: 'Ice Maker Line?', type: 'radio', options: ['yes', 'no'], required: false },
     { name: 'waterSoftener', label: 'Water Softener?', type: 'radio', options: ['yes', 'no'], required: false },
-    { name: 'fixtures', label: 'Number of Fixtures', type: 'number', required: false }
+    { name: 'fixtures', label: 'Number of Fixtures', type: 'number', required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   flooring: [
@@ -454,7 +458,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'moistureIssues', label: 'Moisture Issues?', type: 'radio', options: ['yes', 'no'], required: false },
     { name: 'transitionStrips', label: 'Number of Transition Strips', type: 'number', required: false },
     { name: 'baseboardRemoval', label: 'Remove/Reinstall Baseboard?', type: 'radio', options: ['yes', 'no'], required: false },
-    { name: 'floorHeating', label: 'Radiant Floor Heating?', type: 'radio', options: ['yes', 'no'], required: false }
+    { name: 'floorHeating', label: 'Radiant Floor Heating?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   painting: [
@@ -482,7 +487,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'patchingNeeded', label: 'Patching Needed', type: 'select', options: ['none', 'minor', 'moderate', 'extensive'], required: false },
     { name: 'powerWashing', label: 'Power Washing (Exterior)?', type: 'radio', options: ['yes', 'no'], required: false },
     { name: 'leadPaint', label: 'Lead Paint Present (Pre-1978)?', type: 'radio', options: ['yes', 'no', 'unknown'], required: false },
-    { name: 'colorChangeDramatic', label: 'Dramatic Color Change?', type: 'radio', options: ['yes', 'no'], required: false }
+    { name: 'colorChangeDramatic', label: 'Dramatic Color Change?', type: 'radio', options: ['yes', 'no'], required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   drywall: [
@@ -499,7 +505,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'ceilingHeight', label: 'Ceiling Height', type: 'select', options: ['8ft', '9ft', '10ft', '12ft+'], required: true },
     { name: 'finishLevel', label: 'Finish Level', type: 'select', options: ['level_3_standard', 'level_4_smooth', 'level_5_glass'], required: false },
     { name: 'textureType', label: 'Texture Type', type: 'select', options: ['none', 'orange_peel', 'knockdown', 'popcorn'], required: false },
-    { name: 'damageExtent', label: 'Damage Extent (Repair)', type: 'select', options: ['minor', 'moderate', 'extensive'], required: false }
+    { name: 'damageExtent', label: 'Damage Extent (Repair)', type: 'select', options: ['minor', 'moderate', 'extensive'], required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   siding: [
@@ -516,7 +523,8 @@ var TRADE_FORM_SCHEMA = {
     { name: 'needsRemoval', label: 'Remove Existing Siding?', type: 'radio', options: ['yes', 'no'], required: true },
     { name: 'windowCount', label: 'Number of Windows', type: 'number', required: false },
     { name: 'doorCount', label: 'Number of Doors', type: 'number', required: false },
-    { name: 'trimLinearFeet', label: 'Trim (Linear Feet)', type: 'number', required: false }
+    { name: 'trimLinearFeet', label: 'Trim (Linear Feet)', type: 'number', required: false },
+    { name: 'additionalNotes', label: 'Additional Details', type: 'textarea', required: false }
   ],
 
   general_contracting: [
