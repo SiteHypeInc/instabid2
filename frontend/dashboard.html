@@ -1774,6 +1774,35 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 
+  <!-- SECTION 6: API KEY & EMBED -->
+<div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%); border: 1px solid #30363d;">
+  <h3 style="color: #00d4ff;">🔗 Your Estimate Form</h3>
+  
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #e6edf3;">Share this link with customers:</label>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="profile_share_link" readonly style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00d4ff; font-family: monospace; font-size: 13px;">
+      <button onclick="copyShareLink()" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+    </div>
+  </div>
+  
+  <div style="margin-bottom: 20px;">
+    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #e6edf3;">Or embed on your website:</label>
+    <div style="display: flex; gap: 10px;">
+      <textarea id="profile_embed_code" readonly rows="3" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
+      <button onclick="copyEmbedCode()" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+    </div>
+  </div>
+  
+  <div style="border-top: 1px solid #30363d; padding-top: 15px;">
+    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #8b949e; font-size: 13px;">Your API Key:</label>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="profile_api_key" readonly style="flex: 1; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #8b949e; font-family: monospace; font-size: 12px;">
+      <button onclick="copyApiKey()" style="padding: 10px 16px; background: #30363d; color: #e6edf3; border: none; border-radius: 6px; cursor: pointer;">📋</button>
+    </div>
+  </div>
+</div>
+
   <!-- SAVE BUTTON -->
   <button class="btn-save" onclick="saveCompanyProfile()">💾 Save Company Profile</button>
   <div class="status-message" id="profile-status"></div>
