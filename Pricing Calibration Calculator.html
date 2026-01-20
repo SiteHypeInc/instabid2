@@ -1,0 +1,918 @@
+Pricing Calibration Calculator
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstaBid Pricing Calibration Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', -apple-system, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    h1 {
+      color: #00d4ff;
+      margin-bottom: 5px;
+      font-size: 1.8rem;
+    }
+    
+    .subtitle {
+      color: #8b949e;
+      margin-bottom: 25px;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+    
+    .tab {
+      padding: 12px 24px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #8b949e;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .tab:hover {
+      border-color: #00d4ff;
+      color: #e6edf3;
+    }
+    
+    .tab.active {
+      background: linear-gradient(135deg, #00d4ff, #00a8cc);
+      color: #000;
+      border-color: transparent;
+    }
+    
+    .calculator {
+      display: none;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 25px;
+    }
+    
+    .calculator.active {
+      display: block;
+    }
+    
+    .calc-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .calc-header .icon {
+      font-size: 2rem;
+    }
+    
+    .calc-header h2 {
+      color: #00d4ff;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      color: #e6edf3;
+      font-size: 1rem;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #00d4ff;
+    }
+    
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-calculate {
+      background: linear-gradient(135deg, #00d4ff, #00a8cc);
+      color: #000;
+    }
+    
+    .btn-calculate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    }
+    
+    .results {
+      margin-top: 25px;
+      display: none;
+    }
+    
+    .results.show {
+      display: block;
+    }
+    
+    .results h3 {
+      color: #00d4ff;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+    
+    .estimate-range {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .estimate-card {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .estimate-card.low {
+      border-color: rgba(0, 212, 255, 0.3);
+    }
+    
+    .estimate-card.mid {
+      border-color: #00ff88;
+      background: rgba(0, 255, 136, 0.05);
+    }
+    
+    .estimate-card.high {
+      border-color: rgba(255, 107, 53, 0.3);
+    }
+    
+    .estimate-card .label {
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    
+    .estimate-card .amount {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    
+    .estimate-card.low .amount { color: #00d4ff; }
+    .estimate-card.mid .amount { color: #00ff88; }
+    .estimate-card.high .amount { color: #ff6b35; }
+    
+    .breakdown {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    
+    .breakdown h4 {
+      color: #e6edf3;
+      margin-bottom: 15px;
+    }
+    
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #21262d;
+    }
+    
+    .breakdown-row:last-child {
+      border-bottom: none;
+    }
+    
+    .breakdown-row .label {
+      color: #8b949e;
+    }
+    
+    .breakdown-row .value {
+      color: #e6edf3;
+      font-weight: 600;
+    }
+    
+    .breakdown-row.total {
+      border-top: 2px solid #00d4ff;
+      margin-top: 10px;
+      padding-top: 15px;
+    }
+    
+    .breakdown-row.total .label,
+    .breakdown-row.total .value {
+      color: #00d4ff;
+      font-size: 1.1rem;
+    }
+    
+    .market-data {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 8px;
+    }
+    
+    .market-data h4 {
+      color: #00d4ff;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    
+    .market-data p {
+      color: #8b949e;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    
+    .confidence {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .confidence-bar {
+      flex: 1;
+      height: 8px;
+      background: #21262d;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00d4ff, #00ff88);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    
+    .confidence-label {
+      color: #8b949e;
+      font-size: 0.85rem;
+      min-width: 120px;
+    }
+    
+    .regional-note {
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.2);
+      border-radius: 8px;
+      color: #ffc107;
+      font-size: 0.85rem;
+    }
+    
+    .copy-btn {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .copy-btn:hover {
+      background: #2ea043;
+    }
+    
+    @media (max-width: 768px) {
+      .estimate-range {
+        grid-template-columns: 1fr;
+      }
+      .tabs {
+        flex-direction: column;
+      }
+      .tab {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>⚡ InstaBid Pricing Calibration</h1>
+  <p class="subtitle">Real-world 2024-2025 market data • Compare your estimates against industry standards</p>
+  
+  <div class="tabs">
+    <div class="tab active" onclick="showCalc('roofing')">🏠 Roofing</div>
+    <div class="tab" onclick="showCalc('electrical')">⚡ Electrical</div>
+    <div class="tab" onclick="showCalc('plumbing')">🔧 Plumbing</div>
+    <div class="tab" onclick="showCalc('hvac')">❄️ HVAC</div>
+  </div>
+  
+  <!-- ROOFING CALCULATOR -->
+  <div class="calculator active" id="roofing">
+    <div class="calc-header">
+      <span class="icon">🏠</span>
+      <div>
+        <h2>Roofing Estimate Calculator</h2>
+        <p style="color:#8b949e;font-size:0.9rem;">Asphalt shingle replacement pricing</p>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Roof Size (sq ft)</label>
+        <input type="number" id="roof-sqft" value="2000" min="500" max="10000">
+      </div>
+      <div class="form-group">
+        <label>Shingle Type</label>
+        <select id="roof-shingle">
+          <option value="3tab">3-Tab (Basic) - $3-$6/sqft</option>
+          <option value="architectural" selected>Architectural - $5-$10/sqft</option>
+          <option value="premium">Premium/Designer - $10-$20/sqft</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Region</label>
+        <select id="roof-region">
+          <option value="midwest">Midwest (Baseline)</option>
+          <option value="south">South/Southeast (0.9x)</option>
+          <option value="texas">Texas (0.95x)</option>
+          <option value="northeast">Northeast (1.2x)</option>
+          <option value="california">California (1.3x)</option>
+          <option value="alaska">Alaska/Hawaii (1.4x)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Roof Complexity</label>
+        <select id="roof-complexity">
+          <option value="simple">Simple (Low Pitch)</option>
+          <option value="moderate" selected>Moderate</option>
+          <option value="complex">Complex (Steep/Multiple Levels)</option>
+        </select>
+      </div>
+    </div>
+    
+    <button class="btn btn-calculate" onclick="calcRoofing()">Calculate Estimate</button>
+    
+    <div class="results" id="roofing-results">
+      <h3>📊 Market-Based Estimate Range</h3>
+      <div class="estimate-range">
+        <div class="estimate-card low">
+          <div class="label">Low Estimate</div>
+          <div class="amount" id="roof-low">$0</div>
+        </div>
+        <div class="estimate-card mid">
+          <div class="label">Mid-Range (Recommended)</div>
+          <div class="amount" id="roof-mid">$0</div>
+        </div>
+        <div class="estimate-card high">
+          <div class="label">High Estimate</div>
+          <div class="amount" id="roof-high">$0</div>
+        </div>
+      </div>
+      
+      <div class="breakdown">
+        <h4>Cost Breakdown (Mid-Range)</h4>
+        <div class="breakdown-row">
+          <span class="label">Materials (~40%)</span>
+          <span class="value" id="roof-materials">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Labor (~60%)</span>
+          <span class="value" id="roof-labor">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Disposal/Cleanup</span>
+          <span class="value" id="roof-disposal">$0</span>
+        </div>
+        <div class="breakdown-row total">
+          <span class="label">Total Estimate</span>
+          <span class="value" id="roof-total">$0</span>
+        </div>
+      </div>
+      
+      <div class="confidence">
+        <span class="confidence-label">Estimate Confidence:</span>
+        <div class="confidence-bar">
+          <div class="confidence-fill" id="roof-confidence" style="width: 85%"></div>
+        </div>
+        <span id="roof-confidence-pct">85%</span>
+      </div>
+      
+      <div class="market-data">
+        <h4>📈 Market Intelligence</h4>
+        <p id="roof-market-note">Based on 2024-2025 national averages. Roofing costs rising ~8% annually. Your region may vary ±15%.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ELECTRICAL CALCULATOR -->
+  <div class="calculator" id="electrical">
+    <div class="calc-header">
+      <span class="icon">⚡</span>
+      <div>
+        <h2>Electrical Estimate Calculator</h2>
+        <p style="color:#8b949e;font-size:0.9rem;">Panel upgrades, rewiring, installations</p>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Project Type</label>
+        <select id="elec-type">
+          <option value="panel200">Panel Upgrade (200 Amp)</option>
+          <option value="panel100">Panel Upgrade (100 Amp)</option>
+          <option value="rewire-small">Rewire - Small Home (<1500 sqft)</option>
+          <option value="rewire-medium">Rewire - Medium Home (1500-2500 sqft)</option>
+          <option value="rewire-large">Rewire - Large Home (2500+ sqft)</option>
+          <option value="ev-charger">EV Charger Installation</option>
+          <option value="outlets">Outlet Installation (per outlet)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quantity (if applicable)</label>
+        <input type="number" id="elec-qty" value="1" min="1" max="50">
+      </div>
+      <div class="form-group">
+        <label>Region</label>
+        <select id="elec-region">
+          <option value="midwest">Midwest (Baseline)</option>
+          <option value="south">South/Southeast (0.9x)</option>
+          <option value="northeast">Northeast (1.2x)</option>
+          <option value="california">California (1.25x)</option>
+          <option value="alaska">Alaska (1.35x)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Access Difficulty</label>
+        <select id="elec-access">
+          <option value="easy">Easy Access</option>
+          <option value="moderate" selected>Moderate</option>
+          <option value="difficult">Difficult (Finished Walls/Attic)</option>
+        </select>
+      </div>
+    </div>
+    
+    <button class="btn btn-calculate" onclick="calcElectrical()">Calculate Estimate</button>
+    
+    <div class="results" id="electrical-results">
+      <h3>📊 Market-Based Estimate Range</h3>
+      <div class="estimate-range">
+        <div class="estimate-card low">
+          <div class="label">Low Estimate</div>
+          <div class="amount" id="elec-low">$0</div>
+        </div>
+        <div class="estimate-card mid">
+          <div class="label">Mid-Range (Recommended)</div>
+          <div class="amount" id="elec-mid">$0</div>
+        </div>
+        <div class="estimate-card high">
+          <div class="label">High Estimate</div>
+          <div class="amount" id="elec-high">$0</div>
+        </div>
+      </div>
+      
+      <div class="breakdown">
+        <h4>Cost Breakdown (Mid-Range)</h4>
+        <div class="breakdown-row">
+          <span class="label">Materials</span>
+          <span class="value" id="elec-materials">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Labor</span>
+          <span class="value" id="elec-labor">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Permits/Inspection</span>
+          <span class="value" id="elec-permits">$0</span>
+        </div>
+        <div class="breakdown-row total">
+          <span class="label">Total Estimate</span>
+          <span class="value" id="elec-total">$0</span>
+        </div>
+      </div>
+      
+      <div class="market-data">
+        <h4>📈 Market Intelligence</h4>
+        <p id="elec-market-note">Electrician rates: $50-$100/hr residential. Master electricians: $90-$120/hr. Service calls start at $100-$200.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PLUMBING CALCULATOR -->
+  <div class="calculator" id="plumbing">
+    <div class="calc-header">
+      <span class="icon">🔧</span>
+      <div>
+        <h2>Plumbing Estimate Calculator</h2>
+        <p style="color:#8b949e;font-size:0.9rem;">Water heaters, repipes, fixtures</p>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>Project Type</label>
+        <select id="plumb-type">
+          <option value="wh-standard">Water Heater - Standard Tank</option>
+          <option value="wh-tankless">Water Heater - Tankless</option>
+          <option value="repipe-small">Repipe - Small Home (<1500 sqft)</option>
+          <option value="repipe-medium">Repipe - Medium Home (1500-2500 sqft)</option>
+          <option value="repipe-large">Repipe - Large Home (2500+ sqft)</option>
+          <option value="fixture">Fixture Installation (per fixture)</option>
+          <option value="service">Service Call / Repair</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Pipe Material (for repipes)</label>
+        <select id="plumb-material">
+          <option value="pex">PEX (Budget)</option>
+          <option value="copper" selected>Copper (Standard)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Region</label>
+        <select id="plumb-region">
+          <option value="midwest">Midwest (Baseline)</option>
+          <option value="south">South/Southeast (0.95x)</option>
+          <option value="florida">Florida (1.05x)</option>
+          <option value="northeast">Northeast (1.15x)</option>
+          <option value="california">California (1.25x)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Foundation Type</label>
+        <select id="plumb-foundation">
+          <option value="crawl">Crawl Space (Easy)</option>
+          <option value="basement" selected>Basement (Moderate)</option>
+          <option value="slab">Slab (Difficult +20%)</option>
+        </select>
+      </div>
+    </div>
+    
+    <button class="btn btn-calculate" onclick="calcPlumbing()">Calculate Estimate</button>
+    
+    <div class="results" id="plumbing-results">
+      <h3>📊 Market-Based Estimate Range</h3>
+      <div class="estimate-range">
+        <div class="estimate-card low">
+          <div class="label">Low Estimate</div>
+          <div class="amount" id="plumb-low">$0</div>
+        </div>
+        <div class="estimate-card mid">
+          <div class="label">Mid-Range (Recommended)</div>
+          <div class="amount" id="plumb-mid">$0</div>
+        </div>
+        <div class="estimate-card high">
+          <div class="label">High Estimate</div>
+          <div class="amount" id="plumb-high">$0</div>
+        </div>
+      </div>
+      
+      <div class="breakdown">
+        <h4>Cost Breakdown (Mid-Range)</h4>
+        <div class="breakdown-row">
+          <span class="label">Materials</span>
+          <span class="value" id="plumb-materials">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Labor</span>
+          <span class="value" id="plumb-labor">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Permits</span>
+          <span class="value" id="plumb-permits">$0</span>
+        </div>
+        <div class="breakdown-row total">
+          <span class="label">Total Estimate</span>
+          <span class="value" id="plumb-total">$0</span>
+        </div>
+      </div>
+      
+      <div class="regional-note">
+        ⚠️ 2025 Alert: Plumbing manufacturers implemented 6-9% price increases due to tariffs.
+      </div>
+    </div>
+  </div>
+  
+  <!-- HVAC CALCULATOR -->
+  <div class="calculator" id="hvac">
+    <div class="calc-header">
+      <span class="icon">❄️</span>
+      <div>
+        <h2>HVAC Estimate Calculator</h2>
+        <p style="color:#8b949e;font-size:0.9rem;">Heating, cooling, full system replacement</p>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label>System Type</label>
+        <select id="hvac-type">
+          <option value="central-ac">Central Air Conditioner</option>
+          <option value="gas-furnace">Gas Furnace</option>
+          <option value="electric-furnace">Electric Furnace</option>
+          <option value="heat-pump">Heat Pump</option>
+          <option value="full-system" selected>Full System (AC + Furnace)</option>
+          <option value="mini-split">Ductless Mini-Split</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Home Size (sq ft)</label>
+        <input type="number" id="hvac-sqft" value="2000" min="500" max="6000">
+      </div>
+      <div class="form-group">
+        <label>Region</label>
+        <select id="hvac-region">
+          <option value="midwest">Midwest (Baseline)</option>
+          <option value="south">South (0.9x)</option>
+          <option value="northeast">Northeast (1.15x)</option>
+          <option value="california">California (1.25x)</option>
+          <option value="alaska">Alaska (1.4x)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ductwork Needed?</label>
+        <select id="hvac-duct">
+          <option value="existing" selected>Using Existing Ducts</option>
+          <option value="modify">Modify Existing (+$1,500)</option>
+          <option value="new">New Ductwork (+$3,000)</option>
+        </select>
+      </div>
+    </div>
+    
+    <button class="btn btn-calculate" onclick="calcHVAC()">Calculate Estimate</button>
+    
+    <div class="results" id="hvac-results">
+      <h3>📊 Market-Based Estimate Range</h3>
+      <div class="estimate-range">
+        <div class="estimate-card low">
+          <div class="label">Low Estimate</div>
+          <div class="amount" id="hvac-low">$0</div>
+        </div>
+        <div class="estimate-card mid">
+          <div class="label">Mid-Range (Recommended)</div>
+          <div class="amount" id="hvac-mid">$0</div>
+        </div>
+        <div class="estimate-card high">
+          <div class="label">High Estimate</div>
+          <div class="amount" id="hvac-high">$0</div>
+        </div>
+      </div>
+      
+      <div class="breakdown">
+        <h4>Cost Breakdown (Mid-Range)</h4>
+        <div class="breakdown-row">
+          <span class="label">Equipment</span>
+          <span class="value" id="hvac-equipment">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Labor</span>
+          <span class="value" id="hvac-labor">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Ductwork</span>
+          <span class="value" id="hvac-ductwork">$0</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Permits/Misc</span>
+          <span class="value" id="hvac-permits">$0</span>
+        </div>
+        <div class="breakdown-row total">
+          <span class="label">Total Estimate</span>
+          <span class="value" id="hvac-total">$0</span>
+        </div>
+      </div>
+      
+      <div class="regional-note">
+        ⚠️ 2025 Alert: HVAC prices up 10-15% due to R-410A → R-454B refrigerant transition. Some predict 35-40% increases!
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fmt = n => '$' + n.toLocaleString('en-US', {maximumFractionDigits: 0});
+    
+    const regionMultipliers = {
+      midwest: 1.0,
+      south: 0.9,
+      southeast: 0.92,
+      texas: 0.95,
+      florida: 1.05,
+      northeast: 1.2,
+      california: 1.3,
+      alaska: 1.4
+    };
+    
+    function showCalc(id) {
+      document.querySelectorAll('.calculator').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+    
+    function calcRoofing() {
+      const sqft = parseInt(document.getElementById('roof-sqft').value) || 2000;
+      const shingle = document.getElementById('roof-shingle').value;
+      const region = document.getElementById('roof-region').value;
+      const complexity = document.getElementById('roof-complexity').value;
+      
+      // Base rates per sqft by shingle type
+      const rates = {
+        '3tab': { low: 3, mid: 4.5, high: 6 },
+        'architectural': { low: 5, mid: 7.5, high: 10 },
+        'premium': { low: 10, mid: 15, high: 20 }
+      };
+      
+      const complexityMult = { simple: 0.9, moderate: 1.0, complex: 1.25 };
+      const regionMult = regionMultipliers[region] || 1.0;
+      
+      const base = rates[shingle];
+      const mult = complexityMult[complexity] * regionMult;
+      
+      const low = Math.round(sqft * base.low * mult);
+      const mid = Math.round(sqft * base.mid * mult);
+      const high = Math.round(sqft * base.high * mult);
+      
+      document.getElementById('roof-low').textContent = fmt(low);
+      document.getElementById('roof-mid').textContent = fmt(mid);
+      document.getElementById('roof-high').textContent = fmt(high);
+      
+      // Breakdown (mid)
+      const materials = Math.round(mid * 0.4);
+      const labor = Math.round(mid * 0.55);
+      const disposal = Math.round(mid * 0.05);
+      
+      document.getElementById('roof-materials').textContent = fmt(materials);
+      document.getElementById('roof-labor').textContent = fmt(labor);
+      document.getElementById('roof-disposal').textContent = fmt(disposal);
+      document.getElementById('roof-total').textContent = fmt(mid);
+      
+      document.getElementById('roofing-results').classList.add('show');
+    }
+    
+    function calcElectrical() {
+      const type = document.getElementById('elec-type').value;
+      const qty = parseInt(document.getElementById('elec-qty').value) || 1;
+      const region = document.getElementById('elec-region').value;
+      const access = document.getElementById('elec-access').value;
+      
+      const rates = {
+        'panel200': { low: 1200, mid: 1850, high: 2500 },
+        'panel100': { low: 800, mid: 1200, high: 1600 },
+        'rewire-small': { low: 1500, mid: 3500, high: 5500 },
+        'rewire-medium': { low: 4000, mid: 6500, high: 8500 },
+        'rewire-large': { low: 6000, mid: 8000, high: 10000 },
+        'ev-charger': { low: 400, mid: 750, high: 1200 },
+        'outlets': { low: 150, mid: 225, high: 300 }
+      };
+      
+      const accessMult = { easy: 0.9, moderate: 1.0, difficult: 1.3 };
+      const regionMult = regionMultipliers[region] || 1.0;
+      const mult = accessMult[access] * regionMult;
+      
+      const base = rates[type];
+      const qtyMult = (type === 'outlets' || type === 'ev-charger') ? qty : 1;
+      
+      const low = Math.round(base.low * mult * qtyMult);
+      const mid = Math.round(base.mid * mult * qtyMult);
+      const high = Math.round(base.high * mult * qtyMult);
+      
+      document.getElementById('elec-low').textContent = fmt(low);
+      document.getElementById('elec-mid').textContent = fmt(mid);
+      document.getElementById('elec-high').textContent = fmt(high);
+      
+      const materials = Math.round(mid * 0.35);
+      const labor = Math.round(mid * 0.55);
+      const permits = Math.round(mid * 0.1);
+      
+      document.getElementById('elec-materials').textContent = fmt(materials);
+      document.getElementById('elec-labor').textContent = fmt(labor);
+      document.getElementById('elec-permits').textContent = fmt(permits);
+      document.getElementById('elec-total').textContent = fmt(mid);
+      
+      document.getElementById('electrical-results').classList.add('show');
+    }
+    
+    function calcPlumbing() {
+      const type = document.getElementById('plumb-type').value;
+      const material = document.getElementById('plumb-material').value;
+      const region = document.getElementById('plumb-region').value;
+      const foundation = document.getElementById('plumb-foundation').value;
+      
+      const rates = {
+        'wh-standard': { low: 800, mid: 1400, high: 2000 },
+        'wh-tankless': { low: 1400, mid: 2650, high: 3900 },
+        'repipe-small': { low: 4000, mid: 6000, high: 8000 },
+        'repipe-medium': { low: 6000, mid: 9500, high: 12000 },
+        'repipe-large': { low: 9000, mid: 12000, high: 15000 },
+        'fixture': { low: 150, mid: 350, high: 600 },
+        'service': { low: 181, mid: 338, high: 496 }
+      };
+      
+      const foundationMult = { crawl: 0.9, basement: 1.0, slab: 1.25 };
+      const materialMult = material === 'pex' ? 0.8 : 1.0;
+      const regionMult = regionMultipliers[region] || 1.0;
+      
+      let mult = foundationMult[foundation] * regionMult;
+      if (type.includes('repipe')) mult *= materialMult;
+      
+      const base = rates[type];
+      
+      const low = Math.round(base.low * mult);
+      const mid = Math.round(base.mid * mult);
+      const high = Math.round(base.high * mult);
+      
+      document.getElementById('plumb-low').textContent = fmt(low);
+      document.getElementById('plumb-mid').textContent = fmt(mid);
+      document.getElementById('plumb-high').textContent = fmt(high);
+      
+      const materials = Math.round(mid * 0.4);
+      const labor = Math.round(mid * 0.52);
+      const permits = Math.round(mid * 0.08);
+      
+      document.getElementById('plumb-materials').textContent = fmt(materials);
+      document.getElementById('plumb-labor').textContent = fmt(labor);
+      document.getElementById('plumb-permits').textContent = fmt(permits);
+      document.getElementById('plumb-total').textContent = fmt(mid);
+      
+      document.getElementById('plumbing-results').classList.add('show');
+    }
+    
+    function calcHVAC() {
+      const type = document.getElementById('hvac-type').value;
+      const sqft = parseInt(document.getElementById('hvac-sqft').value) || 2000;
+      const region = document.getElementById('hvac-region').value;
+      const duct = document.getElementById('hvac-duct').value;
+      
+      // Base rates by system type
+      const rates = {
+        'central-ac': { low: 8000, mid: 11500, high: 15000 },
+        'gas-furnace': { low: 7000, mid: 8000, high: 9000 },
+        'electric-furnace': { low: 5000, mid: 6000, high: 7000 },
+        'heat-pump': { low: 9000, mid: 14500, high: 20000 },
+        'full-system': { low: 11500, mid: 14000, high: 18000 },
+        'mini-split': { low: 7000, mid: 8500, high: 10000 }
+      };
+      
+      // Size adjustment
+      let sizeMult = 1.0;
+      if (sqft < 1500) sizeMult = 0.75;
+      else if (sqft < 2000) sizeMult = 0.9;
+      else if (sqft > 2500) sizeMult = 1.15;
+      else if (sqft > 3000) sizeMult = 1.3;
+      
+      const regionMult = regionMultipliers[region] || 1.0;
+      const ductCost = { existing: 0, modify: 1500, new: 3000 };
+      
+      const base = rates[type];
+      const mult = sizeMult * regionMult;
+      
+      const low = Math.round(base.low * mult) + ductCost[duct];
+      const mid = Math.round(base.mid * mult) + ductCost[duct];
+      const high = Math.round(base.high * mult) + ductCost[duct];
+      
+      document.getElementById('hvac-low').textContent = fmt(low);
+      document.getElementById('hvac-mid').textContent = fmt(mid);
+      document.getElementById('hvac-high').textContent = fmt(high);
+      
+      const equipment = Math.round((mid - ductCost[duct]) * 0.55);
+      const labor = Math.round((mid - ductCost[duct]) * 0.35);
+      const ductwork = ductCost[duct];
+      const permits = Math.round((mid - ductCost[duct]) * 0.1);
+      
+      document.getElementById('hvac-equipment').textContent = fmt(equipment);
+      document.getElementById('hvac-labor').textContent = fmt(labor);
+      document.getElementById('hvac-ductwork').textContent = fmt(ductwork);
+      document.getElementById('hvac-permits').textContent = fmt(permits);
+      document.getElementById('hvac-total').textContent = fmt(mid);
+      
+      document.getElementById('hvac-results').classList.add('show');
+    }
+  </script>
+</body>
+</html>//
