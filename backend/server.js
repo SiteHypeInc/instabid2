@@ -1273,7 +1273,7 @@ try {
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
     console.log(`🔐 Contractor: ${contractor.company_name} (ID: ${contractor_id})`);
 
-    const hourlyRate = await getHourlyRate(state, finalZipCode);
+    const hourlyRate = await getHourlyRate(state, trade);
     console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
     
     const estimate = await calculateTradeEstimate(
