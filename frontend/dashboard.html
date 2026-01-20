@@ -2175,6 +2175,27 @@ async function checkCalendarStatus() {
     document.getElementById('connected').style.display = 'none';
   }
 }
+
+function copyShareLink() {
+  const input = document.getElementById('profile_share_link');
+  input.select();
+  document.execCommand('copy');
+  alert('✅ Link copied to clipboard!');
+}
+
+function copyEmbedCode() {
+  const textarea = document.getElementById('profile_embed_code');
+  textarea.select();
+  document.execCommand('copy');
+  alert('✅ Embed code copied to clipboard!');
+}
+
+function copyApiKey() {
+  const input = document.getElementById('profile_api_key');
+  input.select();
+  document.execCommand('copy');
+  alert('✅ API Key copied to clipboard!');
+}
 </script>""
 
 
