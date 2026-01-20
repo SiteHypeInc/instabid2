@@ -1846,7 +1846,7 @@ async function loadCompanyProfile() {
   const sessionToken = localStorage.getItem('session_token');
   
   if (!contractorId || !sessionToken) {
-    window.location.href = '/login.html';
+    window.location.href = '/login';
     return;
   }
   
@@ -1859,7 +1859,7 @@ async function loadCompanyProfile() {
     
     if (response.status === 401 || response.status === 403) {
       localStorage.clear();
-      window.location.href = '/login.html';
+      window.location.href = '/login';
       return;
     }
     
@@ -1917,7 +1917,7 @@ async function saveCompanyProfile() {
   const sessionToken = localStorage.getItem('session_token');
   
   if (!contractorId || !sessionToken) {
-    window.location.href = '/login.html';
+    window.location.href = '/login';
     return;
   }
   
@@ -1956,7 +1956,7 @@ async function saveCompanyProfile() {
     
     if (response.status === 401 || response.status === 403) {
       localStorage.clear();
-      window.location.href = '/login.html';
+      window.location.href = '/login';
       return;
     }
     
