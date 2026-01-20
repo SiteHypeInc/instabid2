@@ -2029,6 +2029,24 @@ document.querySelector('[data-main="company-profile"]').addEventListener('click'
 <script>
 const API_BASE = 'https://roofbid-backend-production.up.railway.app';
 
+
+function authFetch(url, options = {}) {
+  const token = localStorage.getItem('session_token');
+  
+  if (!token) {
+    console.error('❌ No session token - redirecting to login');
+    window.location.href = '/login/';
+    return Promise.reject('Not authenticated');
+  }
+  
+  options.headers = {
+    ...options.headers,
+    'Authorization': 'Bearer ' + token
+  };
+  
+  return fetch(url, options);
+}
+
 document.querySelectorAll('.main-tab').forEach(tab => {
   tab.addEventListener('click', function() {
     document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
