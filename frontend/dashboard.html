@@ -1783,9 +1783,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // COMPANY PROFILE FUNCTIONALITY
 /*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
 
-// Load profile when Company Profile tab is clicked
-document.querySelector('[data-main="company-profile"]').addEventListener('click', loadCompanyProfile);
-
 // Color picker sync
 ['primary', 'secondary', 'accent'].forEach(color => {
   const picker = document.getElementById(`profile_${color}_color`);
@@ -1976,6 +1973,9 @@ async function saveCompanyProfile() {
     statusDiv.className = 'status-message error';
   }
 }
+
+// Load profile when Company Profile tab is clicked
+document.querySelector('[data-main="company-profile"]').addEventListener('click', loadCompanyProfile);
 </script>
 
     <div class="main-content" id="contracts">
