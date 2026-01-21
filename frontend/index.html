@@ -993,6 +993,7 @@ document.getElementById('estimateForm').addEventListener('submit', function(e) {
   var submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ Calculating...';
+  console.log('📦 FULL DATA OBJECT:', JSON.stringify(data));
   
   fetch('https://roofbid-backend-production.up.railway.app/api/estimate', {
     method: 'POST',
@@ -1178,6 +1179,78 @@ document.getElementById('contractBtn').addEventListener('click', function() {
     self.textContent = '📝 Contract';
   });
 });
+
+// ========== FIELD SPY - PASTE AT END OF SCRIPT ==========
+(function() {
+  console.log('🕵️ FIELD SPY ACTIVATED - Watching all inputs...');
+  
+  // Track all input values
+  const fieldValues = {};
+  const fieldSources = {};
+  
+  // Get all form inputs
+  const inputs = document.querySelectorAll('input, select, textarea');
+  
+  inputs.forEach(input => {
+    const id = input.id || input.name || 'unnamed-' + Math.random().toString(36).substr(2, 5);
+    fieldValues[id] = input.value;
+    
+    // Watch for user input
+    input.addEventListener('input', function(e) {
+      const oldVal = fieldValues[id];
+      const newVal = this.value;
+      fieldValues[id] = newVal;
+      fieldSources[id] = 'user';
+      console.log(`👤 USER INPUT [${id}]: "${oldVal}" → "${newVal}"`);
+    });
+    
+    // Watch for change events (dropdowns, etc)
+    input.addEventListener('change', function(e) {
+      const oldVal = fieldValues[id];
+      const newVal = this.value;
+      if (fieldSources[id] !== 'user') {
+        fieldValues[id] = newVal;
+        console.log(`🔄 CHANGE EVENT [${id}]: "${oldVal}" → "${newVal}"`);
+      }
+      fieldSources[id] = null;
+    });
+  });
+  
+  // Intercept value property setter to catch script changes
+  inputs.forEach(input => {
+    const id = input.id || input.name || 'unnamed';
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') ||
+                       Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value') ||
+                       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+    
+    if (descriptor && descriptor.set) {
+      const originalSetter = descriptor.set;
+      
+      Object.defineProperty(input, 'value', {
+        set: function(newVal) {
+          const oldVal = this.value;
+          if (oldVal !== newVal && fieldSources[id] !== 'user') {
+            console.log(`🤖 SCRIPT CHANGED [${id}]: "${oldVal}" → "${newVal}"`);
+            console.trace('↳ Called from:');
+          }
+          return originalSetter.call(this, newVal);
+        },
+        get: descriptor.get
+      });
+    }
+  });
+  
+  // Also watch for form resets
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('reset', function() {
+      console.log('🚨 FORM RESET TRIGGERED!');
+      console.trace('↳ Called from:');
+    });
+  });
+  
+  console.log(`🕵️ Watching ${inputs.length} fields. Try to trigger the bug!`);
+})();
+// ========== END FIELD SPY ==========
 
 </script>
 
