@@ -1180,79 +1180,51 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   });
 });
 
-// ========== FIELD SPY - PASTE AT END OF SCRIPT ==========
+// ========== FIELD SPY v3 - CATCHES PROPERTY CHANGES ==========
 (function() {
-  console.log('🕵️ FIELD SPY ACTIVATED - Watching all inputs...');
+  console.log('🕵️ FIELD SPY v3 - Deep property watching...');
   
-  // Track all input values
-  const fieldValues = {};
-  const fieldSources = {};
-  
-  // Get all form inputs
-  const inputs = document.querySelectorAll('input, select, textarea');
-  
-  inputs.forEach(input => {
-    const id = input.id || input.name || 'unnamed-' + Math.random().toString(36).substr(2, 5);
-    fieldValues[id] = input.value;
+  function watchField(el) {
+    const id = el.id || el.name || 'unnamed';
+    let lastValue = el.value;
     
-    // Watch for user input
-    input.addEventListener('input', function(e) {
-      const oldVal = fieldValues[id];
-      const newVal = this.value;
-      fieldValues[id] = newVal;
-      fieldSources[id] = 'user';
-      console.log(`👤 USER INPUT [${id}]: "${oldVal}" → "${newVal}"`);
-    });
-    
-    // Watch for change events (dropdowns, etc)
-    input.addEventListener('change', function(e) {
-      const oldVal = fieldValues[id];
-      const newVal = this.value;
-      if (fieldSources[id] !== 'user') {
-        fieldValues[id] = newVal;
-        console.log(`🔄 CHANGE EVENT [${id}]: "${oldVal}" → "${newVal}"`);
+    // Poll for changes every 100ms
+    setInterval(function() {
+      if (el.value !== lastValue) {
+        console.log(`🤖 VALUE CHANGED [${id}]: "${lastValue}" → "${el.value}"`);
+        console.trace('Check call stack above');
+        lastValue = el.value;
       }
-      fieldSources[id] = null;
-    });
-  });
-  
-  // Intercept value property setter to catch script changes
-  inputs.forEach(input => {
-    const id = input.id || input.name || 'unnamed';
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') ||
-                       Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value') ||
-                       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+    }, 100);
     
-    if (descriptor && descriptor.set) {
-      const originalSetter = descriptor.set;
-      
-      Object.defineProperty(input, 'value', {
-        set: function(newVal) {
-          const oldVal = this.value;
-          if (oldVal !== newVal && fieldSources[id] !== 'user') {
-            console.log(`🤖 SCRIPT CHANGED [${id}]: "${oldVal}" → "${newVal}"`);
-            console.trace('↳ Called from:');
-          }
-          return originalSetter.call(this, newVal);
-        },
-        get: descriptor.get
-      });
-    }
-  });
-  
-  // Also watch for form resets
-  document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('reset', function() {
-      console.log('🚨 FORM RESET TRIGGERED!');
-      console.trace('↳ Called from:');
+    // Also catch user input
+    el.addEventListener('input', function() {
+      lastValue = el.value; // Update so we don't double-report
+      console.log(`👤 USER [${id}]: "${el.value}"`);
     });
-  });
+  }
   
-  console.log(`🕵️ Watching ${inputs.length} fields. Try to trigger the bug!`);
+  // Watch existing fields
+  document.querySelectorAll('input, select, textarea').forEach(watchField);
+  
+  // Watch for dynamically added fields
+  new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {
+          if (node.matches && node.matches('input, select, textarea')) {
+            watchField(node);
+          }
+          node.querySelectorAll && node.querySelectorAll('input, select, textarea').forEach(watchField);
+        }
+      });
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+  
+  console.log('🕵️ v3 active - will catch ALL value changes with stack traces');
 })();
-// ========== END FIELD SPY ==========
+// ========== END FIELD SPY v3 ==========
 
 </script>
-
 </body>
 </html>
