@@ -269,6 +269,23 @@ body {
   font-size: 2em;
   margin-bottom: 10px;
 }
+
+.material-list-container {
+  background: #0d1117 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.material-list-container:hover {
+  border-color: #00d4ff;
+}
+
+.material-list-summary {
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 8px;
+}
 </style>
 
 </head>
@@ -1176,25 +1193,25 @@ body {
 
  
   
-  <!-- ESTIMATE LIST AND DETAILS -->
-  <div class="config-card" style="max-width: 100%; padding: 0;">
+<!-- ESTIMATE LIST AND DETAILS -->
+  <div class="config-card" style="max-width: 100%; padding: 0; background: #161b22; border: 1px solid #30363d;">
     <div style="display: grid; grid-template-columns: 350px 1fr; min-height: 600px;">
       
       <!-- LEFT SIDEBAR: ESTIMATE QUEUE -->
-      <div style="border-right: 1px solid #e0e0e0; padding: 20px; background: #f8f9fa;">
-        <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #333;">📋 Estimates Queue</h3>
+      <div style="border-right: 1px solid #30363d; padding: 20px; background: #0d1117;">
+        <h3 style="margin: 0 0 20px 0; font-size: 18px; color: #00d4ff;">📋 Estimates Queue</h3>
         
         <div id="estimatesList" style="display: flex; flex-direction: column; gap: 12px;">
           <!-- Estimates will load here -->
-          <div style="text-align: center; padding: 40px 20px; color: #999;">
+          <div style="text-align: center; padding: 40px 20px; color: #8b949e;">
             <p>Loading estimates...</p>
           </div>
         </div>
       </div>
       
       <!-- RIGHT PANEL: ESTIMATE DETAILS -->
-      <div id="estimateDetails" style="padding: 30px; background: white;">
-        <div style="text-align: center; padding: 80px 40px; color: #999;">
+      <div id="estimateDetails" style="padding: 30px; background: #161b22;">
+        <div style="text-align: center; padding: 80px 40px; color: #8b949e;">
           <p style="font-size: 18px; margin-bottom: 10px;">👈 Select an estimate</p>
           <p style="font-size: 14px;">Click any estimate from the queue to view details</p>
         </div>
@@ -1254,46 +1271,47 @@ async function loadEstimates() {
     
     // Render estimate cards
     container.innerHTML = estimates.map(est => `
-      <div class="estimate-card" onclick="viewEstimateDetails('${est.id}')" style="
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 15px;
-        cursor: pointer;
-        transition: all 0.2s;
-      " onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='#e0e0e0'">
-        
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-          <div>
-            <div style="font-weight: 600; font-size: 16px; color: #333; margin-bottom: 4px;">
-              ${est.customerName || 'Unknown Customer'}
-            </div>
-            <div style="font-size: 12px; color: #999;">
-              ${est.customerEmail || ''}
-            </div>
-          </div>
-          <span style="
-            background: ${getTradeColor(est.trade)};
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-          ">${est.trade || 'General'}</span>
+  <div class="estimate-card" onclick="viewEstimateDetails('${est.id}')" style="
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+  " onmouseover="this.style.borderColor='#00d4ff'" onmouseout="this.style.borderColor='#30363d'">
+    
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+      <div>
+        <div style="font-weight: 600; font-size: 16px; color: #e6edf3; margin-bottom: 4px;">
+          ${est.customerName || 'Unknown Customer'}
         </div>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0;">
-          <div style="font-size: 20px; font-weight: 700; color: #667eea;">
-            $${parseFloat(est.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
-          </div>
-          <div style="font-size: 11px; color: #999;">
-            ${new Date(est.createdAt).toLocaleDateString()}
-          </div>
+        <div style="font-size: 12px; color: #8b949e;">
+          ${est.customerEmail || ''}
         </div>
-        
       </div>
-    `).join('');
+      <span style="
+        background: ${getTradeColor(est.trade)};
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+      ">${est.trade || 'General'}</span>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #30363d;">
+      <div style="font-size: 20px; font-weight: 700; color: #00d4ff;">
+        $${parseFloat(est.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
+      </div>
+      <div style="font-size: 11px; color: #8b949e;">
+        ${new Date(est.createdAt).toLocaleDateString()}
+      </div>
+    </div>
+    
+  </div>
+`).join('');
+
     
   } catch (error) {
     console.error('Error loading estimates:', error);
@@ -1490,8 +1508,8 @@ async function viewEstimateDetails(estimateId) {
       <div style="max-width: 700px;">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
           <div>
-            <h2 style="margin: 0 0 10px 0; color: #333;">${estimate.customerName}</h2>
-            <p style="color: #666; margin: 0;">${estimate.customerEmail} • ${estimate.customerPhone || 'No phone'}</p>
+            <h2 style="margin: 0 0 10px 0; color: #e6edf3;">${estimate.customerName}</h2>
+            <p style="color: #8b949e; margin: 0;">${estimate.customerEmail} • ${estimate.customerPhone || 'No phone'}</p>
           </div>
           <span style="
             background: ${getTradeColor(estimate.trade)};
@@ -1503,9 +1521,9 @@ async function viewEstimateDetails(estimateId) {
           ">${estimate.trade}</span>
         </div>
         
-        <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-          <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📍 Project Address</h3>
-          <p style="margin: 0; color: #666; line-height: 1.6;">
+        <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+          <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #00d4ff;">📍 Project Address</h3>
+          <p style="margin: 0; color: #8b949e; line-height: 1.6;">
             ${estimate.address || 'No address provided'}<br>
             ${estimate.city ? estimate.city + ', ' : ''}${estimate.state || ''} ${estimate.zipCode || ''}
           </p>
@@ -1513,8 +1531,8 @@ async function viewEstimateDetails(estimateId) {
         
          <!-- ✅ PROJECT SPECIFICATIONS -->
         ${estimate.projectDetails ? `
-          <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📋 Project Specifications</h3>
+          <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #00d4ff;">📋 Project Specifications</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
               ${renderTradeDetails(estimate.trade, estimate.projectDetails)}
             </div>
@@ -1524,17 +1542,17 @@ async function viewEstimateDetails(estimateId) {
 
         <!-- ✅ NEW: GOOGLE MAPS SPLIT VIEW -->
         ${estimate.address && estimate.city && estimate.state && estimate.zipCode ? `
-          <div id="dashboardMapContainer" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">🗺️ Property Views</h3>
-            <div style="height: 500px; display: grid; grid-template-rows: 1fr 1fr; gap: 0; border: 2px solid #ddd; border-radius: 6px; overflow: hidden;">
+          <div id="dashboardMapContainer" style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #00d4ff;">🗺️ Property Views</h3>
+            <div style="height: 500px; display: grid; grid-template-rows: 1fr 1fr; gap: 0; border: 2px solid #30363d; border-radius: 6px; overflow: hidden;">
               <div style="position: relative; height: 100%;">
-                <div style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="position: absolute; top: 10px; left: 10px; background: rgba(13,17,23,0.95); color: #e6edf3; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 1px solid #30363d;">
                   🛰️ Aerial View
                 </div>
                 <div id="dashboardAerialMap" style="width: 100%; height: 100%;"></div>
               </div>
               <div style="position: relative; height: 100%;">
-                <div style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="position: absolute; top: 10px; left: 10px; background: rgba(13,17,23,0.95); color: #e6edf3; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 1px solid #30363d;">
                   🚗 Street View
                 </div>
                 <div id="dashboardStreetView" style="width: 100%; height: 100%;"></div>
@@ -1545,13 +1563,13 @@ async function viewEstimateDetails(estimateId) {
         
         <!-- ✅ NEW: CUSTOMER PHOTOS SECTION -->
         ${estimate.photos && estimate.photos.length > 0 ? `
-          <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">📸 Customer Photos (${estimate.photos.length})</h3>
+          <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #00d4ff;">📸 Customer Photos (${estimate.photos.length})</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
               ${estimate.photos.map((photo, index) => `
-                <div style="position: relative; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;" onclick="openPhotoModal('${photo}', ${index})">
+                <div style="position: relative; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer; border: 1px solid #30363d;" onclick="openPhotoModal('${photo}', ${index})">
                   <img src="${photo}" alt="Customer photo ${index + 1}" style="width: 100%; height: 150px; object-fit: cover;">
-                  <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                  <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,212,255,0.9); color: #000; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
                     ${index + 1}
                   </div>
                 </div>
@@ -1560,40 +1578,40 @@ async function viewEstimateDetails(estimateId) {
           </div>
         ` : ''}
         
-<div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-  <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">💰 Estimate Breakdown</h3>
+<div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+  <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #00d4ff;">💰 Estimate Breakdown</h3>
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
     <div>
-      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Materials</div>
-      <div style="font-size: 20px; font-weight: 600; color: #333;">
+      <div style="font-size: 12px; color: #8b949e; margin-bottom: 4px;">Materials</div>
+      <div style="font-size: 20px; font-weight: 600; color: #e6edf3;">
         $${parseFloat(estimate.materialsCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
       </div>
     </div>
     <div>
-      <div style="font-size: 12px; color: #999; margin-bottom: 4px;">Labor</div>
-      <div style="font-size: 20px; font-weight: 600; color: #333;">
+      <div style="font-size: 12px; color: #8b949e; margin-bottom: 4px;">Labor</div>
+      <div style="font-size: 20px; font-weight: 600; color: #e6edf3;">
         $${parseFloat(estimate.laborCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
       </div>
     </div>
   </div>
-  <div style="border-top: 1px solid #dee2e6; margin-top: 15px; padding-top: 15px;">
+  <div style="border-top: 1px solid #30363d; margin-top: 15px; padding-top: 15px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <div style="font-size: 13px; color: #666;">Subtotal</div>
-      <div style="font-size: 16px; font-weight: 600; color: #333;">
+      <div style="font-size: 13px; color: #8b949e;">Subtotal</div>
+      <div style="font-size: 16px; font-weight: 600; color: #e6edf3;">
         $${parseFloat(estimate.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
       </div>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <div style="font-size: 13px; color: #666;">Tax (${parseFloat(estimate.taxRate || 8.25).toFixed(2)}%)</div>
-      <div style="font-size: 16px; font-weight: 600; color: #333;">
+      <div style="font-size: 13px; color: #8b949e;">Tax (${parseFloat(estimate.taxRate || 8.25).toFixed(2)}%)</div>
+      <div style="font-size: 16px; font-weight: 600; color: #e6edf3;">
         $${parseFloat(estimate.taxAmount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
       </div>
     </div>
   </div>
-  <div style="border-top: 2px solid #dee2e6; margin-top: 10px; padding-top: 15px;">
+  <div style="border-top: 2px solid #00d4ff; margin-top: 10px; padding-top: 15px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div style="font-size: 14px; font-weight: 600; color: #666;">TOTAL (incl. tax)</div>
-      <div style="font-size: 28px; font-weight: 700; color: #667eea;">
+      <div style="font-size: 14px; font-weight: 600; color: #8b949e;">TOTAL (incl. tax)</div>
+      <div style="font-size: 28px; font-weight: 700; color: #00d4ff;">
         $${parseFloat(estimate.totalWithTax || estimate.totalCost || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
       </div>
     </div>
@@ -1603,8 +1621,8 @@ async function viewEstimateDetails(estimateId) {
         ${['roofing', 'painting', 'hvac', 'electrical', 'plumbing', 'flooring', 'drywall', 'siding'].includes(estimate.trade) ? `
   <button id="generateMaterialListBtn" onclick="generateMaterialList('${estimate.id}')" style="
     width: 100%;
-    background: #667eea;
-    color: white;
+    background: linear-gradient(135deg, #00d4ff, #00a8cc);
+    color: #000;
     padding: 16px;
     border: none;
     border-radius: 8px;
@@ -1612,15 +1630,15 @@ async function viewEstimateDetails(estimateId) {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-  " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
+  " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(0,212,255,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
     📋 Generate Material List
   </button>
 ` : `
-  <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px; color: #856404;">
+  <div style="text-align: center; padding: 20px; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 8px; color: #ffc107;">
     📋 Material list generation not yet available for ${estimate.trade} estimates
   </div>
 `}
-        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #999;">
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #30363d; font-size: 12px; color: #8b949e;">
           Created: ${new Date(estimate.createdAt).toLocaleString()}
         </div>
       </div>
@@ -1635,9 +1653,9 @@ async function viewEstimateDetails(estimateId) {
   } catch (error) {
     console.error('Error loading estimate details:', error);
     detailsPanel.innerHTML = `
-      <div style="text-align: center; padding: 80px 40px; color: #dc3545;">
+      <div style="text-align: center; padding: 80px 40px; color: #f85149;">
         <p style="font-size: 18px; margin-bottom: 10px;">⚠️ Error Loading Details</p>
-        <p style="font-size: 14px;">Unable to fetch estimate information</p>
+        <p style="font-size: 14px; color: #8b949e;">Unable to fetch estimate information</p>
       </div>
     `;
   }

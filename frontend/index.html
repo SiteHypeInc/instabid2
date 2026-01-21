@@ -5,30 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InstaBid - Multi-Trade Estimator</title>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f5f5f5;
-  padding: 20px;
-}
-
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  background: white;
+  background: #161b22;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   overflow: hidden;
 }
 
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #00d4ff 0%, #00a8cc 100%);
+  color: #000;
   padding: 30px;
   text-align: center;
 }
@@ -50,7 +38,8 @@ body {
 }
 
 .right-column {
-  background: #f8f9fa;
+  background: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 8px;
   min-height: 600px;
 }
@@ -63,7 +52,7 @@ body {
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #333;
+  color: #e6edf3;
 }
 
 .form-group input,
@@ -71,22 +60,24 @@ body {
 .form-group textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid #ddd;
+  border: 2px solid #30363d;
   border-radius: 6px;
   font-size: 1em;
   font-family: inherit;
+  background: #0d1117;
+  color: #e6edf3;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #00d4ff;
 }
 
 .map-container {
   margin: 20px 0;
-  border: 2px solid #ddd;
+  border: 2px solid #30363d;
   border-radius: 6px;
   height: 500px;
   overflow: hidden;
@@ -104,13 +95,15 @@ body {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(13, 17, 23, 0.95);
+  color: #e6edf3;
   padding: 8px 12px;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.9em;
   z-index: 1;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  border: 1px solid #30363d;
 }
 
 #aerialMap {
@@ -124,8 +117,8 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #00d4ff 0%, #00a8cc 100%);
+  color: #000;
   border: none;
   padding: 15px 30px;
   font-size: 1.1em;
@@ -138,10 +131,12 @@ body {
 
 .btn-primary:hover {
   opacity: 0.9;
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
 }
 
 .btn-primary:disabled {
-  background: #ccc;
+  background: #30363d;
+  color: #8b949e;
   cursor: not-allowed;
 }
 
@@ -154,13 +149,14 @@ body {
 }
 
 .result-section h2 {
-  color: #667eea;
+  color: #00d4ff;
   margin-bottom: 20px;
   font-size: 1.8em;
 }
 
 .cost-breakdown {
-  background: white;
+  background: #0d1117;
+  border: 1px solid #30363d;
   padding: 20px;
   border-radius: 8px;
   margin: 20px 0;
@@ -170,18 +166,19 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #30363d;
   font-size: 1.1em;
+  color: #e6edf3;
 }
 
 .cost-item:last-child {
   border-bottom: none;
   font-weight: bold;
   font-size: 1.3em;
-  color: #667eea;
+  color: #00d4ff;
   padding-top: 15px;
   margin-top: 10px;
-  border-top: 2px solid #667eea;
+  border-top: 2px solid #00d4ff;
 }
 
 .action-buttons {
@@ -201,18 +198,18 @@ body {
 }
 
 .btn-email {
-  background: #28a745;
+  background: #238636;
   color: white;
 }
 
 .btn-pdf {
-  background: #dc3545;
+  background: #f85149;
   color: white;
 }
 
 .btn-contract {
-  background: #ffc107;
-  color: #333;
+  background: #d29922;
+  color: #000;
 }
 
 .btn-action:hover {
@@ -220,8 +217,9 @@ body {
 }
 
 .error-message {
-  background: #f8d7da;
-  color: #721c24;
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.4);
+  color: #f85149;
   padding: 15px;
   border-radius: 6px;
   margin: 20px 0;
@@ -243,7 +241,7 @@ body {
   position: relative;
   border-radius: 6px;
   overflow: hidden;
-  border: 2px solid #ddd;
+  border: 2px solid #30363d;
 }
 
 .photo-item img {
@@ -256,7 +254,7 @@ body {
   position: absolute;
   top: 5px;
   right: 5px;
-  background: rgba(255, 0, 0, 0.8);
+  background: rgba(248, 81, 73, 0.9);
   color: white;
   border: none;
   border-radius: 50%;
@@ -301,6 +299,7 @@ body {
   margin-top: 10px;
   font-weight: 700;
   font-size: 1.1rem;
+  color: #00d4ff;
 }
 
 .estimate-disclaimer {
