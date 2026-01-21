@@ -1136,7 +1136,7 @@ function displayResults(result) {
     itemsHTML + 
     '<div class="cost-item"><span>Subtotal:</span><span>$' + result.subtotal.toFixed(2) + '</span></div>' +
     '<div class="cost-item"><span>Tax (8.25%):</span><span>$' + result.tax.toFixed(2) + '</span></div>' +
-    '<div class="cost-item"><span>Region: ' + result.msa + '</span><span>Timeline: ' + result.timeline + '</span></div>' +
+    '<div class="cost-item"><span>Timeline: ' + result.timeline + '</span></div>' +
     '<div class="cost-item total-line"><span>Total Cost:</span><span>$' + result.total.toFixed(2) + '</span></div>' +
     '</div>' +
     disclaimerHTML;
@@ -1200,8 +1200,11 @@ document.getElementById('pdfBtn').addEventListener('click', function() {
   
   var self = this;
   var payload = Object.assign({}, currentEstimateData);
-  payload.trade = selectedTrade;
-  payload.photos = uploadedPhotos;
+payload.trade = selectedTrade;
+payload.photos = uploadedPhotos;
+const urlParams = new URLSearchParams(window.location.search);
+payload.api_key = urlParams.get('key') || 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+
   
   fetch('https://roofbid-backend-production.up.railway.app/api/generate-pdf', {
     method: 'POST',
@@ -1283,31 +1286,47 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   });
 });
 
-// ========== FIELD SPY v3 - CATCHES PROPERTY CHANGES ==========
+// ========== FIELD SPY v4 - CATCHES TRIGGER SOURCE ==========
 (function() {
-  console.log('🕵️ FIELD SPY v3 - Deep property watching...');
+  console.log('🕵️ FIELD SPY v4 - Watching for sneaky changes...');
   
   function watchField(el) {
     const id = el.id || el.name || 'unnamed';
     let lastValue = el.value;
+    let userIsTyping = false;
     
-    // Poll for changes every 100ms
+    // Track when user focuses
+    el.addEventListener('focus', function() {
+      userIsTyping = true;
+    });
+    
+    el.addEventListener('blur', function() {
+      setTimeout(() => { userIsTyping = false; }, 100);
+    });
+    
+    // Watch for changes
+    el.addEventListener('input', function(e) {
+      if (!userIsTyping && document.activeElement !== el) {
+        console.log(`🤖 SCRIPT CHANGED [${id}]: "${lastValue}" → "${el.value}"`);
+        console.trace('↳ TRIGGER STACK:');
+      } else {
+        console.log(`👤 USER [${id}]: "${el.value}"`);
+      }
+      lastValue = el.value;
+    });
+    
+    // Poll for value changes not caught by events
     setInterval(function() {
       if (el.value !== lastValue) {
-        console.log(`🤖 VALUE CHANGED [${id}]: "${lastValue}" → "${el.value}"`);
-        console.trace('Check call stack above');
+        if (!userIsTyping && document.activeElement !== el) {
+          console.log(`🚨 STEALTH CHANGE [${id}]: "${lastValue}" → "${el.value}"`);
+          console.trace('↳ Check this stack:');
+        }
         lastValue = el.value;
       }
-    }, 100);
-    
-    // Also catch user input
-    el.addEventListener('input', function() {
-      lastValue = el.value; // Update so we don't double-report
-      console.log(`👤 USER [${id}]: "${el.value}"`);
-    });
+    }, 200);
   }
   
-  // Watch existing fields
   document.querySelectorAll('input, select, textarea').forEach(watchField);
   
   // Watch for dynamically added fields
@@ -1315,18 +1334,16 @@ document.getElementById('contractBtn').addEventListener('click', function() {
     mutations.forEach(function(m) {
       m.addedNodes.forEach(function(node) {
         if (node.nodeType === 1) {
-          if (node.matches && node.matches('input, select, textarea')) {
-            watchField(node);
-          }
-          node.querySelectorAll && node.querySelectorAll('input, select, textarea').forEach(watchField);
+          if (node.matches && node.matches('input, select, textarea')) watchField(node);
+          if (node.querySelectorAll) node.querySelectorAll('input, select, textarea').forEach(watchField);
         }
       });
     });
   }).observe(document.body, { childList: true, subtree: true });
   
-  console.log('🕵️ v3 active - will catch ALL value changes with stack traces');
+  console.log('🕵️ v4 active - will catch stealth changes with stack traces');
 })();
-// ========== END FIELD SPY v3 ==========
+// ========== END FIELD SPY v4 ==========
 
 </script>
 </body>

@@ -954,13 +954,73 @@ async function generateEstimatePDF(estimateData) {
       doc.text(`Address: ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}`);
       doc.moveDown(2);
 
-      // Service Details
-      doc.fontSize(14).fillColor('#000').text('Service Details', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
+      // ========== SCOPE OF WORK SECTION ==========
       const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-      doc.text(`Service: ${tradeName}`);
+      doc.fontSize(14).fillColor('#2563eb').text(`${tradeName} Project Scope`, { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(10).fillColor('#000');
+      
+      const details = estimateData.tradeDetails || {};
+      const scopeItems = [];
+      
+      // Common fields
+      if (details.squareFeet) scopeItems.push(`${details.squareFeet} sq ft`);
+      
+      // Roofing fields
+      if (details.pitch && details.pitch !== '') scopeItems.push(`Pitch: ${details.pitch}`);
+      if (details.stories && details.stories !== '') scopeItems.push(`Stories: ${details.stories}`);
+      if (details.material && details.material !== '') scopeItems.push(`Material: ${details.material}`);
+      if (details.layers && details.layers !== '' && details.layers !== '0') scopeItems.push(`Tear-off layers: ${details.layers}`);
+      if (details.chimneys && details.chimneys !== '' && details.chimneys !== '0') scopeItems.push(`Chimneys: ${details.chimneys}`);
+      if (details.skylights && details.skylights !== '' && details.skylights !== '0') scopeItems.push(`Skylights: ${details.skylights}`);
+      if (details.valleys && details.valleys !== '' && details.valleys !== '0') scopeItems.push(`Valleys: ${details.valleys}`);
+      if (details.plywoodSqft && details.plywoodSqft !== '' && details.plywoodSqft !== '0') scopeItems.push(`Plywood replacement: ${details.plywoodSqft} sq ft`);
+      if (details.ridgeVentFeet && details.ridgeVentFeet !== '' && details.ridgeVentFeet !== '0') scopeItems.push(`Ridge vent: ${details.ridgeVentFeet} linear ft`);
+      if (details.existingRoofType && details.existingRoofType !== '') scopeItems.push(`Existing roof: ${details.existingRoofType}`);
+      
+      // HVAC fields
+      if (details.systemType) scopeItems.push(`System type: ${details.systemType}`);
+      if (details.units && details.units !== '0') scopeItems.push(`Units: ${details.units}`);
+      if (details.ductwork) scopeItems.push(`Ductwork: ${details.ductwork}`);
+      
+      // Electrical fields
+      if (details.panelUpgrade && details.panelUpgrade !== 'none') scopeItems.push(`Panel upgrade: ${details.panelUpgrade}`);
+      if (details.outlets && details.outlets !== '0') scopeItems.push(`Outlets: ${details.outlets}`);
+      if (details.switches && details.switches !== '0') scopeItems.push(`Switches: ${details.switches}`);
+      if (details.fixtures && details.fixtures !== '0') scopeItems.push(`Fixtures: ${details.fixtures}`);
+      
+      // Plumbing fields
+      if (details.fixtureCount && details.fixtureCount !== '0') scopeItems.push(`Fixtures: ${details.fixtureCount}`);
+      if (details.waterHeaterType) scopeItems.push(`Water heater: ${details.waterHeaterType}`);
+      if (details.pipeType) scopeItems.push(`Pipe material: ${details.pipeType}`);
+      
+      // Flooring fields
+      if (details.flooringType) scopeItems.push(`Flooring type: ${details.flooringType}`);
+      if (details.removal === 'yes') scopeItems.push(`Includes removal of existing flooring`);
+      
+      // Painting fields
+      if (details.surface) scopeItems.push(`Surface: ${details.surface}`);
+      if (details.coats && details.coats !== '0') scopeItems.push(`Coats: ${details.coats}`);
+      if (details.condition) scopeItems.push(`Surface condition: ${details.condition}`);
+      
+      // Drywall fields
+      if (details.finishLevel) scopeItems.push(`Finish level: ${details.finishLevel}`);
+      if (details.ceilingHeight) scopeItems.push(`Ceiling height: ${details.ceilingHeight} ft`);
+      
+      // Siding fields
+      if (details.sidingType) scopeItems.push(`Siding type: ${details.sidingType}`);
+      
+      // Print scope items as bullet points
+      scopeItems.forEach(item => {
+        doc.text(`  •  ${item}`);
+      });
+      
+      if (scopeItems.length === 0) {
+        doc.text(`  •  ${tradeName} services as discussed`);
+      }
+      
       doc.moveDown(2);
+      // ========== END SCOPE OF WORK ==========
 
       // ========== 📸 CUSTOMER PHOTOS SECTION ==========
       if (estimateData.photos && estimateData.photos.length > 0) {
@@ -978,21 +1038,18 @@ async function generateEstimatePDF(estimateData) {
 
         for (let i = 0; i < estimateData.photos.length; i++) {
           try {
-            // Fetch image from URL
             const response = await axios.get(estimateData.photos[i], { 
               responseType: 'arraybuffer',
               timeout: 5000 
             });
             const imageBuffer = Buffer.from(response.data, 'binary');
 
-            // Check if we need a new page
             if (currentY + photoHeight > doc.page.height - 100) {
               doc.addPage();
               currentY = 50;
               currentX = startX;
             }
 
-            // Add image to PDF
             doc.image(imageBuffer, currentX, currentY, {
               width: photoWidth,
               height: photoHeight,
@@ -1001,43 +1058,58 @@ async function generateEstimatePDF(estimateData) {
               valign: 'center'
             });
 
-            // Move to next position
             currentX += photoWidth + photoSpacing;
             
-            // Move to next row after 2 photos
             if ((i + 1) % photosPerRow === 0) {
               currentX = startX;
               currentY += photoHeight + photoSpacing;
             }
           } catch (photoError) {
             console.error(`Failed to load photo ${i + 1}:`, photoError.message);
-            // Skip broken images silently
           }
         }
 
-        // Move cursor below photos
         doc.y = currentY + photoHeight + 30;
         doc.moveDown(1);
       }
       // ========== END PHOTOS SECTION ==========
 
-      // Cost Breakdown
-      doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10);
-      doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
-      doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
-      doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
-      doc.moveDown(1);
+      // ========== COST BREAKDOWN (Respects Display Settings) ==========
+      const displaySettings = estimateData.displaySettings || { showLabor: true, showMaterials: true, showEquipment: true, showTotal: true };
+      
+      if (displaySettings.showLabor || displaySettings.showMaterials || displaySettings.showEquipment) {
+        doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10);
+        
+        if (displaySettings.showLabor) {
+          doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
+        }
+        if (displaySettings.showMaterials) {
+          doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
+        }
+        if (displaySettings.showEquipment) {
+          doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
+        }
+        doc.moveDown(1);
+      }
+      // ========== END COST BREAKDOWN ==========
 
       // Total
       doc.fontSize(16).fillColor('#2563eb');
       doc.text(`TOTAL ESTIMATE: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
       doc.moveDown(2);
 
-      // Footer
-      doc.fontSize(8).fillColor('#999');
-      doc.text('This estimate is valid for 30 days. Final costs may vary based on site conditions.', { align: 'center' });
+      // ========== DISCLAIMER ==========
+      doc.fontSize(9).fillColor('#666');
+      doc.text('─'.repeat(70), { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(8).fillColor('#888');
+      doc.text(
+        'ESTIMATE ONLY — Actual prices may vary ±10-15% depending on site conditions, material availability, and seasonal factors. Final pricing confirmed after on-site assessment. This estimate is valid for 30 days.',
+        { align: 'center', width: 500 }
+      );
+      // ========== END DISCLAIMER ==========
 
       doc.end();
     } catch (error) {
@@ -1045,6 +1117,7 @@ async function generateEstimatePDF(estimateData) {
     }
   });
 }
+
 
 // ========== CONTRACT GENERATION FUNCTION ==========
 async function generateContract(estimateData) {
@@ -1653,10 +1726,6 @@ app.get('/api/msa-lookup', async (req, res) => {
 
 
 
-// ============================================
-// STANDALONE PDF/CONTRACT GENERATION (PUBLIC)
-// ============================================
-
 // Standalone PDF generation endpoint
 app.post('/api/generate-pdf', async (req, res) => {
   try {
@@ -1665,7 +1734,22 @@ app.post('/api/generate-pdf', async (req, res) => {
     console.log('📸 Received photos in request:', data.photos);
     console.log('📸 Photo count:', data.photos?.length || 0);
     
-    const hourlyRate = await getHourlyRate(data.state, data.zip);
+    // Get contractor display settings
+    let displaySettings = { showLabor: false, showMaterials: false, showEquipment: false, showTotal: true };
+    
+    if (data.api_key) {
+      const contractorResult = await pool.query(
+        'SELECT id, estimate_display FROM contractors WHERE api_key = $1',
+        [data.api_key]
+      );
+      
+      if (contractorResult.rows.length > 0 && contractorResult.rows[0].estimate_display) {
+        displaySettings = contractorResult.rows[0].estimate_display;
+        console.log('📋 Using contractor display settings:', displaySettings);
+      }
+    }
+    
+    const hourlyRate = await getHourlyRate(data.state, data.trade);
     
     const estimate = await calculateTradeEstimate(
       data.trade,
@@ -1686,7 +1770,8 @@ app.post('/api/generate-pdf', async (req, res) => {
       zipCode: data.zip,
       trade: data.trade,
       tradeDetails: data,
-      photos: data.photos || [],  // ✅ ADD THIS LINE
+      photos: data.photos || [],
+      displaySettings: displaySettings,
       ...estimate
     });
     
