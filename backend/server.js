@@ -435,7 +435,7 @@ app.get('/', (req, res) => {
 });
 
 // ========== LABOR RATE LOOKUP ==========
-async function getHourlyRate(state, trade) {
+/*async function getHourlyRate(state, trade) {
   try {
     // Query BLS labor rates table
     const result = await pool.query(
@@ -470,7 +470,69 @@ async function getHourlyRate(state, trade) {
     console.log('⚠️ Using national average: $45.00/hr');
     return 45;
   }
+}*/
+
+// ========== LABOR RATE LOOKUP ==========
+async function getHourlyRate(state, trade, contractorId = null) {
+  const BLS_TO_CONTRACTOR_MULTIPLIER = 1.5;
+  
+  try {
+    // 1. Check for contractor hourly override first
+    if (contractorId) {
+      const override = await pool.query(
+        'SELECT labor_rate_override FROM contractors WHERE id = $1',
+        [contractorId]
+      );
+      
+      if (override.rows.length > 0 && override.rows[0].labor_rate_override) {
+        const rate = parseFloat(override.rows[0].labor_rate_override);
+        console.log(`💼 Contractor hourly override: $${rate}/hr`);
+        return rate;
+      }
+    }
+    
+    // 2. Query BLS labor rates table
+    const result = await pool.query(
+      'SELECT hourly_rate FROM bls_labor_rates WHERE state_code = $1 AND trade_type = $2',
+      [state, trade]
+    );
+
+    if (result.rows.length > 0 && result.rows[0].hourly_rate) {
+      const blsRate = parseFloat(result.rows[0].hourly_rate);
+      const contractorRate = blsRate * BLS_TO_CONTRACTOR_MULTIPLIER;
+      console.log(`💼 BLS $${blsRate}/hr × ${BLS_TO_CONTRACTOR_MULTIPLIER} = $${contractorRate}/hr`);
+      return contractorRate;
+    }
+
+    // 3. State-level fallback
+    console.log(`⚠️ No BLS rate for ${state} ${trade}, using state fallback`);
+    const stateFallbacks = {
+      'AL': 38, 'AK': 52, 'AZ': 42, 'AR': 36, 'CA': 58,
+      'CO': 48, 'CT': 52, 'DE': 46, 'FL': 40, 'GA': 42,
+      'HI': 54, 'ID': 40, 'IL': 50, 'IN': 42, 'IA': 44,
+      'KS': 42, 'KY': 40, 'LA': 40, 'ME': 44, 'MD': 50,
+      'MA': 56, 'MI': 46, 'MN': 50, 'MS': 36, 'MO': 44,
+      'MT': 42, 'NE': 44, 'NV': 48, 'NH': 48, 'NJ': 54,
+      'NM': 40, 'NY': 58, 'NC': 40, 'ND': 48, 'OH': 44,
+      'OK': 38, 'OR': 50, 'PA': 48, 'RI': 52, 'SC': 38,
+      'SD': 42, 'TN': 40, 'TX': 42, 'UT': 44, 'VT': 46,
+      'VA': 46, 'WA': 52, 'WV': 40, 'WI': 46, 'WY': 44,
+      'DC': 56, 'PR': 32
+    };
+
+    const baseRate = stateFallbacks[state] || 45;
+    const contractorRate = baseRate * BLS_TO_CONTRACTOR_MULTIPLIER;
+    console.log(`💼 Fallback $${baseRate}/hr × ${BLS_TO_CONTRACTOR_MULTIPLIER} = $${contractorRate}/hr`);
+    return contractorRate;
+    
+  } catch (error) {
+    console.error('❌ Labor rate lookup error:', error);
+    const fallbackRate = 45 * BLS_TO_CONTRACTOR_MULTIPLIER;
+    console.log(`⚠️ Using fallback: $${fallbackRate}/hr`);
+    return fallbackRate;
+  }
 }
+
 // ========== TRADE CALCULATION FUNCTION ==========
 async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contractorId = null) {
   console.log(`🔧 Starting estimate calculation for ${trade}`);
