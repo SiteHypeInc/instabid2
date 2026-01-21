@@ -1742,18 +1742,67 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
 
-  <!-- SECTION 4: BUSINESS SETTINGS -->
-  <div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
-    <h3>⚙️ Business Settings</h3>
-    <div class="config-item">
-      <label style="font-weight: 600;">Tax Rate (%)</label>
-      <input type="number" id="profile_tax_rate" step="0.01" min="0" max="100" placeholder="8.5" style="width: 140px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
-    </div>
-    <div class="config-item">
-      <label style="font-weight: 600;">Default Markup (%)</label>
-      <input type="number" id="profile_default_markup" step="0.01" min="0" max="100" placeholder="20" style="width: 140px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
-    </div>
+<!-- SECTION 4: BUSINESS SETTINGS -->
+<div class="config-card" style="max-width: 800px; margin-bottom: 30px;">
+  <h3>⚙️ Business Settings</h3>
+  <div class="config-item" style="display: grid; grid-template-columns: 200px 1fr; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+    <label style="font-weight: 600;">Tax Rate (%)</label>
+    <input type="number" id="profile_tax_rate" step="0.01" min="0" max="100" placeholder="8.5" style="width: 140px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
   </div>
+  <div class="config-item" style="display: grid; grid-template-columns: 200px 1fr; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee;">
+    <label style="font-weight: 600;">Default Markup (%)</label>
+    <input type="number" id="profile_default_markup" step="0.01" min="0" max="100" placeholder="20" style="width: 140px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
+  </div>
+  <div class="config-item" style="display: grid; grid-template-columns: 200px 1fr; align-items: center; padding: 12px 0;">
+    <label style="font-weight: 600;">Labor Rate Override ($/hr)</label>
+    <input type="number" id="profile_labor_rate_override" step="0.50" min="0" placeholder="Leave blank to use regional rates" style="width: 200px; padding: 8px 12px; border: 2px solid #ddd; border-radius: 6px; text-align: right;">
+    <small style="grid-column: 2; color: #666; margin-top: 4px;">Leave blank to use BLS regional rates × 1.5</small>
+  </div>
+</div>
+
+<!-- SECTION 4B: ESTIMATE DISPLAY SETTINGS -->
+<div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%); border: 2px solid #e9ecef;">
+  <h3>📋 Customer Estimate Display</h3>
+  <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Choose what customers see on their estimates and PDFs. Most contractors prefer showing only the total.</p>
+  
+  <div style="display: grid; gap: 15px;">
+    <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+      <input type="checkbox" id="display_show_labor" style="width: 20px; height: 20px; cursor: pointer;">
+      <div>
+        <strong>Show Labor Breakdown</strong>
+        <div style="font-size: 13px; color: #666;">Display hours × rate = labor cost</div>
+      </div>
+    </label>
+    
+    <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+      <input type="checkbox" id="display_show_materials" style="width: 20px; height: 20px; cursor: pointer;">
+      <div>
+        <strong>Show Materials Breakdown</strong>
+        <div style="font-size: 13px; color: #666;">Display material costs separately</div>
+      </div>
+    </label>
+    
+    <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+      <input type="checkbox" id="display_show_equipment" style="width: 20px; height: 20px; cursor: pointer;">
+      <div>
+        <strong>Show Equipment Breakdown</strong>
+        <div style="font-size: 13px; color: #666;">Display equipment/rental costs</div>
+      </div>
+    </label>
+    
+    <label style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px; cursor: not-allowed; opacity: 0.8;">
+      <input type="checkbox" id="display_show_total" checked disabled style="width: 20px; height: 20px;">
+      <div>
+        <strong>Show Total</strong>
+        <div style="font-size: 13px; color: #666;">Always shown (required)</div>
+      </div>
+    </label>
+  </div>
+  
+  <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+    <strong>💡 Pro Tip:</strong> <span style="color: #666;">Showing only the total avoids the "my brother-in-law can get materials cheaper" conversation.</span>
+  </div>
+</div>
 
   <!-- SECTION 5: SUBSCRIPTION INFO (READ-ONLY) -->
   <div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: #f0f8ff;">
@@ -1918,7 +1967,16 @@ async function loadCompanyProfile() {
     // Business settings
     document.getElementById('profile_tax_rate').value = contractor.tax_rate || '';
     document.getElementById('profile_default_markup').value = contractor.default_markup || '';
-    
+   
+    // Labor rate override
+    document.getElementById('profile_labor_rate_override').value = contractor.labor_rate_override || '';
+
+    // Estimate display settings
+    const displaySettings = contractor.estimate_display || { showLabor: false, showMaterials: false, showEquipment: false, showTotal: true };
+    document.getElementById('display_show_labor').checked = displaySettings.showLabor;
+    document.getElementById('display_show_materials').checked = displaySettings.showMaterials;
+    document.getElementById('display_show_equipment').checked = displaySettings.showEquipment;
+   
     // Logo
     if (contractor.logo_url) {
       document.getElementById('logoImg').src = contractor.logo_url;
@@ -1975,7 +2033,14 @@ async function saveCompanyProfile() {
     accent_color: document.getElementById('profile_accent_color').value,
     tax_rate: parseFloat(document.getElementById('profile_tax_rate').value) || null,
     default_markup: parseFloat(document.getElementById('profile_default_markup').value) || null,
-    logo_url: document.getElementById('logoImg').src || null
+    logo_url: document.getElementById('logoImg').src || null,
+    labor_rate_override: parseFloat(document.getElementById('profile_labor_rate_override').value) || null,
+    estimate_display: {
+      showLabor: document.getElementById('display_show_labor').checked,
+      showMaterials: document.getElementById('display_show_materials').checked,
+      showEquipment: document.getElementById('display_show_equipment').checked,
+      showTotal: true
+    }
   };
   
   try {

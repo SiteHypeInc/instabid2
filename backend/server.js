@@ -1268,10 +1268,10 @@ app.post('/api/estimate', async (req, res) => {
       });
     }
 
-    const contractorResult = await pool.query(
-      'SELECT id, company_name, email, subscription_status FROM contractors WHERE api_key = $1',
-      [api_key]
-    );
+   const contractorResult = await pool.query(
+  'SELECT id, company_name, email, subscription_status, estimate_display FROM contractors WHERE api_key = $1',
+  [api_key]
+);
 
     if (contractorResult.rows.length === 0) {
       return res.status(503).json({
@@ -1457,18 +1457,34 @@ const insertQuery = `
       contractBuffer
     );
 
+     // Get display settings (default to total only if not set)
+    const displaySettings = contractor.estimate_display || {
+      showLabor: false,
+      showMaterials: false,
+      showEquipment: false,
+      showTotal: true
+    };
+
+    // Build line items based on contractor's display preferences
+    const lineItems = [];
+    if (displaySettings.showLabor) {
+      lineItems.push({ description: 'Labor', amount: estimate.laborCost });
+    }
+    if (displaySettings.showMaterials) {
+      lineItems.push({ description: 'Materials', amount: estimate.materialCost });
+    }
+    if (displaySettings.showEquipment) {
+      lineItems.push({ description: 'Equipment', amount: estimate.equipmentCost || 0 });
+    }
+
     res.json({
       success: true,
       estimateId,
-      lineItems: [
-        { description: 'Labor', amount: estimate.laborCost },
-        { description: 'Materials', amount: estimate.materialCost },
-        { description: 'Equipment', amount: estimate.equipmentCost || 0 }
-      ],
+      lineItems,
+      displaySettings, // Pass to frontend for PDF generation
       subtotal: estimate.totalCost,
       tax: estimate.totalCost * 0.0825,
       total: estimate.totalCost * 1.0825,
-      /*msa: finalCity + ', ' + finalState,*/
       msa: msa,
       timeline: Math.ceil(estimate.laborHours / 8) + ' days',
       estimate: {
@@ -1480,6 +1496,7 @@ const insertQuery = `
         laborRate: estimate.laborRate
       }
     });
+
 
   } catch (error) {
     console.error('❌ Estimate submission error:', error);

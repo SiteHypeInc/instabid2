@@ -266,6 +266,58 @@ body {
   font-size: 16px;
 }
 
+.scope-of-work {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+}
+
+.scope-of-work h3 {
+  color: #00d4ff;
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+}
+
+.scope-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #e6edf3;
+}
+
+.scope-list li {
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.cost-breakdown-section {
+  margin-bottom: 15px;
+}
+
+.total-line {
+  border-top: 2px solid #00d4ff;
+  padding-top: 10px;
+  margin-top: 10px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.estimate-disclaimer {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-top: 15px;
+}
+
+.estimate-disclaimer p {
+  margin: 0;
+  color: #ffc107;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 968px) {
   .main-content {
     grid-template-columns: 1fr;
@@ -1025,19 +1077,70 @@ document.getElementById('estimateForm').addEventListener('submit', function(e) {
 });
 
 function displayResults(result) {
+  // Scroll to top smoothly
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
   var breakdown = document.getElementById('costBreakdown');
   
+  // Build Scope of Work from form data
+  var scopeHTML = '<div class="scope-of-work">';
+  scopeHTML += '<h3>📋 ' + selectedTrade.charAt(0).toUpperCase() + selectedTrade.slice(1) + ' Project for ' + (currentEstimateData.name || 'Customer') + '</h3>';
+  scopeHTML += '<ul class="scope-list">';
+  
+  // Add relevant fields based on trade
+  if (currentEstimateData.squareFeet) scopeHTML += '<li>' + currentEstimateData.squareFeet + ' sq ft</li>';
+  if (currentEstimateData.pitch && currentEstimateData.pitch !== '') scopeHTML += '<li>Pitch: ' + currentEstimateData.pitch + '</li>';
+  if (currentEstimateData.stories && currentEstimateData.stories !== '') scopeHTML += '<li>' + currentEstimateData.stories + ' story</li>';
+  if (currentEstimateData.material && currentEstimateData.material !== '') scopeHTML += '<li>Material: ' + currentEstimateData.material + '</li>';
+  if (currentEstimateData.layers && currentEstimateData.layers !== '' && currentEstimateData.layers !== '0') scopeHTML += '<li>Tear-off layers: ' + currentEstimateData.layers + '</li>';
+  if (currentEstimateData.chimneys && currentEstimateData.chimneys !== '' && currentEstimateData.chimneys !== '0') scopeHTML += '<li>Chimneys: ' + currentEstimateData.chimneys + '</li>';
+  if (currentEstimateData.skylights && currentEstimateData.skylights !== '' && currentEstimateData.skylights !== '0') scopeHTML += '<li>Skylights: ' + currentEstimateData.skylights + '</li>';
+  if (currentEstimateData.valleys && currentEstimateData.valleys !== '' && currentEstimateData.valleys !== '0') scopeHTML += '<li>Valleys: ' + currentEstimateData.valleys + '</li>';
+  if (currentEstimateData.plywoodSqft && currentEstimateData.plywoodSqft !== '' && currentEstimateData.plywoodSqft !== '0') scopeHTML += '<li>Plywood replacement: ' + currentEstimateData.plywoodSqft + ' sq ft</li>';
+  if (currentEstimateData.ridgeVentFeet && currentEstimateData.ridgeVentFeet !== '' && currentEstimateData.ridgeVentFeet !== '0') scopeHTML += '<li>Ridge vent: ' + currentEstimateData.ridgeVentFeet + ' linear ft</li>';
+  
+  // HVAC fields
+  if (currentEstimateData.systemType) scopeHTML += '<li>System: ' + currentEstimateData.systemType + '</li>';
+  if (currentEstimateData.units) scopeHTML += '<li>Units: ' + currentEstimateData.units + '</li>';
+  
+  // Electrical fields
+  if (currentEstimateData.panelUpgrade) scopeHTML += '<li>Panel: ' + currentEstimateData.panelUpgrade + '</li>';
+  if (currentEstimateData.outlets && currentEstimateData.outlets !== '0') scopeHTML += '<li>Outlets: ' + currentEstimateData.outlets + '</li>';
+  
+  // Plumbing fields
+  if (currentEstimateData.fixtures && currentEstimateData.fixtures !== '0') scopeHTML += '<li>Fixtures: ' + currentEstimateData.fixtures + '</li>';
+  if (currentEstimateData.waterHeaterType) scopeHTML += '<li>Water heater: ' + currentEstimateData.waterHeaterType + '</li>';
+  
+  // Flooring fields
+  if (currentEstimateData.flooringType) scopeHTML += '<li>Flooring type: ' + currentEstimateData.flooringType + '</li>';
+  
+  // Painting fields
+  if (currentEstimateData.surface) scopeHTML += '<li>Surface: ' + currentEstimateData.surface + '</li>';
+  if (currentEstimateData.coats) scopeHTML += '<li>Coats: ' + currentEstimateData.coats + '</li>';
+  
+  scopeHTML += '</ul></div>';
+  
+  // Build cost breakdown
   var itemsHTML = '';
   result.lineItems.forEach(function(item) {
     itemsHTML += '<div class="cost-item"><span>' + item.description + ':</span><span>$' + item.amount.toFixed(2) + '</span></div>';
   });
   
-  breakdown.innerHTML = itemsHTML + 
+  // Build disclaimer
+  var disclaimerHTML = '<div class="estimate-disclaimer">' +
+    '<p>⚠️ <strong>Estimate Only</strong> — Actual prices may vary ±10-15% depending on site conditions, material availability, and seasonal factors. Final pricing confirmed after on-site assessment.</p>' +
+    '</div>';
+  
+  breakdown.innerHTML = scopeHTML + 
+    '<div class="cost-breakdown-section">' +
+    itemsHTML + 
     '<div class="cost-item"><span>Subtotal:</span><span>$' + result.subtotal.toFixed(2) + '</span></div>' +
     '<div class="cost-item"><span>Tax (8.25%):</span><span>$' + result.tax.toFixed(2) + '</span></div>' +
     '<div class="cost-item"><span>Region: ' + result.msa + '</span><span>Timeline: ' + result.timeline + '</span></div>' +
-    '<div class="cost-item"><span>Total Cost:</span><span>$' + result.total.toFixed(2) + '</span></div>';
-  
+    '<div class="cost-item total-line"><span>Total Cost:</span><span>$' + result.total.toFixed(2) + '</span></div>' +
+    '</div>' +
+    disclaimerHTML;
+
   document.getElementById('resultSection').classList.add('active');
 }
 
