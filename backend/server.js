@@ -938,16 +938,67 @@ async function generateEstimatePDF(estimateData) {
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // Header
-      doc.fontSize(24).fillColor('#2563eb').text('InstaBid Estimate', { align: 'center' });
-      doc.moveDown(0.5);
+      const branding = estimateData.contractorBranding;
+      const primaryColor = branding?.primaryColor || '#2563eb';
+
+      // ========== CONTRACTOR HEADER ==========
+      if (branding) {
+        // Try to add logo
+        if (branding.logoUrl) {
+          try {
+            const axios = require('axios');
+            const logoResponse = await axios.get(branding.logoUrl, { 
+              responseType: 'arraybuffer',
+              timeout: 5000 
+            });
+            const logoBuffer = Buffer.from(logoResponse.data, 'binary');
+            doc.image(logoBuffer, 50, 50, { width: 120 });
+            doc.moveDown(4);
+          } catch (logoError) {
+            console.error('Logo load failed:', logoError.message);
+            // Fall back to text header
+            doc.fontSize(24).fillColor(primaryColor).text(branding.companyName || 'Estimate', { align: 'center' });
+            doc.moveDown(0.5);
+          }
+        } else {
+          // No logo - use company name
+          doc.fontSize(24).fillColor(primaryColor).text(branding.companyName || 'Estimate', { align: 'center' });
+          doc.moveDown(0.5);
+        }
+        
+        // Contractor contact info
+        doc.fontSize(9).fillColor('#666');
+        const contactParts = [];
+        if (branding.phone) contactParts.push(branding.phone);
+        if (branding.email) contactParts.push(branding.email);
+        if (contactParts.length > 0) {
+          doc.text(contactParts.join('  |  '), { align: 'center' });
+        }
+        if (branding.address || branding.city) {
+          const addressParts = [];
+          if (branding.address) addressParts.push(branding.address);
+          if (branding.city) addressParts.push(branding.city);
+          if (branding.state) addressParts.push(branding.state);
+          if (branding.zip) addressParts.push(branding.zip);
+          doc.text(addressParts.join(', '), { align: 'center' });
+        }
+        doc.moveDown(1);
+      } else {
+        // Default header
+        doc.fontSize(24).fillColor(primaryColor).text('Estimate', { align: 'center' });
+        doc.moveDown(0.5);
+      }
+
       doc.fontSize(10).fillColor('#666').text(`Estimate #${estimateData.id}`, { align: 'center' });
+      doc.moveDown(0.3);
+      doc.fontSize(9).fillColor('#999').text(`Generated: ${new Date().toLocaleDateString()}`, { align: 'center' });
       doc.moveDown(2);
+      // ========== END CONTRACTOR HEADER ==========
 
       // Customer Info
-      doc.fontSize(14).fillColor('#000').text('Customer Information', { underline: true });
+      doc.fontSize(14).fillColor(primaryColor).text('Customer Information', { underline: true });
       doc.moveDown(0.5);
-      doc.fontSize(10);
+      doc.fontSize(10).fillColor('#000');
       doc.text(`Name: ${estimateData.customerName}`);
       doc.text(`Email: ${estimateData.customerEmail}`);
       if (estimateData.customerPhone) doc.text(`Phone: ${estimateData.customerPhone}`);
@@ -956,7 +1007,7 @@ async function generateEstimatePDF(estimateData) {
 
       // ========== SCOPE OF WORK SECTION ==========
       const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-      doc.fontSize(14).fillColor('#2563eb').text(`${tradeName} Project Scope`, { underline: true });
+      doc.fontSize(14).fillColor(primaryColor).text(`${tradeName} Project Scope`, { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(10).fillColor('#000');
       
@@ -1024,7 +1075,7 @@ async function generateEstimatePDF(estimateData) {
 
       // ========== 📸 CUSTOMER PHOTOS SECTION ==========
       if (estimateData.photos && estimateData.photos.length > 0) {
-        doc.fontSize(14).fillColor('#000').text(`Customer Photos (${estimateData.photos.length})`, { underline: true });
+        doc.fontSize(14).fillColor(primaryColor).text(`Customer Photos (${estimateData.photos.length})`, { underline: true });
         doc.moveDown(0.5);
 
         const axios = require('axios');
@@ -1078,9 +1129,9 @@ async function generateEstimatePDF(estimateData) {
       const displaySettings = estimateData.displaySettings || { showLabor: true, showMaterials: true, showEquipment: true, showTotal: true };
       
       if (displaySettings.showLabor || displaySettings.showMaterials || displaySettings.showEquipment) {
-        doc.fontSize(14).fillColor('#000').text('Cost Breakdown', { underline: true });
+        doc.fontSize(14).fillColor(primaryColor).text('Cost Breakdown', { underline: true });
         doc.moveDown(0.5);
-        doc.fontSize(10);
+        doc.fontSize(10).fillColor('#000');
         
         if (displaySettings.showLabor) {
           doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
@@ -1096,14 +1147,12 @@ async function generateEstimatePDF(estimateData) {
       // ========== END COST BREAKDOWN ==========
 
       // Total
-      doc.fontSize(16).fillColor('#2563eb');
+      doc.fontSize(18).fillColor(primaryColor);
       doc.text(`TOTAL ESTIMATE: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
       doc.moveDown(2);
 
       // ========== DISCLAIMER ==========
-      doc.fontSize(9).fillColor('#666');
-      doc.text('─'.repeat(70), { align: 'center' });
-      doc.moveDown(0.5);
+      doc.moveDown(1);
       doc.fontSize(8).fillColor('#888');
       doc.text(
         'ESTIMATE ONLY — Actual prices may vary ±10-15% depending on site conditions, material availability, and seasonal factors. Final pricing confirmed after on-site assessment. This estimate is valid for 30 days.',
@@ -1117,6 +1166,7 @@ async function generateEstimatePDF(estimateData) {
     }
   });
 }
+
 
 
 // ========== CONTRACT GENERATION FUNCTION ==========
