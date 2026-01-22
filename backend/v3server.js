@@ -8,7 +8,6 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
-const PDFDocument = require('pdfkit');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -127,17 +126,6 @@ const requireAuth = async (req, res, next) => {
     console.error('Auth error:', error);
     res.status(500).json({ error: 'Authentication failed' });
   }
-};
-
-// ========== ADMIN AUTH MIDDLEWARE ==========
-const requireAdminKey = (req, res, next) => {
-  const adminKey = req.headers['x-admin-key'] || req.query.admin_key;
-  
-  if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) {
-    return res.status(401).json({ error: 'Admin access required' });
-  }
-  
-  next();
 };
 
 // Initialize database tables
@@ -818,14 +806,13 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
       break;
 
     // ========== PLUMBING - CALIBRATED ==========
-    // ========== PLUMBING - CALIBRATED ==========
-case 'plumbing':
-  const plumbServiceType = (data.plumbingType || data.serviceType || data.workType || 'fixture').toLowerCase();
-  const fixtureType = (data.fixtureType || 'toilet').toLowerCase();
-  const plumbFixtureCount = parseInt(data.fixtureCount || data.fixtures) || 1;
-  const plumbSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
-  const waterHeaterType = (data.waterHeaterType || data.heaterType || (data.tankless === 'yes' ? 'tankless' : 'tank')).toLowerCase();
-  
+    case 'plumbing':
+      const plumbServiceType = (data.plumbingType || data.serviceType || 'fixture').toLowerCase();
+      const fixtureType = (data.fixtureType || 'toilet').toLowerCase();
+      const plumbFixtureCount = parseInt(data.fixtureCount || data.fixtures) || 1;
+      const plumbSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
+      const waterHeaterType = (data.waterHeaterType || (data.tankless === 'yes' ? 'tankless' : 'tank')).toLowerCase();
+
       if (plumbServiceType === 'fixture') {
         const fixtureCosts = { 
           'toilet': getPrice('plumbing', 'plumb_toilet'), 

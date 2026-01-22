@@ -1,18 +1,18 @@
-INSTABID TEST RESULTS - 2026-01-22T01:26:50.763Z
+INSTABID TEST RESULTS - 2026-01-22T01:56:37.631Z
 ================================================================================
 
-SUMMARY: 0/11 passed (0.0%)
+SUMMARY: 11/11 passed (100.0%)
 
 ================================================================================
 
-ERROR | ROOFING      | Phoenix, AZ          | ERROR: PDFDocument is not defined
-ERROR | ROOFING      | Los Angeles, CA      | ERROR: PDFDocument is not defined
-ERROR | ROOFING      | Dallas, TX           | ERROR: PDFDocument is not defined
-ERROR | ROOFING      | Jackson, MS          | ERROR: PDFDocument is not defined
-ERROR | PAINTING     | Seattle, WA          | ERROR: PDFDocument is not defined
-ERROR | HVAC         | Austin, TX           | ERROR: PDFDocument is not defined
-ERROR | ELECTRICAL   | Denver, CO           | ERROR: PDFDocument is not defined
-ERROR | PLUMBING     | Miami, FL            | ERROR: PDFDocument is not defined
-ERROR | FLOORING     | Portland, OR         | ERROR: PDFDocument is not defined
-ERROR | DRYWALL      | Atlanta, GA          | ERROR: PDFDocument is not defined
-ERROR | SIDING       | Boston, MA           | ERROR: PDFDocument is not defined
+PASSED | ROOFING      | Phoenix, AZ          | $26,188.70 | 167hrs @ $56.355000000000004/hr
+PASSED | ROOFING      | Los Angeles, CA      | $33,593.10 | 167hrs @ $71.55000000000001/hr
+PASSED | ROOFING      | Dallas, TX           | $26,175.36 | 167hrs @ $55.335/hr
+PASSED | ROOFING      | Jackson, MS          | $21,717.84 | 167hrs @ $47.445/hr
+PASSED | PAINTING     | Seattle, WA          | $7,696.54 | 79.85hrs @ $75.33/hr
+PASSED | HVAC         | Austin, TX           | $6,460.54 | 24hrs @ $55.335/hr
+PASSED | ELECTRICAL   | Denver, CO           | $5,602.51 | 18hrs @ $63.19500000000001/hr
+PASSED | PLUMBING     | Miami, FL            | $904.17 | 3.5hrs @ $52.905/hr
+PASSED | FLOORING     | Portland, OR         | $24,403.10 | 120hrs @ $70.30499999999999/hr
+PASSED | DRYWALL      | Atlanta, GA          | $5,170.99 | 67.2hrs @ $63/hr
+PASSED | SIDING       | Boston, MA           | $28,476.64 | 157.5hrs @ $84/hr
