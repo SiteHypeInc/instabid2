@@ -2249,7 +2249,7 @@ app.put('/api/config/:section', requireAuth, (req, res) => {
 // ============================================
 
 // GET - Load contractor's pricing overrides
-app.get('/api/contractor/pricing', requireAuth, async (req, res) => {
+app.get('/api/contractor/pricing', verifySession, async (req, res) => {
   try {
     const contractorId = req.user.id;
     
