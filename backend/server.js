@@ -3,12 +3,14 @@
 // Last Updated: January 2025
 // ========================================
 
+require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
 const sgTransport = require('nodemailer-sendgrid-transport');
 const PDFDocument = require('pdfkit');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
