@@ -1,61 +1,18 @@
-INSTABID TEST SUITE RESULTS
-Run Date: 2026-01-18T00:49:04.904Z
+INSTABID TEST RESULTS - 2026-01-22T01:26:50.763Z
 ================================================================================
 
-SUMMARY:
-Passed: 0/12
-Failed: 12/12
-Success Rate: 0.0%
+SUMMARY: 0/11 passed (0.0%)
 
 ================================================================================
 
-DETAILED RESULTS:
-
-TEST #1: ROOFING
-Location: Phoenix, AZ 85001
-Status: FAILED
-
-TEST #2: ROOFING
-Location: Tempe, AZ 85281
-Status: FAILED
-
-TEST #3: ROOFING
-Location: Los Angeles, CA 90001
-Status: FAILED
-
-TEST #4: ROOFING
-Location: Dallas, TX 75201
-Status: FAILED
-
-TEST #5: ROOFING
-Location: Jackson, MS 39201
-Status: FAILED
-
-TEST #6: PAINTING
-Location: Seattle, WA 98101
-Status: FAILED
-
-TEST #7: HVAC
-Location: Austin, TX 78701
-Status: FAILED
-
-TEST #8: ELECTRICAL
-Location: Denver, CO 80201
-Status: FAILED
-
-TEST #9: PLUMBING
-Location: Miami, FL 33101
-Status: FAILED
-
-TEST #10: FLOORING
-Location: Portland, OR 97201
-Status: FAILED
-
-TEST #11: DRYWALL
-Location: Atlanta, GA 30301
-Status: FAILED
-
-TEST #12: SIDING
-Location: Boston, MA 02101
-Status: FAILED
-
+ERROR | ROOFING      | Phoenix, AZ          | ERROR: PDFDocument is not defined
+ERROR | ROOFING      | Los Angeles, CA      | ERROR: PDFDocument is not defined
+ERROR | ROOFING      | Dallas, TX           | ERROR: PDFDocument is not defined
+ERROR | ROOFING      | Jackson, MS          | ERROR: PDFDocument is not defined
+ERROR | PAINTING     | Seattle, WA          | ERROR: PDFDocument is not defined
+ERROR | HVAC         | Austin, TX           | ERROR: PDFDocument is not defined
+ERROR | ELECTRICAL   | Denver, CO           | ERROR: PDFDocument is not defined
+ERROR | PLUMBING     | Miami, FL            | ERROR: PDFDocument is not defined
+ERROR | FLOORING     | Portland, OR         | ERROR: PDFDocument is not defined
+ERROR | DRYWALL      | Atlanta, GA          | ERROR: PDFDocument is not defined
+ERROR | SIDING       | Boston, MA           | ERROR: PDFDocument is not defined

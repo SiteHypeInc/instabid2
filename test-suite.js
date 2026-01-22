@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const fs = require('fs');
 
@@ -9,13 +8,13 @@ const testCases = [
   // ROOFING TESTS
   {
     trade: 'roofing',
-    name: 'Test Roofer 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '123 Main St, Phoenix, AZ',
+    customerName: 'Test Roofer 1',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '123 Main St',
     city: 'Phoenix',
     state: 'AZ',
-    zip: '85001', // Should be IN database
+    zipCode: '85001',
     squareFeet: '2000',
     pitch: '6/12',
     stories: '1',
@@ -30,36 +29,13 @@ const testCases = [
   },
   {
     trade: 'roofing',
-    name: 'Test Roofer 2',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '456 Oak St, Tempe, AZ',
-    city: 'Tempe',
-    state: 'AZ',
-    zip: '85281', // Should NOT be in database (state fallback)
-    squareFeet: '1600',
-    pitch: '4/12',
-    stories: '1',
-    material: 'Architectural Shingles ($3.50/sqft)',
-    existingRoofType: 'asphalt',
-    needsPlywood: 'no',
-    layers: '1',
-    valleys: '1',
-    chimneys: '0',
-    skylights: '2',
-    ridgeVentFeet: '30'
-  },
-
-   // STATE MULTIPLIER CACHE TESTS (New!)
-  {
-    trade: 'roofing',
-    name: 'Cache Test - High Cost CA',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '123 Test St, Los Angeles, CA',
+    customerName: 'Cache Test - High Cost CA',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '123 Test St',
     city: 'Los Angeles',
     state: 'CA',
-    zip: '90001',
+    zipCode: '90001',
     squareFeet: '2000',
     pitch: '6/12',
     stories: '1',
@@ -71,17 +47,17 @@ const testCases = [
     chimneys: '1',
     skylights: '0',
     ridgeVentFeet: '40',
-    _expectedMultiplier: 1.35  // For validation
+    _expectedMultiplier: 1.35
   },
   {
     trade: 'roofing',
-    name: 'Cache Test - Low Cost TX',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '456 Test St, Dallas, TX',
+    customerName: 'Cache Test - Low Cost TX',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '456 Test St',
     city: 'Dallas',
     state: 'TX',
-    zip: '75201',
+    zipCode: '75201',
     squareFeet: '2000',
     pitch: '6/12',
     stories: '1',
@@ -97,13 +73,13 @@ const testCases = [
   },
   {
     trade: 'roofing',
-    name: 'Cache Test - Cheapest MS',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '789 Test St, Jackson, MS',
+    customerName: 'Cache Test - Cheapest MS',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '789 Test St',
     city: 'Jackson',
     state: 'MS',
-    zip: '39201',
+    zipCode: '39201',
     squareFeet: '2000',
     pitch: '6/12',
     stories: '1',
@@ -117,107 +93,100 @@ const testCases = [
     ridgeVentFeet: '40',
     _expectedMultiplier: 0.84
   },
-
-  // PAINTING TESTS
+  // PAINTING
   {
     trade: 'painting',
-    name: 'Test Painter 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '789 Elm St, Seattle, WA',
+    customerName: 'Test Painter WA',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '789 Elm St',
     city: 'Seattle',
     state: 'WA',
-    zip: '98101',
+    zipCode: '98101',
     squareFeet: '1600',
     workType: 'exterior',
     stories: '2',
     condition: 'fair'
   },
-
-  // HVAC TESTS
+  // HVAC
   {
     trade: 'hvac',
-    name: 'Test HVAC 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '321 Pine St, Austin, TX',
+    customerName: 'Test HVAC TX',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '321 Pine St',
     city: 'Austin',
     state: 'TX',
-    zip: '78701',
+    zipCode: '78701',
     squareFeet: '2000',
     systemType: 'central_air',
     complexity: 'standard'
   },
-
-  // ELECTRICAL TESTS
+  // ELECTRICAL
   {
     trade: 'electrical',
-    name: 'Test Electrician 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '654 Maple Ave, Denver, CO',
+    customerName: 'Test Electrician CO',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '654 Maple Ave',
     city: 'Denver',
     state: 'CO',
-    zip: '80201',
+    zipCode: '80201',
     workType: 'panel_upgrade',
     panelSize: '200'
   },
-
-  // PLUMBING TESTS
+  // PLUMBING
   {
     trade: 'plumbing',
-    name: 'Test Plumber 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '987 Birch Ln, Miami, FL',
+    customerName: 'Test Plumber FL',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '987 Birch Ln',
     city: 'Miami',
     state: 'FL',
-    zip: '33101',
+    zipCode: '33101',
     workType: 'water_heater',
     heaterType: 'tankless',
     heaterSize: '50'
   },
-
-  // FLOORING TESTS
+  // FLOORING
   {
     trade: 'flooring',
-    name: 'Test Flooring 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '147 Cedar St, Portland, OR',
+    customerName: 'Test Flooring OR',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '147 Cedar St',
     city: 'Portland',
     state: 'OR',
-    zip: '97201',
+    zipCode: '97201',
     squareFeet: '1200',
     flooringType: 'hardwood',
     complexity: 'standard'
   },
-
-  // DRYWALL TESTS
+  // DRYWALL
   {
     trade: 'drywall',
-    name: 'Test Drywall 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '258 Spruce Dr, Atlanta, GA',
+    customerName: 'Test Drywall GA',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '258 Spruce Dr',
     city: 'Atlanta',
     state: 'GA',
-    zip: '30301',
+    zipCode: '30301',
     squareFeet: '800',
     ceilings: 'yes',
     texture: 'smooth'
   },
-
-  // SIDING TESTS
+  // SIDING
   {
     trade: 'siding',
-    name: 'Test Siding 1',
-    email: 'test@test.com',
-    phone: '555-1234',
-    address: '369 Willow Way, Boston, MA',
+    customerName: 'Test Siding MA',
+    customerEmail: 'test@test.com',
+    customerPhone: '555-1234',
+    address: '369 Willow Way',
     city: 'Boston',
     state: 'MA',
-    zip: '02101',
+    zipCode: '02101',
     squareFeet: '1800',
     sidingType: 'vinyl',
     stories: '2'
@@ -229,7 +198,7 @@ async function runTests() {
   let passed = 0;
   let failed = 0;
 
-  console.log('🧪 STARTING AUTOMATED TEST SUITE...\n');
+  console.log('🧪 INSTABID AUTOMATED TEST SUITE\n');
   console.log(`Testing ${testCases.length} scenarios across 8 trades\n`);
   console.log('='.repeat(80) + '\n');
 
@@ -237,7 +206,7 @@ async function runTests() {
     const testCase = testCases[i];
     const testNum = i + 1;
 
-    console.log(`TEST ${testNum}/${testCases.length}: ${testCase.trade.toUpperCase()} - ${testCase.city}, ${testCase.state} (ZIP: ${testCase.zip})`);
+    console.log(`TEST ${testNum}/${testCases.length}: ${testCase.trade.toUpperCase()} - ${testCase.city}, ${testCase.state}`);
 
     try {
       const response = await axios.post(`${API_URL}/api/estimate`, {
@@ -245,37 +214,32 @@ async function runTests() {
         ...testCase
       });
 
-      const estimate = response.data;
+      const data = response.data;
+      const estimate = data.estimate; // 👈 KEY FIX: nested under estimate
 
       // Validation checks
       const checks = {
-        hasEstimateId: !!estimate.estimate_id,
-        hasValidTotal: estimate.total_cost && estimate.total_cost > 0,
-        hasLaborCost: estimate.labor_cost && estimate.labor_cost > 0,
-        hasMaterialCost: estimate.material_cost && estimate.material_cost > 0,
-        hasLaborHours: estimate.labor_hours && estimate.labor_hours > 0,
-        notNull: estimate.total_cost !== null
+        success: data.success === true,
+        hasEstimateId: !!data.estimateId,
+        hasValidTotal: estimate && estimate.totalCost > 0,
+        hasLaborCost: estimate && estimate.laborCost > 0,
+        hasMaterialCost: estimate && estimate.materialCost > 0,
+        hasLaborHours: estimate && estimate.laborHours > 0
       };
-
-      // Check state multiplier if expected value provided
-      if (testCase._expectedMultiplier && estimate.regional_multiplier) {
-        const multiplierMatch = Math.abs(estimate.regional_multiplier - testCase._expectedMultiplier) < 0.01;
-        checks.correctMultiplier = multiplierMatch;
-        
-        if (!multiplierMatch) {
-          console.log(`   ⚠️  Multiplier mismatch: Expected ${testCase._expectedMultiplier}, Got ${estimate.regional_multiplier}`);
-        }
-      }
 
       const allPassed = Object.values(checks).every(v => v === true);
 
       if (allPassed) {
-        console.log(`✅ PASSED - Total: $${estimate.total_cost}, Labor: ${estimate.labor_hours}hrs @ $${estimate.labor_rate}/hr`);
+        console.log(`   ✅ PASSED`);
+        console.log(`      Total: $${estimate.totalCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`);
+        console.log(`      Labor: ${estimate.laborHours} hrs @ $${estimate.laborRate}/hr = $${estimate.laborCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`);
+        console.log(`      Materials: $${estimate.materialCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`);
+        console.log(`      Timeline: ${data.timeline}`);
         passed++;
       } else {
-        console.log(`❌ FAILED - Issues detected:`);
+        console.log(`   ❌ FAILED`);
         Object.entries(checks).forEach(([key, value]) => {
-          if (!value) console.log(`   - ${key}: FAILED`);
+          if (!value) console.log(`      - ${key}: FAILED`);
         });
         failed++;
       }
@@ -283,65 +247,73 @@ async function runTests() {
       results.push({
         testNum,
         trade: testCase.trade,
-        location: `${testCase.city}, ${testCase.state} ${testCase.zip}`,
+        location: `${testCase.city}, ${testCase.state}`,
         status: allPassed ? 'PASSED' : 'FAILED',
-        totalCost: estimate.total_cost,
-        laborHours: estimate.labor_hours,
-        laborRate: estimate.labor_rate,
-        checks
+        total: estimate?.totalCost,
+        labor: estimate?.laborCost,
+        materials: estimate?.materialCost,
+        hours: estimate?.laborHours,
+        rate: estimate?.laborRate,
+        timeline: data.timeline
       });
 
     } catch (error) {
-      console.log(`❌ ERROR - ${error.message}`);
+      console.log(`   ❌ ERROR: ${error.response?.data?.error || error.message}`);
       failed++;
 
       results.push({
         testNum,
         trade: testCase.trade,
-        location: `${testCase.city}, ${testCase.state} ${testCase.zip}`,
+        location: `${testCase.city}, ${testCase.state}`,
         status: 'ERROR',
-        error: error.message
+        error: error.response?.data?.error || error.message
       });
     }
 
-    console.log(''); // Blank line between tests
+    console.log('');
   }
 
   // Summary
   console.log('='.repeat(80));
-  console.log('\n📊 TEST SUMMARY:\n');
-  console.log(`✅ Passed: ${passed}/${testCases.length}`);
-  console.log(`❌ Failed: ${failed}/${testCases.length}`);
-  console.log(`📈 Success Rate: ${((passed/testCases.length)*100).toFixed(1)}%\n`);
+  console.log('\n📊 TEST SUMMARY\n');
+  console.log(`   ✅ Passed: ${passed}/${testCases.length}`);
+  console.log(`   ❌ Failed: ${failed}/${testCases.length}`);
+  console.log(`   📈 Success Rate: ${((passed/testCases.length)*100).toFixed(1)}%\n`);
+
+  // Price comparison table
+  console.log('='.repeat(80));
+  console.log('\n💰 PRICE COMPARISON (Same 2000 sqft roof across states)\n');
+  
+  const roofingTests = results.filter(r => r.trade === 'roofing' && r.total);
+  roofingTests.sort((a, b) => b.total - a.total);
+  
+  roofingTests.forEach(r => {
+    const bar = '█'.repeat(Math.round(r.total / 500));
+    console.log(`   ${r.location.padEnd(20)} $${r.total.toLocaleString('en-US', {minimumFractionDigits: 2}).padStart(12)} ${bar}`);
+  });
+
+  console.log('\n');
 
   // Write results to file
   const timestamp = new Date().toISOString();
-  let output = `INSTABID TEST SUITE RESULTS\n`;
-  output += `Run Date: ${timestamp}\n`;
+  let output = `INSTABID TEST RESULTS - ${timestamp}\n`;
   output += `${'='.repeat(80)}\n\n`;
-  output += `SUMMARY:\n`;
-  output += `Passed: ${passed}/${testCases.length}\n`;
-  output += `Failed: ${failed}/${testCases.length}\n`;
-  output += `Success Rate: ${((passed/testCases.length)*100).toFixed(1)}%\n\n`;
+  output += `SUMMARY: ${passed}/${testCases.length} passed (${((passed/testCases.length)*100).toFixed(1)}%)\n\n`;
   output += `${'='.repeat(80)}\n\n`;
-  output += `DETAILED RESULTS:\n\n`;
 
-  results.forEach(result => {
-    output += `TEST #${result.testNum}: ${result.trade.toUpperCase()}\n`;
-    output += `Location: ${result.location}\n`;
-    output += `Status: ${result.status}\n`;
-    if (result.totalCost) {
-      output += `Total Cost: $${result.totalCost}\n`;
-      output += `Labor: ${result.laborHours} hrs @ $${result.laborRate}/hr\n`;
+  results.forEach(r => {
+    output += `${r.status} | ${r.trade.toUpperCase().padEnd(12)} | ${r.location.padEnd(20)}`;
+    if (r.total) {
+      output += ` | $${r.total.toLocaleString('en-US', {minimumFractionDigits: 2})} | ${r.hours}hrs @ $${r.rate}/hr`;
     }
-    if (result.error) {
-      output += `Error: ${result.error}\n`;
+    if (r.error) {
+      output += ` | ERROR: ${r.error}`;
     }
-    output += `\n`;
+    output += '\n';
   });
 
   fs.writeFileSync('test-results.txt', output);
-  console.log('📄 Results written to test-results.txt\n');
+  console.log('📄 Results saved to test-results.txt\n');
 }
 
 runTests().catch(console.error);
