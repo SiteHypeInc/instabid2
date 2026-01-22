@@ -25,6 +25,30 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 
+// Middleware - CORS with credentials support
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://white-raven-264519.hostingersite.com',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+}); 
+
 
 
 // ========================================
