@@ -2089,7 +2089,7 @@ app.put('/api/config/:section', requireAuth, (req, res) => {
 // GET - Load contractor's pricing overrides
 app.get('/api/contractor/pricing', verifySession, async (req, res) => {
   try {
-    const contractorId = req.user.id;
+    const contractorId = req.contractor_id;
     
     const result = await pool.query(
       'SELECT trade, pricing_key, value FROM contractor_pricing WHERE contractor_id = $1',
@@ -2117,7 +2117,7 @@ app.get('/api/contractor/pricing', verifySession, async (req, res) => {
 // POST - Save contractor's pricing overrides
 app.post('/api/contractor/pricing', verifySession, async (req, res) => {
   try {
-    const contractorId = req.user.id;
+    const contractorId = req.contractor_id;
     const { trade, pricing } = req.body;
     
     if (!trade || !pricing || typeof pricing !== 'object') {
