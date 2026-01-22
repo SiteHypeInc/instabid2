@@ -2148,7 +2148,8 @@ app.get('/api/contractor/pricing', verifySession, async (req, res) => {
 // POST - Save contractor's pricing overrides
 app.post('/api/contractor/pricing', verifySession, async (req, res) => {
   try {
-    const contractorId = req.contractor_id;
+    const contractorId = req.contractor.contractor_id;
+
     const { trade, pricing } = req.body;
     
     if (!trade || !pricing || typeof pricing !== 'object') {
