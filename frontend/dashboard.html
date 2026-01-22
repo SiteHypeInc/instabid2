@@ -2374,7 +2374,105 @@ document.querySelectorAll('.sub-tab').forEach(button => {
   });
 });
 </script>
+<script>
+  // ============================================
+// CONTRACTOR PRICING - SAVE & LOAD
+// ============================================
 
+
+
+// Field IDs for each trade
+const TRADE_FIELDS = {
+  roofing: ['pitch_low', 'pitch_med', 'pitch_high', 'pitch_steep', 'story_1', 'story_2', 'story_3', 'mat_asphalt', 'mat_arch', 'mat_metal', 'mat_tile', 'mat_slate', 'tearoff_cost', 'plywood_cost', 'chimney_cost', 'valley_cost', 'skylight_cost', 'ridge_cost'],
+  hvac: ['hvac_size_small', 'hvac_size_med', 'hvac_size_large', 'hvac_size_xlarge', 'hvac_furnace', 'hvac_ac', 'hvac_heatpump', 'hvac_minisplit', 'hvac_duct', 'hvac_thermostat', 'hvac_handler', 'hvac_standard', 'hvac_moderate', 'hvac_complex'],
+  electrical: ['elec_panel_100', 'elec_panel_200', 'elec_subpanel', 'elec_outlet', 'elec_switch', 'elec_fixture', 'elec_fan', 'elec_gfci', 'elec_ev', 'elec_generator', 'elec_hottub', 'elec_labor_std', 'elec_labor_complex'],
+  plumbing: ['plumb_toilet', 'plumb_sink', 'plumb_shower', 'plumb_tub', 'plumb_dishwasher', 'plumb_heater_tank', 'plumb_heater_tankless', 'plumb_sump', 'plumb_softener', 'plumb_pipe_repair', 'plumb_pipe_replace', 'plumb_drain', 'plumb_sewer', 'plumb_labor_std', 'plumb_labor_emerg'],
+  flooring: ['floor_carpet', 'floor_vinyl', 'floor_laminate', 'floor_hardwood_eng', 'floor_hardwood_solid', 'floor_tile_ceramic', 'floor_tile_porcelain', 'floor_labor_carpet', 'floor_labor_vinyl', 'floor_labor_hardwood', 'floor_labor_tile', 'floor_subfloor', 'floor_removal', 'floor_underlay', 'floor_baseboard', 'floor_standard', 'floor_moderate', 'floor_complex'],
+  painting: ['paint_int_walls_1', 'paint_int_walls_2', 'paint_int_ceiling', 'paint_int_trim', 'paint_int_door', 'paint_int_cabinet', 'paint_ext_siding_1', 'paint_ext_siding_2', 'paint_ext_trim', 'paint_ext_deck', 'paint_ext_fence', 'paint_prep', 'paint_primer', 'paint_wallpaper', 'paint_texture', 'paint_standard', 'paint_moderate', 'paint_complex'],
+  drywall: ['drywall_sheet', 'drywall_compound', 'drywall_tape', 'drywall_screws', 'drywall_hang_rate', 'drywall_tape_rate', 'drywall_texture_rate', 'drywall_hourly', 'drywall_standard', 'drywall_high_ceiling', 'drywall_smooth', 'drywall_textured', 'drywall_repair_minor', 'drywall_repair_moderate', 'drywall_repair_extensive'],
+  siding: ['siding_vinyl', 'siding_fiber_cement', 'siding_wood', 'siding_metal', 'siding_stucco', 'siding_vinyl_labor', 'siding_fiber_labor', 'siding_wood_labor', 'siding_metal_labor', 'siding_stucco_labor', 'siding_1_story', 'siding_2_story', 'siding_3_story', 'siding_removal', 'siding_wrap', 'siding_trim', 'siding_window_trim'],
+  regional: ['region_CA', 'region_NY', 'region_MA', 'region_HI', 'region_WA', 'region_OR', 'region_CO', 'region_IL', 'region_VA', 'region_TX', 'region_FL', 'region_GA', 'region_OH', 'region_TN', 'region_AL', 'region_default']
+};
+
+// Save config for a trade
+async function saveConfig(trade) {
+  const statusEl = document.getElementById(`${trade}-status`);
+  statusEl.textContent = 'Saving...';
+  statusEl.style.color = '#f39c12';
+
+  const fields = TRADE_FIELDS[trade];
+  if (!fields) {
+    statusEl.textContent = 'Unknown trade!';
+    statusEl.style.color = '#e74c3c';
+    return;
+  }
+
+  const pricing = {};
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value !== '') {
+      pricing[id] = parseFloat(el.value);
+    }
+  });
+
+  try {
+    const response = await fetch(`${API_BASE}/api/contractor/pricing`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('session_token'),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ trade, pricing })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      statusEl.textContent = `✅ Saved ${data.saved} values!`;
+      statusEl.style.color = '#27ae60';
+    } else {
+      statusEl.textContent = '❌ ' + (data.error || 'Save failed');
+      statusEl.style.color = '#e74c3c';
+    }
+  } catch (err) {
+    statusEl.textContent = '❌ Network error';
+    statusEl.style.color = '#e74c3c';
+  }
+
+  setTimeout(() => { statusEl.textContent = ''; }, 3000);
+}
+
+// Load all pricing on page load
+async function loadContractorPricing() {
+  try {
+    const response = await fetch(`${API_BASE}/api/contractor/pricing`, {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('session_token')
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success && data.pricing) {
+      // Loop through each trade's saved values
+      for (const [trade, values] of Object.entries(data.pricing)) {
+        for (const [key, value] of Object.entries(values)) {
+          const el = document.getElementById(key);
+          if (el) {
+            el.value = value;
+          }
+        }
+      }
+      console.log('✅ Loaded contractor pricing overrides');
+    }
+  } catch (err) {
+    console.error('Failed to load pricing:', err);
+  }
+}
+
+// Load pricing when page loads
+document.addEventListener('DOMContentLoaded', loadContractorPricing);
+</script>
 
 </body>
 </html>
