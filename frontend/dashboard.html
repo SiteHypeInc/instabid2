@@ -2180,7 +2180,7 @@ function loadConfig(section) {
     .catch(err => console.error('Load error:', err));
 }
 
-function saveConfig(section) {
+/*function saveConfig(section) {
   const inputs = document.querySelectorAll(`#${section} input`);
   const config = {};
   
@@ -2215,7 +2215,7 @@ function saveConfig(section) {
     statusDiv.textContent = '❌ Error: ' + err.message;
     statusDiv.className = 'status-message error';
   });
-}
+}*/
 
 function getContractorId() {
   return localStorage.getItem('contractor_id') || '1';
@@ -2374,12 +2374,12 @@ document.querySelectorAll('.sub-tab').forEach(button => {
   });
 });
 </script>
+
+
 <script>
   // ============================================
 // CONTRACTOR PRICING - SAVE & LOAD
 // ============================================
-
-
 
 // Field IDs for each trade
 const TRADE_FIELDS = {

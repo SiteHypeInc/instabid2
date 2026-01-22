@@ -2172,6 +2172,9 @@ app.post('/api/contractor/pricing', verifySession, async (req, res) => {
     
     console.log(`💾 Saved ${savedCount} pricing values for contractor ${contractorId} - ${trade}`);
     res.json({ success: true, saved: savedCount });
+
+    console.log('contractorId:', contractorId);
+
     
   } catch (error) {
     console.error('❌ Failed to save contractor pricing:', error);
