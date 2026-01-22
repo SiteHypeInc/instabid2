@@ -2397,6 +2397,7 @@ const TRADE_FIELDS = {
 // Save config for a trade
 async function saveConfig(trade) {
   const statusEl = document.getElementById(`${trade}-status`);
+  statusEl.style.display = 'block';
   statusEl.textContent = 'Saving...';
   statusEl.style.color = '#f39c12';
 
@@ -2439,7 +2440,8 @@ async function saveConfig(trade) {
     statusEl.style.color = '#e74c3c';
   }
 
-  setTimeout(() => { statusEl.textContent = ''; }, 3000);
+  setTimeout(() => { statusEl.textContent = ''; statusEl.style.display = 'none';}, 3000);
+  
 }
 
 // Load all pricing on page load
