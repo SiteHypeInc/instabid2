@@ -1,4 +1,4 @@
-INSTABID TEST RESULTS - 2026-01-22T01:56:37.631Z
+INSTABID TEST RESULTS - 2026-01-22T02:15:09.650Z
 ================================================================================
 
 SUMMARY: 11/11 passed (100.0%)
@@ -12,7 +12,7 @@ PASSED | ROOFING      | Jackson, MS          | $21,717.84 | 167hrs @ $47.445/hr
 PASSED | PAINTING     | Seattle, WA          | $7,696.54 | 79.85hrs @ $75.33/hr
 PASSED | HVAC         | Austin, TX           | $6,460.54 | 24hrs @ $55.335/hr
 PASSED | ELECTRICAL   | Denver, CO           | $5,602.51 | 18hrs @ $63.19500000000001/hr
-PASSED | PLUMBING     | Miami, FL            | $904.17 | 3.5hrs @ $52.905/hr
+PASSED | PLUMBING     | Miami, FL            | $2,919.86 | 12hrs @ $52.905/hr
 PASSED | FLOORING     | Portland, OR         | $24,403.10 | 120hrs @ $70.30499999999999/hr
 PASSED | DRYWALL      | Atlanta, GA          | $5,170.99 | 67.2hrs @ $63/hr
 PASSED | SIDING       | Boston, MA           | $28,476.64 | 157.5hrs @ $84/hr

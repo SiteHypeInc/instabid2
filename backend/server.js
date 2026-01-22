@@ -825,7 +825,7 @@ case 'plumbing':
   const plumbFixtureCount = parseInt(data.fixtureCount || data.fixtures) || 1;
   const plumbSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
   const waterHeaterType = (data.waterHeaterType || data.heaterType || (data.tankless === 'yes' ? 'tankless' : 'tank')).toLowerCase();
-  
+
       if (plumbServiceType === 'fixture') {
         const fixtureCosts = { 
           'toilet': getPrice('plumbing', 'plumb_toilet'), 
@@ -2081,6 +2081,72 @@ app.put('/api/config/:section', requireAuth, (req, res) => {
       overrides[key] = value;
     }
   });
+
+  // ============================================
+// CONTRACTOR PRICING ENDPOINTS
+// ============================================
+
+// GET - Load contractor's pricing overrides
+app.get('/api/contractor/pricing', requireAuth, async (req, res) => {
+  try {
+    const contractorId = req.user.id;
+    
+    const result = await pool.query(
+      'SELECT trade, pricing_key, value FROM contractor_pricing WHERE contractor_id = $1',
+      [contractorId]
+    );
+    
+    // Organize by trade
+    const pricing = {};
+    result.rows.forEach(row => {
+      if (!pricing[row.trade]) {
+        pricing[row.trade] = {};
+      }
+      pricing[row.trade][row.pricing_key] = parseFloat(row.value);
+    });
+    
+    console.log(`📊 Loaded ${result.rows.length} pricing overrides for contractor ${contractorId}`);
+    res.json({ success: true, pricing });
+    
+  } catch (error) {
+    console.error('❌ Failed to load contractor pricing:', error);
+    res.status(500).json({ success: false, error: 'Failed to load pricing' });
+  }
+});
+
+// POST - Save contractor's pricing overrides
+app.post('/api/contractor/pricing', requireAuth, async (req, res) => {
+  try {
+    const contractorId = req.user.id;
+    const { trade, pricing } = req.body;
+    
+    if (!trade || !pricing || typeof pricing !== 'object') {
+      return res.status(400).json({ success: false, error: 'Missing trade or pricing data' });
+    }
+    
+    let savedCount = 0;
+    
+    for (const [key, value] of Object.entries(pricing)) {
+      if (value !== null && value !== undefined && value !== '') {
+        await pool.query(`
+          INSERT INTO contractor_pricing (contractor_id, trade, pricing_key, value, updated_at)
+          VALUES ($1, $2, $3, $4, NOW())
+          ON CONFLICT (contractor_id, trade, pricing_key)
+          DO UPDATE SET value = $4, updated_at = NOW()
+        `, [contractorId, trade, key, parseFloat(value)]);
+        savedCount++;
+      }
+    }
+    
+    console.log(`💾 Saved ${savedCount} pricing values for contractor ${contractorId} - ${trade}`);
+    res.json({ success: true, saved: savedCount });
+    
+  } catch (error) {
+    console.error('❌ Failed to save contractor pricing:', error);
+    res.status(500).json({ success: false, error: 'Failed to save pricing' });
+  }
+});
+
   
   // Initialize contractor config if needed
   if (!configData[contractor_id]) {
@@ -2098,6 +2164,151 @@ app.put('/api/config/:section', requireAuth, (req, res) => {
     totalFields: Object.keys(DEFAULT_PRICING[section]).length
   });
 });
+
+
+// ============================================
+// DASHBOARD CONFIG (PROTECTED)
+// ============================================
+
+// GET config for dashboard - merges defaults + overrides
+app.get('/api/config/:section', requireAuth, (req, res) => {
+  const section = req.params.section;
+  const contractor_id = req.contractor.contractor_id;
+  
+  if (!DEFAULT_PRICING[section]) {
+    return res.status(404).json({ 
+      success: false, 
+      error: 'Section not found' 
+    });
+  }
+  
+  // Merge: defaults first, then contractor overrides
+  const contractorOverrides = configData[contractor_id]?.[section] || {};
+  const merged = {
+    ...DEFAULT_PRICING[section],
+    ...contractorOverrides
+  };
+  
+  res.json({
+    success: true,
+    config: merged,
+    overrides: Object.keys(contractorOverrides),
+    overrideCount: Object.keys(contractorOverrides).length
+  });
+});
+
+app.put('/api/config/:section', requireAuth, (req, res) => {
+  const section = req.params.section;
+  const contractor_id = req.contractor.contractor_id;
+  const { config } = req.body;
+  
+  if (!config) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'No config provided' 
+    });
+  }
+  
+  if (!DEFAULT_PRICING[section]) {
+    return res.status(404).json({ 
+      success: false, 
+      error: 'Section not found' 
+    });
+  }
+  
+  // Only store overrides (values different from defaults)
+  const overrides = {};
+  Object.keys(config).forEach(key => {
+    const value = parseFloat(config[key]);
+    const defaultValue = DEFAULT_PRICING[section][key];
+    
+    if (!isNaN(value) && value !== defaultValue) {
+      overrides[key] = value;
+    }
+  });
+  
+  // Initialize contractor config if needed
+  if (!configData[contractor_id]) {
+    configData[contractor_id] = {};
+  }
+  
+  configData[contractor_id][section] = overrides;
+  
+  console.log(`✅ Contractor ${contractor_id} overrides for ${section}:`, overrides);
+  
+  res.json({
+    success: true,
+    message: `${section} configuration updated`,
+    overrideCount: Object.keys(overrides).length,
+    totalFields: Object.keys(DEFAULT_PRICING[section]).length
+  });
+});
+
+// ============================================
+// CONTRACTOR PRICING ENDPOINTS
+// ============================================
+
+// GET - Load contractor's pricing overrides
+app.get('/api/contractor/pricing', requireAuth, async (req, res) => {
+  try {
+    const contractorId = req.user.id;
+    
+    const result = await pool.query(
+      'SELECT trade, pricing_key, value FROM contractor_pricing WHERE contractor_id = $1',
+      [contractorId]
+    );
+    
+    // Organize by trade
+    const pricing = {};
+    result.rows.forEach(row => {
+      if (!pricing[row.trade]) {
+        pricing[row.trade] = {};
+      }
+      pricing[row.trade][row.pricing_key] = parseFloat(row.value);
+    });
+    
+    console.log(`📊 Loaded ${result.rows.length} pricing overrides for contractor ${contractorId}`);
+    res.json({ success: true, pricing });
+    
+  } catch (error) {
+    console.error('❌ Failed to load contractor pricing:', error);
+    res.status(500).json({ success: false, error: 'Failed to load pricing' });
+  }
+});
+
+// POST - Save contractor's pricing overrides
+app.post('/api/contractor/pricing', requireAuth, async (req, res) => {
+  try {
+    const contractorId = req.user.id;
+    const { trade, pricing } = req.body;
+    
+    if (!trade || !pricing || typeof pricing !== 'object') {
+      return res.status(400).json({ success: false, error: 'Missing trade or pricing data' });
+    }
+    
+    let savedCount = 0;
+    
+    for (const [key, value] of Object.entries(pricing)) {
+      if (value !== null && value !== undefined && value !== '') {
+        await pool.query(`
+          INSERT INTO contractor_pricing (contractor_id, trade, pricing_key, value, updated_at)
+          VALUES ($1, $2, $3, $4, NOW())
+          ON CONFLICT (contractor_id, trade, pricing_key)
+          DO UPDATE SET value = $4, updated_at = NOW()
+        `, [contractorId, trade, key, parseFloat(value)]);
+        savedCount++;
+      }
+    }
+    
+    console.log(`💾 Saved ${savedCount} pricing values for contractor ${contractorId} - ${trade}`);
+    res.json({ success: true, saved: savedCount });
+    
+  } catch (error) {
+    console.error('❌ Failed to save contractor pricing:', error);
+    res.status(500).json({ success: false, error: 'Failed to save pricing' });
+  }
+});
+
 
 // ============================================
 // ADMIN PRICING ROUTES - /api/admin/pricing
