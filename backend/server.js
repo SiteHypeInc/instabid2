@@ -171,17 +171,6 @@ const transporter = nodemailer.createTransport(sgTransport({
 }));
 
 
-// ========== ADMIN AUTH MIDDLEWARE ==========
-const requireAdminKey = (req, res, next) => {
-  const adminKey = req.headers['x-admin-key'] || req.query.admin_key;
-  
-  if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) {
-    return res.status(401).json({ error: 'Admin access required' });
-  }
-  
-  next();
-};
-
 // Initialize database tables
 async function initDatabase() {
   try {
