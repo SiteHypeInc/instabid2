@@ -13,17 +13,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-
-app.use(cors({
-  origin: [
-    'https://white-raven-264519.hostingersite.com',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-  ],
-  credentials: true
-}));
-app.use(express.json({ limit: '50mb' }));
+const PORT = process.env.PORT || 3000;
 
 // Middleware - CORS with credentials support
 app.use((req, res, next) => {
@@ -47,7 +37,62 @@ app.use((req, res, next) => {
   }
   
   next();
-}); 
+});
+
+// Admin API Key authentication middleware
+function requireAdminKey(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No API key provided' });
+  }
+  
+  const apiKey = authHeader.split(' ')[1];
+  const validKey = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+  
+  if (apiKey !== validKey) {
+    return res.status(403).json({ error: 'Invalid API key' });
+  }
+  
+  next();
+}
+
+// Session authentication middleware
+async function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No session token provided' });
+  }
+  
+  const sessionToken = authHeader.split(' ')[1];
+  
+  try {
+    const result = await pool.query(
+      `SELECT cs.contractor_id, c.company_name, c.email 
+       FROM contractor_sessions cs
+       JOIN contractors c ON cs.contractor_id = c.id
+       WHERE cs.session_token = $1 AND cs.expires_at > NOW()`,
+      [sessionToken]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid or expired session' });
+    }
+    
+    // Attach contractor info to request
+    req.contractor = result.rows[0];
+    next();
+  } catch (err) {
+    console.error('Auth middleware error:', err);
+    return res.status(500).json({ error: 'Authentication failed' });
+  }
+}
+
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 
 
 
