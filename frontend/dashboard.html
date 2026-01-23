@@ -1506,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Load saved configs
   loadAllConfigs();
-});
+});*/
 </script>*/
 
     <div class="main-content" id="estimate-tracker">
@@ -1575,6 +1575,31 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
+
+  // Tab switching for pricing sub-tabs
+function showTab(tabName) {
+  // Hide all tab panes
+  document.querySelectorAll('.tab-pane').forEach(pane => {
+    pane.classList.remove('active');
+    pane.style.display = 'none';
+  });
+  
+  // Remove active from all tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  const selectedPane = document.getElementById(tabName + '-section');
+  if (selectedPane) {
+    selectedPane.classList.add('active');
+    selectedPane.style.display = 'block';
+  }
+  
+  // Activate clicked button
+  event.target.classList.add('active');
+}
+
 // ESTIMATE TRACKER FUNCTIONALITY
 /*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
 let currentEstimate = null;
