@@ -1877,6 +1877,43 @@ app.get('/api/estimates/:id', async (req, res) => {
   }
 });
 
+// GET material list for an estimate
+app.get('/api/estimates/:id/material-list', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query(
+      'SELECT id, trade, material_list, created_at FROM estimates WHERE id = $1',
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Estimate not found' });
+    }
+    
+    const estimate = result.rows[0];
+    
+    // If no material list stored yet, generate it on the fly
+    if (!estimate.material_list) {
+      return res.status(404).json({ 
+        error: 'Material list not available for this estimate',
+        hint: 'This estimate was created before material list generation was implemented'
+      });
+    }
+    
+    res.json({
+      estimateId: estimate.id,
+      trade: estimate.trade,
+      materialList: estimate.material_list,
+      createdAt: estimate.created_at
+    });
+    
+  } catch (error) {
+    console.error('Error fetching material list:', error);
+    res.status(500).json({ error: 'Failed to fetch material list' });
+  }
+});
+
 // MSA Lookup endpoint for material list generator
 app.get('/api/msa-lookup', async (req, res) => {
   const { zip, state } = req.query;
