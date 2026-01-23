@@ -347,7 +347,7 @@ body {
     <button class="sub-tab" data-sub="regional">🗺️ Regional</button>
   </div>
 
-      <div class="sub-content active" id="roofing">
+      <!--<div class="sub-content active" id="roofing">
         <h2 class="section-title">Roofing Configuration</h2>
         
         <div class="config-grid">
@@ -1152,7 +1152,860 @@ body {
 
         <button class="btn-save" onclick="saveConfig('regional')">💾 Save Regional Config</button>
         <div class="status-message" id="regional-status"></div>
-      </div>
+      </div>-->
+
+      <!-- ============================================ -->
+<!-- ROOFING SECTION (24 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="roofing-section">
+  <h3>🏠 Roofing Configuration</h3>
+  
+  <h4>Pitch Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="pitch_low">Low Pitch (0-3:12)</label>
+      <input type="number" id="pitch_low" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="pitch_med">Medium Pitch (4-6:12)</label>
+      <input type="number" id="pitch_med" step="0.01" placeholder="1.15">
+    </div>
+    <div class="input-group">
+      <label for="pitch_high">High Pitch (7-9:12)</label>
+      <input type="number" id="pitch_high" step="0.01" placeholder="1.35">
+    </div>
+    <div class="input-group">
+      <label for="pitch_steep">Steep Pitch (10+:12)</label>
+      <input type="number" id="pitch_steep" step="0.01" placeholder="1.6">
+    </div>
+  </div>
+
+  <h4>Story Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="story_1">1 Story</label>
+      <input type="number" id="story_1" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="story_2">2 Story</label>
+      <input type="number" id="story_2" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="story_3">3 Story</label>
+      <input type="number" id="story_3" step="0.01" placeholder="1.5">
+    </div>
+  </div>
+
+  <h4>Material Costs (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="mat_asphalt">3-Tab Asphalt</label>
+      <input type="number" id="mat_asphalt" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="mat_arch">Architectural</label>
+      <input type="number" id="mat_arch" step="0.01" placeholder="5.75">
+    </div>
+    <div class="input-group">
+      <label for="mat_metal">Metal</label>
+      <input type="number" id="mat_metal" step="0.01" placeholder="9.50">
+    </div>
+    <div class="input-group">
+      <label for="mat_tile">Tile</label>
+      <input type="number" id="mat_tile" step="0.01" placeholder="12.00">
+    </div>
+    <div class="input-group">
+      <label for="mat_slate">Slate</label>
+      <input type="number" id="mat_slate" step="0.01" placeholder="18.00">
+    </div>
+  </div>
+
+  <h4>Additional Materials</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="underlayment_sqft">Underlayment (per sqft)</label>
+      <input type="number" id="underlayment_sqft" step="0.01" placeholder="0.45">
+    </div>
+    <div class="input-group">
+      <label for="drip_edge_lf">Drip Edge (per LF)</label>
+      <input type="number" id="drip_edge_lf" step="0.01" placeholder="2.75">
+    </div>
+    <div class="input-group">
+      <label for="ice_shield_lf">Ice Shield (per LF)</label>
+      <input type="number" id="ice_shield_lf" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="starter_lf">Starter Strip (per LF)</label>
+      <input type="number" id="starter_lf" step="0.01" placeholder="2.50">
+    </div>
+    <div class="input-group">
+      <label for="nails_box">Nails (per box)</label>
+      <input type="number" id="nails_box" step="0.01" placeholder="45">
+    </div>
+  </div>
+
+  <h4>Fixed Costs</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="tearoff_cost">Tear-off Cost</label>
+      <input type="number" id="tearoff_cost" step="1" placeholder="2200">
+    </div>
+    <div class="input-group">
+      <label for="plywood_cost">Plywood (per sheet)</label>
+      <input type="number" id="plywood_cost" step="0.01" placeholder="32">
+    </div>
+    <div class="input-group">
+      <label for="chimney_cost">Chimney Flashing</label>
+      <input type="number" id="chimney_cost" step="1" placeholder="450">
+    </div>
+    <div class="input-group">
+      <label for="valley_cost">Valley (per LF)</label>
+      <input type="number" id="valley_cost" step="0.01" placeholder="12">
+    </div>
+    <div class="input-group">
+      <label for="skylight_cost">Skylight Flashing</label>
+      <input type="number" id="skylight_cost" step="1" placeholder="400">
+    </div>
+    <div class="input-group">
+      <label for="ridge_cost">Ridge Cap (per LF)</label>
+      <input type="number" id="ridge_cost" step="0.01" placeholder="14">
+    </div>
+    <div class="input-group">
+      <label for="dumpster_fee">Dumpster Fee</label>
+      <input type="number" id="dumpster_fee" step="1" placeholder="650">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('roofing')">💾 Save Roofing Config</button>
+    <span id="roofing-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- HVAC SECTION (14 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="hvac-section">
+  <h3>❄️ HVAC Configuration</h3>
+  
+  <h4>Size Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_size_small">Small (&lt;2 ton)</label>
+      <input type="number" id="hvac_size_small" step="0.01" placeholder="0.85">
+    </div>
+    <div class="input-group">
+      <label for="hvac_size_med">Medium (2-3 ton)</label>
+      <input type="number" id="hvac_size_med" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="hvac_size_large">Large (3-4 ton)</label>
+      <input type="number" id="hvac_size_large" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="hvac_size_xlarge">X-Large (5+ ton)</label>
+      <input type="number" id="hvac_size_xlarge" step="0.01" placeholder="1.5">
+    </div>
+  </div>
+
+  <h4>Equipment Costs</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_furnace">Furnace</label>
+      <input type="number" id="hvac_furnace" step="1" placeholder="4200">
+    </div>
+    <div class="input-group">
+      <label for="hvac_ac">AC Unit</label>
+      <input type="number" id="hvac_ac" step="1" placeholder="5500">
+    </div>
+    <div class="input-group">
+      <label for="hvac_heatpump">Heat Pump</label>
+      <input type="number" id="hvac_heatpump" step="1" placeholder="8000">
+    </div>
+    <div class="input-group">
+      <label for="hvac_minisplit">Mini Split</label>
+      <input type="number" id="hvac_minisplit" step="1" placeholder="3200">
+    </div>
+  </div>
+
+  <h4>Components</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_duct">Ductwork (per LF)</label>
+      <input type="number" id="hvac_duct" step="0.01" placeholder="18">
+    </div>
+    <div class="input-group">
+      <label for="hvac_thermostat">Thermostat</label>
+      <input type="number" id="hvac_thermostat" step="1" placeholder="250">
+    </div>
+    <div class="input-group">
+      <label for="hvac_handler">Air Handler</label>
+      <input type="number" id="hvac_handler" step="1" placeholder="1500">
+    </div>
+  </div>
+
+  <h4>Complexity Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_standard">Standard Install</label>
+      <input type="number" id="hvac_standard" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="hvac_moderate">Moderate Complexity</label>
+      <input type="number" id="hvac_moderate" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="hvac_complex">Complex Install</label>
+      <input type="number" id="hvac_complex" step="0.01" placeholder="1.5">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('hvac')">💾 Save HVAC Config</button>
+    <span id="hvac-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- ELECTRICAL SECTION (14 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="electrical-section">
+  <h3>⚡ Electrical Configuration</h3>
+  
+  <h4>Panel & Service</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_panel_100">100 Amp Panel</label>
+      <input type="number" id="elec_panel_100" step="1" placeholder="2200">
+    </div>
+    <div class="input-group">
+      <label for="elec_panel_200">200 Amp Panel</label>
+      <input type="number" id="elec_panel_200" step="1" placeholder="3500">
+    </div>
+    <div class="input-group">
+      <label for="elec_panel_400">400 Amp Panel</label>
+      <input type="number" id="elec_panel_400" step="1" placeholder="5500">
+    </div>
+    <div class="input-group">
+      <label for="elec_subpanel">Sub Panel</label>
+      <input type="number" id="elec_subpanel" step="1" placeholder="1500">
+    </div>
+  </div>
+
+  <h4>Fixtures & Devices</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_outlet">Outlet Install</label>
+      <input type="number" id="elec_outlet" step="1" placeholder="185">
+    </div>
+    <div class="input-group">
+      <label for="elec_switch">Switch Install</label>
+      <input type="number" id="elec_switch" step="1" placeholder="145">
+    </div>
+    <div class="input-group">
+      <label for="elec_fixture">Light Fixture</label>
+      <input type="number" id="elec_fixture" step="1" placeholder="200">
+    </div>
+    <div class="input-group">
+      <label for="elec_fan">Ceiling Fan</label>
+      <input type="number" id="elec_fan" step="1" placeholder="275">
+    </div>
+    <div class="input-group">
+      <label for="elec_gfci">GFCI Outlet</label>
+      <input type="number" id="elec_gfci" step="1" placeholder="225">
+    </div>
+  </div>
+
+  <h4>Specialty Work</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_ev">EV Charger Install</label>
+      <input type="number" id="elec_ev" step="1" placeholder="1800">
+    </div>
+    <div class="input-group">
+      <label for="elec_generator">Generator Hook-up</label>
+      <input type="number" id="elec_generator" step="1" placeholder="2200">
+    </div>
+    <div class="input-group">
+      <label for="elec_hottub">Hot Tub Wiring</label>
+      <input type="number" id="elec_hottub" step="1" placeholder="1100">
+    </div>
+  </div>
+
+  <h4>Labor Rates (per hour)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_labor_std">Standard Labor</label>
+      <input type="number" id="elec_labor_std" step="1" placeholder="95">
+    </div>
+    <div class="input-group">
+      <label for="elec_labor_complex">Complex Labor</label>
+      <input type="number" id="elec_labor_complex" step="1" placeholder="125">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('electrical')">💾 Save Electrical Config</button>
+    <span id="electrical-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PLUMBING SECTION (15 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="plumbing-section">
+  <h3>🔧 Plumbing Configuration</h3>
+  
+  <h4>Fixture Installation</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="plumb_toilet">Toilet</label>
+      <input type="number" id="plumb_toilet" step="1" placeholder="425">
+    </div>
+    <div class="input-group">
+      <label for="plumb_sink">Sink</label>
+      <input type="number" id="plumb_sink" step="1" placeholder="500">
+    </div>
+    <div class="input-group">
+      <label for="plumb_shower">Shower</label>
+      <input type="number" id="plumb_shower" step="1" placeholder="1500">
+    </div>
+    <div class="input-group">
+      <label for="plumb_tub">Bathtub</label>
+      <input type="number" id="plumb_tub" step="1" placeholder="1800">
+    </div>
+    <div class="input-group">
+      <label for="plumb_dishwasher">Dishwasher</label>
+      <input type="number" id="plumb_dishwasher" step="1" placeholder="400">
+    </div>
+  </div>
+
+  <h4>Water Systems</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="plumb_heater_tank">Tank Water Heater</label>
+      <input type="number" id="plumb_heater_tank" step="1" placeholder="2400">
+    </div>
+    <div class="input-group">
+      <label for="plumb_heater_tankless">Tankless (unit only)</label>
+      <input type="number" id="plumb_heater_tankless" step="1" placeholder="1800">
+    </div>
+    <div class="input-group">
+      <label for="plumb_sump">Sump Pump</label>
+      <input type="number" id="plumb_sump" step="1" placeholder="1100">
+    </div>
+    <div class="input-group">
+      <label for="plumb_softener">Water Softener</label>
+      <input type="number" id="plumb_softener" step="1" placeholder="1800">
+    </div>
+  </div>
+
+  <h4>Pipes & Drains</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="plumb_pipe_repair">Pipe Repair (per LF)</label>
+      <input type="number" id="plumb_pipe_repair" step="1" placeholder="65">
+    </div>
+    <div class="input-group">
+      <label for="plumb_pipe_replace">Pipe Replace (per LF)</label>
+      <input type="number" id="plumb_pipe_replace" step="1" placeholder="95">
+    </div>
+    <div class="input-group">
+      <label for="plumb_drain">Drain Cleaning</label>
+      <input type="number" id="plumb_drain" step="1" placeholder="325">
+    </div>
+    <div class="input-group">
+      <label for="plumb_sewer">Sewer Line (per LF)</label>
+      <input type="number" id="plumb_sewer" step="1" placeholder="165">
+    </div>
+  </div>
+
+  <h4>Labor Rates (per hour)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="plumb_labor_std">Standard Labor</label>
+      <input type="number" id="plumb_labor_std" step="1" placeholder="110">
+    </div>
+    <div class="input-group">
+      <label for="plumb_labor_emerg">Emergency Labor</label>
+      <input type="number" id="plumb_labor_emerg" step="1" placeholder="165">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('plumbing')">💾 Save Plumbing Config</button>
+    <span id="plumbing-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- FLOORING SECTION (19 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="flooring-section">
+  <h3>🪵 Flooring Configuration</h3>
+  
+  <h4>Material Costs (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="floor_carpet">Carpet</label>
+      <input type="number" id="floor_carpet" step="0.01" placeholder="5.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_vinyl">Vinyl</label>
+      <input type="number" id="floor_vinyl" step="0.01" placeholder="3.50">
+    </div>
+    <div class="input-group">
+      <label for="floor_laminate">Laminate</label>
+      <input type="number" id="floor_laminate" step="0.01" placeholder="4.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_lvp">Luxury Vinyl Plank</label>
+      <input type="number" id="floor_lvp" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="floor_hardwood_eng">Engineered Hardwood</label>
+      <input type="number" id="floor_hardwood_eng" step="0.01" placeholder="10.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_hardwood_solid">Solid Hardwood</label>
+      <input type="number" id="floor_hardwood_solid" step="0.01" placeholder="14.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_tile_ceramic">Ceramic Tile</label>
+      <input type="number" id="floor_tile_ceramic" step="0.01" placeholder="7.50">
+    </div>
+    <div class="input-group">
+      <label for="floor_tile_porcelain">Porcelain Tile</label>
+      <input type="number" id="floor_tile_porcelain" step="0.01" placeholder="10.00">
+    </div>
+  </div>
+
+  <h4>Installation Labor (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="floor_labor_carpet">Carpet Install</label>
+      <input type="number" id="floor_labor_carpet" step="0.01" placeholder="2.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_labor_vinyl">Vinyl Install</label>
+      <input type="number" id="floor_labor_vinyl" step="0.01" placeholder="2.50">
+    </div>
+    <div class="input-group">
+      <label for="floor_labor_hardwood">Hardwood Install</label>
+      <input type="number" id="floor_labor_hardwood" step="0.01" placeholder="5.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_labor_tile">Tile Install</label>
+      <input type="number" id="floor_labor_tile" step="0.01" placeholder="6.50">
+    </div>
+  </div>
+
+  <h4>Prep & Extras (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="floor_subfloor">Subfloor Repair</label>
+      <input type="number" id="floor_subfloor" step="0.01" placeholder="4.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_removal">Old Floor Removal</label>
+      <input type="number" id="floor_removal" step="0.01" placeholder="2.00">
+    </div>
+    <div class="input-group">
+      <label for="floor_underlay">Underlayment</label>
+      <input type="number" id="floor_underlay" step="0.01" placeholder="0.50">
+    </div>
+    <div class="input-group">
+      <label for="floor_baseboard">Baseboard (per LF)</label>
+      <input type="number" id="floor_baseboard" step="0.01" placeholder="5.00">
+    </div>
+  </div>
+
+  <h4>Complexity Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="floor_standard">Standard</label>
+      <input type="number" id="floor_standard" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="floor_moderate">Moderate</label>
+      <input type="number" id="floor_moderate" step="0.01" placeholder="1.2">
+    </div>
+    <div class="input-group">
+      <label for="floor_complex">Complex</label>
+      <input type="number" id="floor_complex" step="0.01" placeholder="1.4">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('flooring')">💾 Save Flooring Config</button>
+    <span id="flooring-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PAINTING SECTION (21 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="painting-section">
+  <h3>🎨 Painting Configuration</h3>
+  
+  <h4>Interior (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="paint_int_walls_1">Walls - 1 Coat</label>
+      <input type="number" id="paint_int_walls_1" step="0.01" placeholder="2.00">
+    </div>
+    <div class="input-group">
+      <label for="paint_int_walls_2">Walls - 2 Coats</label>
+      <input type="number" id="paint_int_walls_2" step="0.01" placeholder="3.25">
+    </div>
+    <div class="input-group">
+      <label for="paint_int_ceiling">Ceiling</label>
+      <input type="number" id="paint_int_ceiling" step="0.01" placeholder="2.75">
+    </div>
+    <div class="input-group">
+      <label for="paint_int_trim">Trim (per LF)</label>
+      <input type="number" id="paint_int_trim" step="0.01" placeholder="2.50">
+    </div>
+    <div class="input-group">
+      <label for="paint_int_door">Door (each)</label>
+      <input type="number" id="paint_int_door" step="1" placeholder="95">
+    </div>
+    <div class="input-group">
+      <label for="paint_int_cabinet">Cabinet (per LF)</label>
+      <input type="number" id="paint_int_cabinet" step="1" placeholder="50">
+    </div>
+  </div>
+
+  <h4>Exterior (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="paint_ext_siding_1">Siding - 1 Coat</label>
+      <input type="number" id="paint_ext_siding_1" step="0.01" placeholder="2.75">
+    </div>
+    <div class="input-group">
+      <label for="paint_ext_siding_2">Siding - 2 Coats</label>
+      <input type="number" id="paint_ext_siding_2" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="paint_ext_trim">Exterior Trim (per LF)</label>
+      <input type="number" id="paint_ext_trim" step="0.01" placeholder="3.25">
+    </div>
+    <div class="input-group">
+      <label for="paint_ext_deck">Deck (per sqft)</label>
+      <input type="number" id="paint_ext_deck" step="0.01" placeholder="3.00">
+    </div>
+    <div class="input-group">
+      <label for="paint_ext_fence">Fence (per sqft)</label>
+      <input type="number" id="paint_ext_fence" step="0.01" placeholder="4.00">
+    </div>
+  </div>
+
+  <h4>Prep & Specialty (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="paint_prep">Surface Prep</label>
+      <input type="number" id="paint_prep" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="paint_primer">Primer Coat</label>
+      <input type="number" id="paint_primer" step="0.01" placeholder="1.00">
+    </div>
+    <div class="input-group">
+      <label for="paint_wallpaper">Wallpaper Removal</label>
+      <input type="number" id="paint_wallpaper" step="0.01" placeholder="2.00">
+    </div>
+    <div class="input-group">
+      <label for="paint_texture">Texture Application</label>
+      <input type="number" id="paint_texture" step="0.01" placeholder="4.00">
+    </div>
+  </div>
+
+  <h4>Paint Costs (per gallon)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="paint_gallon_std">Standard Paint</label>
+      <input type="number" id="paint_gallon_std" step="1" placeholder="45">
+    </div>
+    <div class="input-group">
+      <label for="paint_gallon_premium">Premium Paint</label>
+      <input type="number" id="paint_gallon_premium" step="1" placeholder="65">
+    </div>
+    <div class="input-group">
+      <label for="primer_gallon">Primer</label>
+      <input type="number" id="primer_gallon" step="1" placeholder="35">
+    </div>
+  </div>
+
+  <h4>Complexity Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="paint_standard">Standard</label>
+      <input type="number" id="paint_standard" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="paint_moderate">Moderate</label>
+      <input type="number" id="paint_moderate" step="0.01" placeholder="1.2">
+    </div>
+    <div class="input-group">
+      <label for="paint_complex">Complex</label>
+      <input type="number" id="paint_complex" step="0.01" placeholder="1.4">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('painting')">💾 Save Painting Config</button>
+    <span id="painting-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- DRYWALL SECTION (12 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="drywall-section">
+  <h3>🧱 Drywall Configuration</h3>
+  
+  <h4>Materials</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="drywall_sheet_half">1/2" Sheet (4x8)</label>
+      <input type="number" id="drywall_sheet_half" step="0.01" placeholder="16">
+    </div>
+    <div class="input-group">
+      <label for="drywall_sheet_5_8">5/8" Sheet (4x8)</label>
+      <input type="number" id="drywall_sheet_5_8" step="0.01" placeholder="20">
+    </div>
+    <div class="input-group">
+      <label for="joint_compound_bucket">Joint Compound (5 gal)</label>
+      <input type="number" id="joint_compound_bucket" step="0.01" placeholder="20">
+    </div>
+    <div class="input-group">
+      <label for="drywall_tape_roll">Tape (roll)</label>
+      <input type="number" id="drywall_tape_roll" step="0.01" placeholder="8">
+    </div>
+    <div class="input-group">
+      <label for="corner_bead_8ft">Corner Bead (8ft)</label>
+      <input type="number" id="corner_bead_8ft" step="0.01" placeholder="5">
+    </div>
+    <div class="input-group">
+      <label for="screws_box">Screws (box)</label>
+      <input type="number" id="screws_box" step="0.01" placeholder="12">
+    </div>
+  </div>
+
+  <h4>Labor (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="drywall_hang_labor">Hanging</label>
+      <input type="number" id="drywall_hang_labor" step="0.01" placeholder="1.50">
+    </div>
+    <div class="input-group">
+      <label for="drywall_tape_labor">Taping</label>
+      <input type="number" id="drywall_tape_labor" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="drywall_sand_labor">Sanding</label>
+      <input type="number" id="drywall_sand_labor" step="0.01" placeholder="0.75">
+    </div>
+  </div>
+
+  <h4>Finish Level Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="finish_level_3">Level 3 (Standard)</label>
+      <input type="number" id="finish_level_3" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="finish_level_4">Level 4 (Smooth)</label>
+      <input type="number" id="finish_level_4" step="0.01" placeholder="1.2">
+    </div>
+    <div class="input-group">
+      <label for="finish_level_5">Level 5 (Glass Smooth)</label>
+      <input type="number" id="finish_level_5" step="0.01" placeholder="1.5">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('drywall')">💾 Save Drywall Config</button>
+    <span id="drywall-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- SIDING SECTION (15 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="siding-section">
+  <h3>🏗️ Siding Configuration</h3>
+  
+  <h4>Material Costs (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="siding_vinyl">Vinyl</label>
+      <input type="number" id="siding_vinyl" step="0.01" placeholder="5.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_fiber_cement">Fiber Cement</label>
+      <input type="number" id="siding_fiber_cement" step="0.01" placeholder="9.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_wood">Wood</label>
+      <input type="number" id="siding_wood" step="0.01" placeholder="14.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_metal">Metal</label>
+      <input type="number" id="siding_metal" step="0.01" placeholder="8.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_stucco">Stucco</label>
+      <input type="number" id="siding_stucco" step="0.01" placeholder="11.00">
+    </div>
+  </div>
+
+  <h4>Labor (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="siding_labor_vinyl">Vinyl Install</label>
+      <input type="number" id="siding_labor_vinyl" step="0.01" placeholder="3.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_labor_fiber">Fiber Cement Install</label>
+      <input type="number" id="siding_labor_fiber" step="0.01" placeholder="5.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_labor_wood">Wood Install</label>
+      <input type="number" id="siding_labor_wood" step="0.01" placeholder="6.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_labor_metal">Metal Install</label>
+      <input type="number" id="siding_labor_metal" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_labor_stucco">Stucco Install</label>
+      <input type="number" id="siding_labor_stucco" step="0.01" placeholder="7.50">
+    </div>
+  </div>
+
+  <h4>Extras</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="housewrap_roll">Housewrap (roll)</label>
+      <input type="number" id="housewrap_roll" step="1" placeholder="175">
+    </div>
+    <div class="input-group">
+      <label for="j_channel_12ft">J-Channel (12ft)</label>
+      <input type="number" id="j_channel_12ft" step="0.01" placeholder="12">
+    </div>
+    <div class="input-group">
+      <label for="corner_post">Corner Post</label>
+      <input type="number" id="corner_post" step="1" placeholder="35">
+    </div>
+    <div class="input-group">
+      <label for="soffit_sqft">Soffit (per sqft)</label>
+      <input type="number" id="soffit_sqft" step="0.01" placeholder="8">
+    </div>
+    <div class="input-group">
+      <label for="fascia_lf">Fascia (per LF)</label>
+      <input type="number" id="fascia_lf" step="0.01" placeholder="6">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('siding')">💾 Save Siding Config</button>
+    <span id="siding-status" class="status-message"></span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- REGIONAL SECTION (16 fields) -->
+<!-- ============================================ -->
+<div class="config-section" id="regional-section">
+  <h3>📍 Regional Multipliers</h3>
+  <p style="color: #8b949e; margin-bottom: 15px;">These override the database state multipliers for your specific market.</p>
+  
+  <h4>High Cost States</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="region_CA">California</label>
+      <input type="number" id="region_CA" step="0.01" placeholder="1.35">
+    </div>
+    <div class="input-group">
+      <label for="region_NY">New York</label>
+      <input type="number" id="region_NY" step="0.01" placeholder="1.30">
+    </div>
+    <div class="input-group">
+      <label for="region_MA">Massachusetts</label>
+      <input type="number" id="region_MA" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="region_HI">Hawaii</label>
+      <input type="number" id="region_HI" step="0.01" placeholder="1.40">
+    </div>
+    <div class="input-group">
+      <label for="region_WA">Washington</label>
+      <input type="number" id="region_WA" step="0.01" placeholder="1.20">
+    </div>
+  </div>
+
+  <h4>Medium-High Cost States</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="region_OR">Oregon</label>
+      <input type="number" id="region_OR" step="0.01" placeholder="1.15">
+    </div>
+    <div class="input-group">
+      <label for="region_CO">Colorado</label>
+      <input type="number" id="region_CO" step="0.01" placeholder="1.15">
+    </div>
+    <div class="input-group">
+      <label for="region_IL">Illinois</label>
+      <input type="number" id="region_IL" step="0.01" placeholder="1.10">
+    </div>
+    <div class="input-group">
+      <label for="region_VA">Virginia</label>
+      <input type="number" id="region_VA" step="0.01" placeholder="1.10">
+    </div>
+  </div>
+
+  <h4>Medium Cost States</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="region_TX">Texas</label>
+      <input type="number" id="region_TX" step="0.01" placeholder="1.00">
+    </div>
+    <div class="input-group">
+      <label for="region_FL">Florida</label>
+      <input type="number" id="region_FL" step="0.01" placeholder="1.05">
+    </div>
+    <div class="input-group">
+      <label for="region_GA">Georgia</label>
+      <input type="number" id="region_GA" step="0.01" placeholder="1.00">
+    </div>
+    <div class="input-group">
+      <label for="region_OH">Ohio</label>
+      <input type="number" id="region_OH" step="0.01" placeholder="0.95">
+    </div>
+  </div>
+
+  <h4>Lower Cost States</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="region_TN">Tennessee</label>
+      <input type="number" id="region_TN" step="0.01" placeholder="0.90">
+    </div>
+    <div class="input-group">
+      <label for="region_AL">Alabama</label>
+      <input type="number" id="region_AL" step="0.01" placeholder="0.85">
+    </div>
+    <div class="input-group">
+      <label for="region_default">Default (other states)</label>
+      <input type="number" id="region_default" step="0.01" placeholder="1.00">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('regional')">💾 Save Regional Config</button>
+    <span id="regional-status" class="status-message"></span>
+  </div>
+</div>
 
     </div>
 
