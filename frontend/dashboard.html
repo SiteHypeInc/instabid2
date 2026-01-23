@@ -1214,28 +1214,34 @@ body {
 .tab-navigation {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: #161b22;
-  border-radius: 8px;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  padding: 20px;
+  background: linear-gradient(135deg, #161b22 0%, #1a2029 100%);
+  border-radius: 12px;
   border: 1px solid #30363d;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .tab-btn {
-  padding: 10px 16px;
+  padding: 12px 20px;
   background: #21262d;
   border: 1px solid #30363d;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #8b949e;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
   background: #30363d;
   color: #c9d1d9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .tab-btn.active {
@@ -1243,7 +1249,9 @@ body {
   color: #000;
   border-color: #00d4ff;
   font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 212, 255, 0.35);
 }
+
 
 .tab-pane {
   display: none;
@@ -2673,7 +2681,7 @@ async function saveConfig(trade) {
     statusEl.style.color = '#e74c3c';
   }
 
-  setTimeout(() => { statusEl.textContent = ''; statusEl.style.display = 'none';}, 3000);
+  setTimeout(() => {statusEl.style.display = 'none';}, 3000);
   
 }
 
