@@ -1536,7 +1536,7 @@ app.post('/api/estimate', async (req, res) => {
   
   try {
     const {
-      api_key, // 👈 Hidden in embed script, NOT entered by customer
+      api_key,
       customerName,
       customer_name,
       customerEmail,
@@ -1588,15 +1588,14 @@ app.post('/api/estimate', async (req, res) => {
     }
 
     const finalZipCode = zipCode || zip || '';
-    const finalCity = city || 'Unknown';  // ← FIXED
-    const finalState = state || 'Unknown';  // ← FIXED
+    const finalCity = city || 'Unknown';
+    const finalState = state || 'Unknown';
 
    // ✅ ROBUST FALLBACK: ZIP → STATE → NATIONAL
 let regionalMultiplier = 1.0;
 let msa = 'National Average';
 
 try {
-  // Try ZIP lookup first
   const zipResult = await pool.query(
     'SELECT msa_name FROM zip_metro_mapping WHERE zip_code = $1', 
     [finalZipCode]
@@ -1607,8 +1606,6 @@ try {
     console.log(`✅ Found MSA for ZIP ${finalZipCode}: ${msa}`);
   } else {
     console.log(`⚠️ ZIP ${finalZipCode} not found - falling back to state average`);
-    
-    // Fallback to state-level multiplier from cache
     regionalMultiplier = STATE_MULTIPLIERS_CACHE[state] || 1.0;
     msa = `${state} State Average (${regionalMultiplier}x)`;
     console.log(`✅ Using cached state multiplier for ${state}: ${regionalMultiplier}x`);
@@ -1642,13 +1639,17 @@ try {
     );
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
+
+    // ✅ NEW: Generate material list
+    const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id);
+    console.log(`📦 Material list generated: ${materialListResult.materialList.length} items`);
     
     // Calculate tax values for database storage
-const taxRate = 8.25;
-const taxAmount = estimate.totalCost * 0.0825;
-const totalWithTax = estimate.totalCost * 1.0825;
+    const taxRate = 8.25;
+    const taxAmount = estimate.totalCost * 0.0825;
+    const totalWithTax = estimate.totalCost * 1.0825;
 
-const insertQuery = `
+    const insertQuery = `
       INSERT INTO estimates (
         contractor_id,
         customer_name, customer_email, customer_phone,
@@ -1658,38 +1659,41 @@ const insertQuery = `
         material_cost, equipment_cost, total_cost,
         tax_rate, tax_amount, total_with_tax,
         photos,
+        material_list,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
       RETURNING id
     `;
 
     const values = [
-  contractor_id,                                  // $1
-  finalCustomerName,                              // $2
-  finalCustomerEmail,                             // $3
-  finalCustomerPhone,                             // $4
-  finalPropertyAddress,                           // $5
-  finalCity,                                      // $6
-  finalState,                                     // $7
-  finalZipCode,                                   // $8
-  trade,                                          // $9
-  JSON.stringify(tradeSpecificFields),            // $10
-  estimate.laborHours,                            // $11
-  estimate.laborRate,                             // $12
-  estimate.laborCost,                             // $13
-  estimate.materialCost,                          // $14
-  estimate.equipmentCost || 0,                    // $15
-  estimate.totalCost,                             // $16
-  taxRate,                                        // $17
-  taxAmount,                                      // $18
-  totalWithTax,                                   // $19
-  JSON.stringify(tradeSpecificFields.photos || []) // $20
-];
+      contractor_id,                                  // $1
+      finalCustomerName,                              // $2
+      finalCustomerEmail,                             // $3
+      finalCustomerPhone,                             // $4
+      finalPropertyAddress,                           // $5
+      finalCity,                                      // $6
+      finalState,                                     // $7
+      finalZipCode,                                   // $8
+      trade,                                          // $9
+      JSON.stringify(tradeSpecificFields),            // $10
+      estimate.laborHours,                            // $11
+      estimate.laborRate,                             // $12
+      estimate.laborCost,                             // $13
+      estimate.materialCost,                          // $14
+      estimate.equipmentCost || 0,                    // $15
+      estimate.totalCost,                             // $16
+      taxRate,                                        // $17
+      taxAmount,                                      // $18
+      totalWithTax,                                   // $19
+      JSON.stringify(tradeSpecificFields.photos || []), // $20
+      JSON.stringify(materialListResult)              // $21 ← NEW
+    ];
 
     const result = await pool.query(insertQuery, values);
     const estimateId = result.rows[0].id;
 
     console.log(`✅ Estimate #${estimateId} saved to database for contractor ${contractor_id}`);
+
     
       const pdfBuffer = await generateEstimatePDF({
       id: estimateId,
