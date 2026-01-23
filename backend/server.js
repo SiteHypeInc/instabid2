@@ -11,6 +11,7 @@ const sgTransport = require('nodemailer-sendgrid-transport');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const { generateMaterialList } = require('./materialListGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
