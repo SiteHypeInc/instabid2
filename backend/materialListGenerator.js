@@ -7,160 +7,230 @@ function generateMaterialList(trade, criteria, contractorId = null) {
   
   switch(trade.toLowerCase()) {
     
-    // ============================================
-    // 1. ROOFING
-    // ============================================
-    case 'roofing': {
-      const {
-        squareFeet,
-        pitch = 'medium',
-        tearoff = false,
-        layers = 1,
-        chimneys = 0,
-        skylights = 0,
-        valleys = 0,
-        plywoodSheets = 0
-      } = criteria;
+   case 'roofing': {
+  const squareFeet = parseFloat(criteria.squareFeet) || 2000;
+  const layers = parseInt(criteria.layers) || 1;
+  const chimneys = parseInt(criteria.chimneys) || 0;
+  const skylights = parseInt(criteria.skylights) || 0;
+  const valleys = parseInt(criteria.valleys) || 0;
+  const plywoodSqft = parseFloat(criteria.plywoodSqft) || 0;
+  const existingRoofType = criteria.existingRoofType || 'asphalt';
+  const pitch = criteria.pitch || '6/12';
+  const ridgeVentFeet = parseFloat(criteria.ridgeVentFeet) || 0;
 
-      const pitchMultipliers = {
-        'low': 1.0, 'medium': 1.1, 'steep': 1.2, 'very_steep': 1.3,
-        '4/12': 1.05, '6/12': 1.12, '8/12': 1.20, '12/12': 1.40
-      };
-      const pitchMult = pitchMultipliers[pitch] || 1.1;
-      const linearFeet = Math.sqrt(squareFeet) * 4;
-      const adjustedSqft = squareFeet * pitchMult * 1.12; // 12% waste
+  // Pitch multipliers
+  const pitchMultipliers = {
+    '3/12': 1.0, '4/12': 1.0, '5/12': 1.05,
+    '6/12': 1.1, '7/12': 1.15, '8/12': 1.2,
+    '9/12': 1.3, '10/12': 1.4, '11/12': 1.5, '12/12+': 1.6
+  };
+  const pitchMult = pitchMultipliers[pitch] || 1.1;
 
-      const materialList = [];
+  // Waste multiplier
+  const waste = 1.10; // 10% waste
 
-      // Shingles
-      const bundles = Math.ceil(adjustedSqft / 33.3);
-      materialList.push({
-        item: 'Asphalt Shingles',
-        quantity: bundles,
-        unit: 'bundles',
-        unitCost: 44.96,
-        totalCost: bundles * 44.96,
-        category: 'shingles'
-      });
+  // Perimeter estimate (for starter, drip edge, etc.)
+  const perimeter = Math.sqrt(squareFeet) * 4;
+  const ridgeLength = Math.sqrt(squareFeet) / 2;
 
-      // Underlayment
-      const underlaymentRolls = Math.ceil(squareFeet / 400);
-      materialList.push({
-        item: 'Underlayment',
-        quantity: underlaymentRolls,
-        unit: 'rolls',
-        unitCost: 45.00,
-        totalCost: underlaymentRolls * 45.00,
-        category: 'underlayment'
-      });
+  // === SHINGLES ===
+  // 3 bundles per square (100 sqft), with 10% waste
+  const squares = squareFeet / 100;
+  const bundlesNeeded = Math.ceil(squares * 3 * waste);
+  const shingleCostPerBundle = 44.96;
+  
+  materialList.push({
+    item: 'Architectural Shingles',
+    quantity: bundlesNeeded,
+    unit: 'bundles',
+    unitCost: shingleCostPerBundle,
+    totalCost: bundlesNeeded * shingleCostPerBundle,
+    category: 'shingles'
+  });
 
-      // Nails
-      const nailBoxes = Math.ceil((squareFeet * 4) / 7500);
-      materialList.push({
-        item: 'Roofing Nails',
-        quantity: nailBoxes,
-        unit: 'boxes',
-        unitCost: 85.00,
-        totalCost: nailBoxes * 85.00,
-        category: 'fasteners'
-      });
+  // === UNDERLAYMENT ===
+  // 1 roll covers 400 sqft
+  const underlaymentRolls = Math.ceil(squareFeet / 400);
+  materialList.push({
+    item: 'Underlayment',
+    quantity: underlaymentRolls,
+    unit: 'rolls',
+    unitCost: 45.00,
+    totalCost: underlaymentRolls * 45.00,
+    category: 'underlayment'
+  });
 
-      // Starter shingles
-      materialList.push({
-        item: 'Starter Shingles',
-        quantity: Math.ceil(linearFeet),
-        unit: 'linear ft',
-        unitCost: 2.50,
-        totalCost: linearFeet * 2.50,
-        category: 'shingles'
-      });
+  // === ROOFING NAILS ===
+  // 1 box per 1000 sqft
+  const nailBoxes = Math.ceil(squareFeet / 1000);
+  materialList.push({
+    item: 'Roofing Nails',
+    quantity: nailBoxes,
+    unit: 'boxes',
+    unitCost: 85.00,
+    totalCost: nailBoxes * 85.00,
+    category: 'fasteners'
+  });
 
-      // Ridge cap
-      const ridgeFeet = linearFeet * 0.25;
-      materialList.push({
-        item: 'Ridge Cap',
-        quantity: Math.ceil(ridgeFeet),
-        unit: 'linear ft',
-        unitCost: 3.00,
-        totalCost: ridgeFeet * 3.00,
-        category: 'shingles'
-      });
+  // === STARTER SHINGLES ===
+  materialList.push({
+    item: 'Starter Shingles',
+    quantity: Math.ceil(perimeter),
+    unit: 'linear ft',
+    unitCost: 2.50,
+    totalCost: Math.ceil(perimeter) * 2.50,
+    category: 'shingles'
+  });
 
-      // Drip edge
-      materialList.push({
-        item: 'Drip Edge',
-        quantity: Math.ceil(linearFeet),
-        unit: 'linear ft',
-        unitCost: 2.75,
-        totalCost: linearFeet * 2.75,
-        category: 'flashing'
-      });
+  // === RIDGE CAP ===
+  materialList.push({
+    item: 'Ridge Cap',
+    quantity: Math.ceil(ridgeLength),
+    unit: 'linear ft',
+    unitCost: 3.00,
+    totalCost: Math.ceil(ridgeLength) * 3.00,
+    category: 'shingles'
+  });
 
-      // Ice & water shield
-      const iceWaterFeet = (valleys * 20) + (linearFeet * 0.2);
-      materialList.push({
-        item: 'Ice & Water Shield',
-        quantity: Math.ceil(iceWaterFeet),
-        unit: 'linear ft',
-        unitCost: 4.50,
-        totalCost: iceWaterFeet * 4.50,
-        category: 'underlayment'
-      });
+  // === DRIP EDGE ===
+  materialList.push({
+    item: 'Drip Edge',
+    quantity: Math.ceil(perimeter),
+    unit: 'linear ft',
+    unitCost: 2.75,
+    totalCost: Math.ceil(perimeter) * 2.75,
+    category: 'flashing'
+  });
 
-      // Ventilation
-      const vents = Math.ceil(squareFeet / 150);
-      materialList.push({
-        item: 'Roof Vents',
-        quantity: vents,
-        unit: 'vents',
-        unitCost: 25.00,
-        totalCost: vents * 25.00,
-        category: 'ventilation'
-      });
+  // === ICE & WATER SHIELD ===
+  // Typically 2 rows at eaves (6ft width) × perimeter/2
+  const iceWaterLF = Math.ceil(perimeter * 0.4);
+  materialList.push({
+    item: 'Ice & Water Shield',
+    quantity: iceWaterLF,
+    unit: 'linear ft',
+    unitCost: 4.50,
+    totalCost: iceWaterLF * 4.50,
+    category: 'underlayment'
+  });
 
-      // OSB (tearoff only, user-specified)
-      if (tearoff && plywoodSheets > 0) {
-        materialList.push({
-          item: 'OSB Sheathing',
-          quantity: plywoodSheets,
-          unit: 'sheets',
-          unitCost: 28.00,
-          totalCost: plywoodSheets * 28.00,
-          category: 'sheathing'
-        });
-      }
+  // === ROOF VENTS ===
+  // 1 vent per 150 sqft of attic space
+  const ventsNeeded = Math.ceil(squareFeet / 150);
+  materialList.push({
+    item: 'Roof Vents',
+    quantity: ventsNeeded,
+    unit: 'vents',
+    unitCost: 25.00,
+    totalCost: ventsNeeded * 25.00,
+    category: 'ventilation'
+  });
 
-      // Disposal (tearoff only)
-      if (tearoff) {
-        const dumpsterLoads = Math.ceil(squareFeet / 100) * layers;
-        materialList.push({
-          item: 'Disposal/Dumpster',
-          quantity: dumpsterLoads,
-          unit: 'loads',
-          unitCost: 75.00,
-          totalCost: dumpsterLoads * 75.00,
-          category: 'disposal'
-        });
-      }
+  // === RIDGE VENT (if specified) ===
+  if (ridgeVentFeet > 0) {
+    materialList.push({
+      item: 'Ridge Vent',
+      quantity: Math.ceil(ridgeVentFeet),
+      unit: 'linear ft',
+      unitCost: 5.50,
+      totalCost: Math.ceil(ridgeVentFeet) * 5.50,
+      category: 'ventilation'
+    });
+  }
 
-      // Labor hours
-      let laborHours = squareFeet / 100 * 2; // Base: 2 hrs per 100 sqft
-      laborHours *= pitchMult;
-      if (tearoff) laborHours += squareFeet / 100 * 1.5;
+  // === OSB/PLYWOOD SHEATHING ===
+  if (plywoodSqft > 0) {
+    // 1 sheet = 32 sqft, with 10% waste
+    const sheetsNeeded = Math.ceil((plywoodSqft / 32) * waste);
+    materialList.push({
+      item: 'OSB Sheathing',
+      quantity: sheetsNeeded,
+      unit: 'sheets',
+      unitCost: 28.00,
+      totalCost: sheetsNeeded * 28.00,
+      category: 'sheathing'
+    });
+  }
 
-      // Complexity multiplier (applied to total only)
-      const complexityMult = Math.min(1.3, 1 + (chimneys * 0.05) + (skylights * 0.03) + (valleys * 0.04));
+  // === DISPOSAL ===
+  const disposalRates = {
+    'asphalt': 0.40,
+    'wood_shake': 0.40,
+    'metal': 0.50,
+    'tile': 0.75
+  };
+  const disposalRate = disposalRates[existingRoofType] || 0.40;
+  const disposalCost = squareFeet * layers * disposalRate;
+  
+  materialList.push({
+    item: 'Disposal/Dumpster',
+    quantity: layers,
+    unit: 'layer(s)',
+    unitCost: squareFeet * disposalRate,
+    totalCost: disposalCost,
+    category: 'disposal'
+  });
 
-      const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  // === CHIMNEY FLASHING ===
+  if (chimneys > 0) {
+    materialList.push({
+      item: 'Chimney Flashing Kit',
+      quantity: chimneys,
+      unit: 'kits',
+      unitCost: 125.00,
+      totalCost: chimneys * 125.00,
+      category: 'flashing'
+    });
+  }
 
-      return {
-        trade: 'roofing',
-        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-        laborHours: Math.round(laborHours * 100) / 100,
-        complexityMultiplier: complexityMult,
-        materialList
-      };
-    }
+  // === SKYLIGHT FLASHING ===
+  if (skylights > 0) {
+    materialList.push({
+      item: 'Skylight Flashing Kit',
+      quantity: skylights,
+      unit: 'kits',
+      unitCost: 85.00,
+      totalCost: skylights * 85.00,
+      category: 'flashing'
+    });
+  }
+
+  // === VALLEY FLASHING ===
+  if (valleys > 0) {
+    // Assume 10 linear ft per valley
+    const valleyLF = valleys * 10;
+    materialList.push({
+      item: 'Valley Flashing',
+      quantity: valleyLF,
+      unit: 'linear ft',
+      unitCost: 6.00,
+      totalCost: valleyLF * 6.00,
+      category: 'flashing'
+    });
+  }
+
+  // === CALCULATE TOTALS ===
+  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+
+  // === LABOR HOURS ===
+  // Base: 0.04 hrs/sqft
+  let laborHours = squareFeet * 0.04;
+  
+  // Pitch multiplier
+  laborHours *= pitchMult;
+  
+  // Details
+  laborHours += chimneys * 3;
+  laborHours += skylights * 2;
+
+  return {
+    trade: 'roofing',
+    totalMaterialCost: totalMaterialCost,
+    laborHours: Math.round(laborHours * 10) / 10, // Round to 1 decimal
+    materialList: materialList,
+    complexityMultiplier: pitchMult
+  };
+}
 
     // ============================================
     // 2. SIDING
