@@ -1292,47 +1292,46 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   });
 });
 
-// ========== FIELD SPY v4 - CATCHES TRIGGER SOURCE ==========
+// ========== FIELD SPY v5 - CATCHES EVERYTHING ==========
 (function() {
-  console.log('🕵️ FIELD SPY v4 - Watching for sneaky changes...');
+  console.log('🕵️ FIELD SPY v5 - Nuclear mode...');
   
   function watchField(el) {
     const id = el.id || el.name || 'unnamed';
-    let lastValue = el.value;
-    let userIsTyping = false;
     
-    // Track when user focuses
-    el.addEventListener('focus', function() {
-      userIsTyping = true;
-    });
+    // Intercept the value setter itself
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') ||
+                       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value') ||
+                       Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
     
-    el.addEventListener('blur', function() {
-      setTimeout(() => { userIsTyping = false; }, 100);
-    });
-    
-    // Watch for changes
-    el.addEventListener('input', function(e) {
-      if (!userIsTyping && document.activeElement !== el) {
-        console.log(`🤖 SCRIPT CHANGED [${id}]: "${lastValue}" → "${el.value}"`);
-        console.trace('↳ TRIGGER STACK:');
-      } else {
-        console.log(`👤 USER [${id}]: "${el.value}"`);
-      }
-      lastValue = el.value;
-    });
-    
-    // Poll for value changes not caught by events
-    setInterval(function() {
-      if (el.value !== lastValue) {
-        if (!userIsTyping && document.activeElement !== el) {
-          console.log(`🚨 STEALTH CHANGE [${id}]: "${lastValue}" → "${el.value}"`);
-          console.trace('↳ Check this stack:');
+    if (descriptor && descriptor.set) {
+      const originalSet = descriptor.set;
+      
+      Object.defineProperty(el, 'value', {
+        set: function(v) {
+          const oldVal = this.value;
+          if (v !== oldVal) {
+            console.log(`🔥 VALUE SET [${id}]: "${oldVal}" → "${v}"`);
+            console.trace('↳ WHO DID THIS:');
+          }
+          return originalSet.call(this, v);
+        },
+        get: function() {
+          return descriptor.get.call(this);
         }
-        lastValue = el.value;
+      });
+    }
+    
+    // Also watch input events
+    el.addEventListener('input', function(e) {
+      console.log(`⌨️ INPUT EVENT [${id}]: "${el.value}" | isTrusted: ${e.isTrusted}`);
+      if (!e.isTrusted) {
+        console.trace('↳ FAKE EVENT FROM:');
       }
-    }, 200);
+    });
   }
   
+  // Watch existing fields
   document.querySelectorAll('input, select, textarea').forEach(watchField);
   
   // Watch for dynamically added fields
@@ -1347,9 +1346,9 @@ document.getElementById('contractBtn').addEventListener('click', function() {
     });
   }).observe(document.body, { childList: true, subtree: true });
   
-  console.log('🕵️ v4 active - will catch stealth changes with stack traces');
+  console.log('🕵️ v5 active - intercepting value setters');
 })();
-// ========== END FIELD SPY v4 ==========
+// ========== END FIELD SPY v5 ==========
 
 </script>
 </body>
