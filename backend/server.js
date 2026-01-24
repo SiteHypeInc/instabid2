@@ -1642,8 +1642,25 @@ try {
 
     // ✅ NEW: Generate material list
     const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id);
+    
     console.log(`📦 Material list generated: ${materialListResult.materialList.length} items`);
     
+    // ✅ OVERRIDE - Use material list as single source of truth
+    estimate.materialCost = materialListResult.totalMaterialCost;
+    estimate.laborHours = materialListResult.laborHours;
+    estimate.laborCost = materialListResult.laborHours * hourlyRate;
+    estimate.equipmentCost = estimate.equipmentCost || 0;
+
+    // Markup on MATERIALS ONLY (labor already includes overhead)
+    const materialMarkup = estimate.materialCost * 0.20;
+    estimate.totalCost = estimate.materialCost + materialMarkup + estimate.laborCost + estimate.equipmentCost;
+
+    console.log(`✅ OVERRIDE applied:`);
+    console.log(`   Materials: $${estimate.materialCost.toFixed(2)} + 20% markup = $${(estimate.materialCost + materialMarkup).toFixed(2)}`);
+    console.log(`   Labor: ${estimate.laborHours} hrs × $${hourlyRate} = $${estimate.laborCost.toFixed(2)}`);
+    console.log(`   Total (pre-tax): $${estimate.totalCost.toFixed(2)}`);
+
+
     // Calculate tax values for database storage
     const taxRate = 8.25;
     const taxAmount = estimate.totalCost * 0.0825;

@@ -8,6 +8,7 @@ function generateMaterialList(trade, criteria, contractorId = null) {
   switch(trade.toLowerCase()) {
     
    case 'roofing': {
+    let materialList = [];
   const squareFeet = parseFloat(criteria.squareFeet) || 2000;
   const layers = parseInt(criteria.layers) || 1;
   const chimneys = parseInt(criteria.chimneys) || 0;
