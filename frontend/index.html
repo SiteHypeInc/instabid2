@@ -1292,37 +1292,41 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   });
 });
 
-// ========== FIELD SPY v5 - CATCHES EVERYTHING ==========
+
+// ========== FIELD SPY v6 - FIXED FOR SELECTS ==========
 (function() {
-  console.log('🕵️ FIELD SPY v5 - Nuclear mode...');
+  console.log('🕵️ FIELD SPY v6 - Nuclear mode (fixed)...');
   
   function watchField(el) {
     const id = el.id || el.name || 'unnamed';
+    const tagName = el.tagName.toLowerCase();
     
-    // Intercept the value setter itself
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') ||
-                       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value') ||
-                       Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
-    
-    if (descriptor && descriptor.set) {
-      const originalSet = descriptor.set;
+    // Only intercept value setter on inputs (not selects - they break)
+    if (tagName === 'input' || tagName === 'textarea') {
+      const proto = tagName === 'input' ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
       
-      Object.defineProperty(el, 'value', {
-        set: function(v) {
-          const oldVal = this.value;
-          if (v !== oldVal) {
-            console.log(`🔥 VALUE SET [${id}]: "${oldVal}" → "${v}"`);
-            console.trace('↳ WHO DID THIS:');
+      if (descriptor && descriptor.set) {
+        const originalSet = descriptor.set;
+        const originalGet = descriptor.get;
+        
+        Object.defineProperty(el, 'value', {
+          set: function(v) {
+            const oldVal = originalGet.call(this);
+            if (v !== oldVal) {
+              console.log(`🔥 VALUE SET [${id}]: "${oldVal}" → "${v}"`);
+              console.trace('↳ WHO DID THIS:');
+            }
+            return originalSet.call(this, v);
+          },
+          get: function() {
+            return originalGet.call(this);
           }
-          return originalSet.call(this, v);
-        },
-        get: function() {
-          return descriptor.get.call(this);
-        }
-      });
+        });
+      }
     }
     
-    // Also watch input events
+    // Watch input events on everything
     el.addEventListener('input', function(e) {
       console.log(`⌨️ INPUT EVENT [${id}]: "${el.value}" | isTrusted: ${e.isTrusted}`);
       if (!e.isTrusted) {
@@ -1346,9 +1350,9 @@ document.getElementById('contractBtn').addEventListener('click', function() {
     });
   }).observe(document.body, { childList: true, subtree: true });
   
-  console.log('🕵️ v5 active - intercepting value setters');
+  console.log('🕵️ v6 active - watching inputs/textareas, events on all');
 })();
-// ========== END FIELD SPY v5 ==========
+// ========== END FIELD SPY v6 ==========
 
 </script>
 </body>
