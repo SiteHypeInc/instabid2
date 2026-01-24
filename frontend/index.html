@@ -1156,6 +1156,13 @@ function showError(message) {
   errorDiv.style.display = 'block';
 }
 
+// Block scroll changing number inputs
+document.addEventListener('wheel', function(e) {
+  if (e.target.type === 'number') {
+    e.target.blur();
+  }
+}, { passive: true });
+
 // ============================================
 // EMAIL BUTTON HANDLER
 // ============================================
