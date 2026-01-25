@@ -3,12 +3,19 @@
 // Add this to server.js after the estimate calculation logic
 // ============================================
 
-function generateMaterialList(trade, criteria, contractorId = null) {
+function generateMaterialList(trade, criteria, contractorId = null, pricingConfig = {}) {
   
   switch(trade.toLowerCase()) {
     
-   case 'roofing': {
-    let materialList = [];
+   
+    case 'roofing': {
+  let materialList = [];
+  
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.roofing?.[key] ?? defaultValue;
+  };
+  
   const squareFeet = parseFloat(criteria.squareFeet) || 2000;
   const layers = parseInt(criteria.layers) || 1;
   const chimneys = parseInt(criteria.chimneys) || 0;
@@ -38,7 +45,7 @@ function generateMaterialList(trade, criteria, contractorId = null) {
   // 3 bundles per square (100 sqft), with 10% waste
   const squares = squareFeet / 100;
   const bundlesNeeded = Math.ceil(squares * 3 * waste);
-  const shingleCostPerBundle = 44.96;
+  const shingleCostPerBundle = getPrice('mat_arch', 44.96);
   
   materialList.push({
     item: 'Architectural Shingles',
@@ -56,8 +63,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Underlayment',
     quantity: underlaymentRolls,
     unit: 'rolls',
-    unitCost: 45.00,
-    totalCost: underlaymentRolls * 45.00,
+    unitCost: getPrice('underlayment_roll', 45.00),
+    totalCost: underlaymentRolls * getPrice('underlayment_roll', 45.00),
     category: 'underlayment'
   });
 
@@ -68,8 +75,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Roofing Nails',
     quantity: nailBoxes,
     unit: 'boxes',
-    unitCost: 85.00,
-    totalCost: nailBoxes * 85.00,
+    unitCost: getPrice('nails_box', 85.00),
+    totalCost: nailBoxes * getPrice('nails_box', 85.00),
     category: 'fasteners'
   });
 
@@ -78,8 +85,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Starter Shingles',
     quantity: Math.ceil(perimeter),
     unit: 'linear ft',
-    unitCost: 2.50,
-    totalCost: Math.ceil(perimeter) * 2.50,
+    unitCost: getPrice('starter_lf', 2.50),
+    totalCost: Math.ceil(perimeter) * getPrice('starter_lf', 2.50),
     category: 'shingles'
   });
 
@@ -88,8 +95,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Ridge Cap',
     quantity: Math.ceil(ridgeLength),
     unit: 'linear ft',
-    unitCost: 3.00,
-    totalCost: Math.ceil(ridgeLength) * 3.00,
+    unitCost: getPrice('ridge_lf', 3.00),
+    totalCost: Math.ceil(ridgeLength) * getPrice('ridge_lf', 3.00),
     category: 'shingles'
   });
 
@@ -98,8 +105,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Drip Edge',
     quantity: Math.ceil(perimeter),
     unit: 'linear ft',
-    unitCost: 2.75,
-    totalCost: Math.ceil(perimeter) * 2.75,
+    unitCost: getPrice('drip_edge_lf', 2.75),
+    totalCost: Math.ceil(perimeter) * getPrice('drip_edge_lf', 2.75),   
     category: 'flashing'
   });
 
@@ -110,8 +117,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Ice & Water Shield',
     quantity: iceWaterLF,
     unit: 'linear ft',
-    unitCost: 4.50,
-    totalCost: iceWaterLF * 4.50,
+    unitCost: getPrice('ice_shield_lf', 4.50),
+    totalCost: iceWaterLF * getPrice('ice_shield_lf', 4.50),
     category: 'underlayment'
   });
 
@@ -122,8 +129,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
     item: 'Roof Vents',
     quantity: ventsNeeded,
     unit: 'vents',
-    unitCost: 25.00,
-    totalCost: ventsNeeded * 25.00,
+    unitCost: getPrice('vent_unit', 25.00),
+totalCost: ventsNeeded * getPrice('vent_unit', 25.00),
     category: 'ventilation'
   });
 
@@ -133,8 +140,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
       item: 'Ridge Vent',
       quantity: Math.ceil(ridgeVentFeet),
       unit: 'linear ft',
-      unitCost: 5.50,
-      totalCost: Math.ceil(ridgeVentFeet) * 5.50,
+      unitCost: getPrice('ridge_vent_lf', 5.50),
+totalCost: Math.ceil(ridgeVentFeet) * getPrice('ridge_vent_lf', 5.50),
       category: 'ventilation'
     });
   }
@@ -147,8 +154,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
       item: 'OSB Sheathing',
       quantity: sheetsNeeded,
       unit: 'sheets',
-      unitCost: 28.00,
-      totalCost: sheetsNeeded * 28.00,
+      unitCost: getPrice('osb_sheet', 28.00),
+totalCost: sheetsNeeded * getPrice('osb_sheet', 28.00),
       category: 'sheathing'
     });
   }
@@ -178,8 +185,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
       item: 'Chimney Flashing Kit',
       quantity: chimneys,
       unit: 'kits',
-      unitCost: 125.00,
-      totalCost: chimneys * 125.00,
+      unitCost: getPrice('chimney_flash', 125.00),
+totalCost: chimneys * getPrice('chimney_flash', 125.00),
       category: 'flashing'
     });
   }
@@ -190,8 +197,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
       item: 'Skylight Flashing Kit',
       quantity: skylights,
       unit: 'kits',
-      unitCost: 85.00,
-      totalCost: skylights * 85.00,
+     unitCost: getPrice('skylight_flash', 85.00),
+totalCost: skylights * getPrice('skylight_flash', 85.00),
       category: 'flashing'
     });
   }
@@ -204,8 +211,8 @@ function generateMaterialList(trade, criteria, contractorId = null) {
       item: 'Valley Flashing',
       quantity: valleyLF,
       unit: 'linear ft',
-      unitCost: 6.00,
-      totalCost: valleyLF * 6.00,
+      unitCost: getPrice('valley_lf', 6.00),
+totalCost: valleyLF * getPrice('valley_lf', 6.00),
       category: 'flashing'
     });
   }
