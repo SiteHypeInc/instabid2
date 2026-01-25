@@ -1661,10 +1661,7 @@ try {
     console.log(`   Total (pre-tax): $${estimate.totalCost.toFixed(2)}`);
 
 
-    // Calculate tax values for database storage
-    const taxRate = 8.25;
-    const taxAmount = estimate.totalCost * 0.0825;
-    const totalWithTax = estimate.totalCost * 1.0825;
+   
 
     const insertQuery = `
       INSERT INTO estimates (
