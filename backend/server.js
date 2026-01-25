@@ -1640,6 +1640,86 @@ try {
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
 
+    // Save contractor pricing config
+app.post('/api/contractor/pricing', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'No token provided' });
+    }
+
+    const session = await pool.query(
+      'SELECT contractor_id FROM sessions WHERE token = $1',
+      [token]
+    );
+
+    if (session.rows.length === 0) {
+      return res.status(401).json({ success: false, error: 'Invalid session' });
+    }
+
+    const contractorId = session.rows[0].contractor_id;
+    const { trade, config } = req.body;
+
+    // Get existing config
+    const existing = await pool.query(
+      'SELECT pricing_config FROM contractors WHERE id = $1',
+      [contractorId]
+    );
+
+    let pricingConfig = existing.rows[0]?.pricing_config || {};
+    pricingConfig[trade] = config;
+
+    // Save updated config
+    await pool.query(
+      'UPDATE contractors SET pricing_config = $1 WHERE id = $2',
+      [JSON.stringify(pricingConfig), contractorId]
+    );
+
+    console.log(`✅ Pricing config saved for contractor ${contractorId}, trade: ${trade}`);
+
+    res.json({ success: true, message: `${trade} pricing saved` });
+
+  } catch (error) {
+    console.error('❌ Error saving pricing config:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get contractor pricing config
+app.get('/api/contractor/pricing', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'No token provided' });
+    }
+
+    const session = await pool.query(
+      'SELECT contractor_id FROM sessions WHERE token = $1',
+      [token]
+    );
+
+    if (session.rows.length === 0) {
+      return res.status(401).json({ success: false, error: 'Invalid session' });
+    }
+
+    const contractorId = session.rows[0].contractor_id;
+
+    const result = await pool.query(
+      'SELECT pricing_config FROM contractors WHERE id = $1',
+      [contractorId]
+    );
+
+    res.json({ 
+      success: true, 
+      pricing_config: result.rows[0]?.pricing_config || {} 
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching pricing config:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
     // ✅ NEW: Generate material list
     const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id);
     

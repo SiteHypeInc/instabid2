@@ -2755,53 +2755,51 @@ const TRADE_FIELDS = {
   regional: ['region_CA', 'region_NY', 'region_MA', 'region_HI', 'region_WA', 'region_OR', 'region_CO', 'region_IL', 'region_VA', 'region_TX', 'region_FL', 'region_GA', 'region_OH', 'region_TN', 'region_AL', 'region_default']
 };
 
-// Save config for a trade
+
 async function saveConfig(trade) {
   const statusEl = document.getElementById(`${trade}-status`);
-  statusEl.style.display = 'block';
   statusEl.textContent = 'Saving...';
-  statusEl.style.color = '#f39c12';
+  statusEl.style.color = '#ffc107';
 
-  const fields = TRADE_FIELDS[trade];
-  if (!fields) {
-    statusEl.textContent = 'Unknown trade!';
-    statusEl.style.color = '#e74c3c';
-    return;
-  }
+  // Gather all inputs for this trade
+  const section = document.getElementById(`${trade}-section`);
+  const inputs = section.querySelectorAll('input');
+  const config = {};
 
-  const pricing = {};
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.value !== '') {
-      pricing[id] = parseFloat(el.value);
+  inputs.forEach(input => {
+    if (input.value !== '' && input.value !== null) {
+      config[input.id] = parseFloat(input.value) || input.value;
     }
   });
 
   try {
-    const response = await fetch(`${API_BASE}/api/contractor/pricing`, {
+    const token = localStorage.getItem('session_token');
+    const response = await fetch(`${window.RAILWAY_API}/api/contractor/pricing`, {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + localStorage.getItem('session_token'),
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ trade, pricing })
+      body: JSON.stringify({ trade, config })
     });
 
     const data = await response.json();
 
     if (data.success) {
-      statusEl.textContent = `✅ Saved ${data.saved} values!`;
-      statusEl.style.color = '#27ae60';
+      statusEl.textContent = '✅ Saved!';
+      statusEl.style.color = '#28a745';
     } else {
-      statusEl.textContent = '❌ ' + (data.error || 'Save failed');
-      statusEl.style.color = '#e74c3c';
+      throw new Error(data.error);
     }
-  } catch (err) {
-    statusEl.textContent = '❌ Network error';
-    statusEl.style.color = '#e74c3c';
+  } catch (error) {
+    console.error('Save error:', error);
+    statusEl.textContent = '❌ Error saving';
+    statusEl.style.color = '#dc3545';
   }
 
-  setTimeout(() => {statusEl.style.display = 'none';}, 3000);
+  setTimeout(() => {
+    statusEl.textContent = '';
+  }, 3000);
 }
 
 // Load all pricing on page load
@@ -2836,6 +2834,38 @@ function logout() {
   localStorage.clear();
   window.location.href = '/login/';
 }
+
+async function loadPricingConfig() {
+  try {
+    const token = localStorage.getItem('session_token');
+    const response = await fetch(`${window.RAILWAY_API}/api/contractor/pricing`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success && data.pricing_config) {
+      // Populate form fields with saved values
+      Object.keys(data.pricing_config).forEach(trade => {
+        const tradeConfig = data.pricing_config[trade];
+        Object.keys(tradeConfig).forEach(fieldId => {
+          const input = document.getElementById(fieldId);
+          if (input) {
+            input.value = tradeConfig[fieldId];
+          }
+        });
+      });
+      console.log('✅ Pricing config loaded');
+    }
+  } catch (error) {
+    console.error('Error loading pricing config:', error);
+  }
+}
+
+// Call on page load
+document.addEventListener('DOMContentLoaded', loadPricingConfig);
 </script>
 
 </body>
