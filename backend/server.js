@@ -1563,7 +1563,7 @@ app.post('/api/estimate', async (req, res) => {
     }
 
    const contractorResult = await pool.query(
-  'SELECT id, company_name, email, subscription_status, estimate_display FROM contractors WHERE api_key = $1',
+  'SELECT id, company_name, email, subscription_status, estimate_display, tax_rate FROM contractors WHERE api_key = $1',
   [api_key]
 );
 
