@@ -3127,7 +3127,8 @@ app.post('/api/login', async (req, res) => {
       session_token: session_token,
       contractor_id: contractor.id,
       email: contractor.email,
-      company_name: contractor.company_name
+      company_name: contractor.company_name,
+      api_key: contractor.api_key
     });
     
   } catch (error) {
