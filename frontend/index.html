@@ -403,7 +403,7 @@ var TRADE_FORM_SCHEMA = {
     { name: 'zip', label: 'ZIP Code', type: 'text', required: true, placeholder: '75001' },
     { name: 'squareFeet', label: 'Square Feet', type: 'number', required: true, placeholder: 'e.g. 2000', min: 0 },
     { name: 'pitch', label: 'Roof Pitch', type: 'select', options: ['','3/12', '4/12', '5/12', '6/12', '7/12', '8/12', '9/12', '10/12', '11/12', '12/12+'], required: true },
-    { name: 'material', label: 'Roofing Material', type: 'select', options: ['','Asphalt Shingles ($2.50/sqft)', 'Architectural Shingles ($3.50/sqft)', 'Metal ($5.00/sqft)', 'Tile ($7.00/sqft)', 'Wood Shake ($6.00/sqft)'], required: true },
+    { name: 'material', label: 'Roofing Material', type: 'select', options: ['','Asphalt Shingles', 'Architectural Shingles', 'Metal', 'Tile', 'Wood Shake'], required: true },
     { name: 'stories', label: 'Number of Stories', type: 'number', required: true, placeholder: '1', min: 1, max: 4 },
     { name: 'layers', label: 'Existing Layers to Remove', type: 'number', required: false, placeholder: '0', min: 0, max: 5 },
     { name: 'chimneys', label: 'Number of Chimneys', type: 'number', required: false, placeholder: '0', min: 0, max: 10 },
