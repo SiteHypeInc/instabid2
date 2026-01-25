@@ -1841,7 +1841,8 @@ async function viewEstimateDetails(estimateId) {
     const response = await authFetch(`${window.RAILWAY_API}/api/estimates/${estimateId}`);
     const estimate = await response.json();
     currentEstimate = estimate;
-    
+    console.log('📦 Estimate from API:', estimate);
+console.log('📦 material_list:', estimate.material_list);
     // ✅ DEBUG: CHECK PHOTOS
     console.log('📸 Full estimate object:', estimate);
     console.log('📸 estimate.photos:', estimate.photos);

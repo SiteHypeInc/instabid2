@@ -1875,12 +1875,14 @@ app.get('/api/estimates/:id', async (req, res) => {
         trade,
         material_cost as "materialsCost",
         labor_cost as "laborCost",
+        labor_hours as "laborHours",
         total_cost as "totalCost",
         tax_rate as "taxRate",
         tax_amount as "taxAmount",
         total_with_tax as "totalWithTax",
         trade_details as "projectDetails",
         photos,
+        material_list,
         created_at as "createdAt"
       FROM estimates 
       WHERE id = $1
