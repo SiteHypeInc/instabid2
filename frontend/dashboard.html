@@ -324,6 +324,43 @@ body {
     <p>Manage pricing, regional adjustments, company profile, and contracts</p>
   </div>
 
+  <div class="container">
+  <div class="header">
+    <h1>⚙️ InstaBid Contractor Dashboard</h1>
+    <p>Manage pricing, regional adjustments, company profile, and contracts</p>
+    <button onclick="logout()" style="
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    ">🚪 Logout</button>
+  </div>
+
+And make sure the header has position: relative; in its CSS so the absolute positioning works. Or just use fixed:
+
+
+<button onclick="logout()" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 1000;
+">🚪 Logout</button>
+
   <div class="main-tabs">
     <button class="main-tab active" data-main="price-adjustments">💰 Price Adjustments</button>
     <button class="main-tab" data-main="estimate-tracker">📊 Estimate Tracker</button>
@@ -2816,6 +2853,11 @@ async function loadContractorPricing() {
   } catch (err) {
     console.error('Failed to load pricing:', err);
   }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = '/login-html/';
 }
 </script>
 
