@@ -1649,7 +1649,7 @@ try {
     estimate.materialCost = materialListResult.totalMaterialCost;
     estimate.laborHours = materialListResult.laborHours;
     estimate.laborCost = materialListResult.laborHours * hourlyRate;
-    estimate.equipmentCost = estimate.equipmentCost || 0;
+    estimate.equipmentCost = 0;
 
     // Markup on MATERIALS ONLY (labor already includes overhead)
     const materialMarkup = estimate.materialCost * 0.20;
@@ -1664,6 +1664,7 @@ try {
     const taxAmount = estimate.totalCost * (taxRate / 100);
     const totalWithTax = estimate.totalCost * (1 + taxRate / 100);
 
+    
    
 
     const insertQuery = `
