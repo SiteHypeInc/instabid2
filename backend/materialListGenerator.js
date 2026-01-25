@@ -42,19 +42,55 @@ function generateMaterialList(trade, criteria, contractorId = null, pricingConfi
   const ridgeLength = Math.sqrt(squareFeet) / 2;
 
   // === SHINGLES ===
+// Determine material type from criteria
+const materialType = (criteria.material || '').toLowerCase();
+let shingleCostPerBundle = getPrice('mat_arch', 44.96); // default to architectural
+let shingleCalcMethod = 'bundle'; // bundle or sqft
+
+if (materialType.includes('3-tab') || materialType.includes('asphalt')) {
+  shingleCostPerBundle = getPrice('mat_asphalt', 40.00);
+  shingleCalcMethod = 'bundle';
+} else if (materialType.includes('architectural')) {
+  shingleCostPerBundle = getPrice('mat_arch', 44.96);
+  shingleCalcMethod = 'bundle';
+} else if (materialType.includes('metal')) {
+  shingleCostPerBundle = getPrice('mat_metal', 9.50);
+  shingleCalcMethod = 'sqft';
+} else if (materialType.includes('tile')) {
+  shingleCostPerBundle = getPrice('mat_tile', 12.00);
+  shingleCalcMethod = 'sqft';
+} else if (materialType.includes('wood') || materialType.includes('shake')) {
+  shingleCostPerBundle = getPrice('mat_wood_shake', 14.00);
+  shingleCalcMethod = 'sqft';
+}
+
+// Calculate shingles cost
+let shinglesCost, shinglesQty, shinglesUnit;
+
+if (shingleCalcMethod === 'bundle') {
   // 3 bundles per square (100 sqft), with 10% waste
   const squares = squareFeet / 100;
-  const bundlesNeeded = Math.ceil(squares * 3 * waste);
-  const shingleCostPerBundle = getPrice('mat_arch', 44.96);
-  
-  materialList.push({
-    item: 'Architectural Shingles',
-    quantity: bundlesNeeded,
-    unit: 'bundles',
-    unitCost: shingleCostPerBundle,
-    totalCost: bundlesNeeded * shingleCostPerBundle,
-    category: 'shingles'
-  });
+  shinglesQty = Math.ceil(squares * 3 * waste);
+  shinglesUnit = 'bundles';
+  shinglesCost = shinglesQty * shingleCostPerBundle;
+} else {
+  // Per sqft pricing (metal, tile, wood shake)
+  shinglesQty = Math.ceil(squareFeet * waste);
+  shinglesUnit = 'sqft';
+  shinglesCost = shinglesQty * shingleCostPerBundle;
+}
+
+materialList.push({
+  item: materialType.includes('metal') ? 'Metal Roofing' : 
+        materialType.includes('tile') ? 'Tile Roofing' :
+        materialType.includes('wood') || materialType.includes('shake') ? 'Wood Shake' :
+        'Architectural Shingles',
+  quantity: shinglesQty,
+  unit: shinglesUnit,
+  unitCost: shingleCostPerBundle,
+  totalCost: shinglesCost,
+  category: 'shingles'
+});
 
   // === UNDERLAYMENT ===
   // 1 roll covers 400 sqft
@@ -160,24 +196,24 @@ totalCost: sheetsNeeded * getPrice('osb_sheet', 28.00),
     });
   }
 
-  // === DISPOSAL ===
-  const disposalRates = {
-    'asphalt': 0.40,
-    'wood_shake': 0.40,
-    'metal': 0.50,
-    'tile': 0.75
-  };
-  const disposalRate = disposalRates[existingRoofType] || 0.40;
-  const disposalCost = squareFeet * layers * disposalRate;
-  
-  materialList.push({
-    item: 'Disposal/Dumpster',
-    quantity: layers,
-    unit: 'layer(s)',
-    unitCost: squareFeet * disposalRate,
-    totalCost: disposalCost,
-    category: 'disposal'
-  });
+ // === DISPOSAL ===
+const disposalRates = {
+  'asphalt': getPrice('disposal_asphalt_sqft', 0.40),
+  'wood_shake': getPrice('disposal_wood_sqft', 0.40),
+  'metal': getPrice('disposal_metal_sqft', 0.50),
+  'tile': getPrice('disposal_tile_sqft', 0.75)
+};
+const disposalRate = disposalRates[existingRoofType] || getPrice('disposal_asphalt_sqft', 0.40);
+const disposalCost = squareFeet * layers * disposalRate;
+
+materialList.push({
+  item: 'Disposal/Dumpster',
+  quantity: layers,
+  unit: 'layer(s)',
+  unitCost: squareFeet * disposalRate,
+  totalCost: disposalCost,
+  category: 'disposal'
+});
 
   // === CHIMNEY FLASHING ===
   if (chimneys > 0) {
