@@ -318,11 +318,6 @@ body {
   });
 </script>
 
-<div class="container">
-  <div class="header">
-    <h1>⚙️ InstaBid Contractor Dashboard</h1>
-    <p>Manage pricing, regional adjustments, company profile, and contracts</p>
-  </div>
 
   <div class="container">
   <div class="header">
@@ -342,24 +337,6 @@ body {
       cursor: pointer;
     ">🚪 Logout</button>
   </div>
-
-And make sure the header has position: relative; in its CSS so the absolute positioning works. Or just use fixed:
-
-
-<button onclick="logout()" style="
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 1000;
-">🚪 Logout</button>
 
   <div class="main-tabs">
     <button class="main-tab active" data-main="price-adjustments">💰 Price Adjustments</button>
@@ -1879,7 +1856,7 @@ async function viewEstimateDetails(estimateId) {
     const estimate = await response.json();
     currentEstimate = estimate;
     console.log('📦 Estimate from API:', estimate);
-console.log('📦 material_list:', estimate.material_list);
+    console.log('📦 material_list:', estimate.material_list);
     // ✅ DEBUG: CHECK PHOTOS
     console.log('📸 Full estimate object:', estimate);
     console.log('📸 estimate.photos:', estimate.photos);
@@ -2694,7 +2671,7 @@ function copyApiKey() {
   document.execCommand('copy');
   alert('✅ API Key copied to clipboard!');
 }
-</script>""
+</script>
 
 
 <!-- InstaBid Material Calculator Scripts -->

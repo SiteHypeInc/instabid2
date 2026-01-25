@@ -1141,7 +1141,7 @@ function displayResults(result) {
     '<div class="cost-breakdown-section">' +
     itemsHTML + 
     '<div class="cost-item"><span>Subtotal:</span><span>$' + result.subtotal.toFixed(2) + '</span></div>' +
-    '<div class="cost-item"><span>Tax (8.25%):</span><span>$' + result.tax.toFixed(2) + '</span></div>' +
+    '<div class="cost-item"><span>Tax (' + (result.taxRate || 8.25) + '%):</span><span>$' + result.tax.toFixed(2) + '</span></div>' +
     '<div class="cost-item"><span>Timeline: ' + result.timeline + '</span></div>' +
     '<div class="cost-item total-line"><span>Total Cost:</span><span>$' + result.total.toFixed(2) + '</span></div>' +
     '</div>' +
