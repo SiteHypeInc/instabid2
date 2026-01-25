@@ -3018,7 +3018,7 @@ app.post('/api/google/disconnect', requireAuth, async (req, res) => {
 // CONTRACTOR REGISTRATION & AUTH (PUBLIC)
 // ============================================
 
-// Register new contractor (PUBLIC - after Stripe payment)
+/// Register new contractor (PUBLIC - after Stripe payment)
 app.post('/api/register', async (req, res) => {
   const { email, password, company_name, phone, stripe_session_id } = req.body;
   
@@ -3070,8 +3070,7 @@ app.post('/api/register', async (req, res) => {
       company_name: contractor.company_name,
       api_key: contractor.api_key
     });
-      'SELECT id, email, password_hash, company_name, subscription_status, api_key FROM contractors WHERE email = $1',
-      [email]
+    
   } catch (error) {
     console.error('❌ Registration error:', error);
     res.status(500).json({ 
@@ -3088,7 +3087,8 @@ app.post('/api/login', async (req, res) => {
   try {
     // Find contractor by email
     const result = await pool.query(
-     
+      'SELECT id, email, password_hash, company_name, subscription_status, api_key FROM contractors WHERE email = $1',
+      [email]
     );
     
     if (result.rows.length === 0) {
