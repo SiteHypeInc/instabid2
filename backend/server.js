@@ -1721,9 +1721,30 @@ app.get('/api/contractor/pricing', async (req, res) => {
 });
 
     // ✅ NEW: Generate material list
-   const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id, contractor.pricing_config || {});
+
+// Load contractor's custom pricing from contractor_pricing table
+let pricingConfig = {};
+try {
+  const pricingResult = await pool.query(
+    'SELECT trade, pricing_key, value FROM contractor_pricing WHERE contractor_id = $1',
+    [contractor_id]
+  );
+  
+  pricingResult.rows.forEach(row => {
+    if (!pricingConfig[row.trade]) {
+      pricingConfig[row.trade] = {};
+    }
+    pricingConfig[row.trade][row.pricing_key] = parseFloat(row.value);
+  });
+  
+  console.log(`💰 Loaded ${pricingResult.rows.length} custom prices for contractor ${contractor_id}`);
+} catch (err) {
+  console.error('⚠️ Error loading contractor pricing:', err);
+}
+
+const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id, pricingConfig);
     
-    console.log(`📦 Material list generated: ${materialListResult.materialList.length} items`);
+console.log(`📦 Material list generated: ${materialListResult.materialList.length} items`);
     
     // ✅ OVERRIDE - Use material list as single source of truth
     estimate.materialCost = materialListResult.totalMaterialCost;
