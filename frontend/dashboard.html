@@ -2761,16 +2761,36 @@ async function saveConfig(trade) {
   statusEl.textContent = 'Saving...';
   statusEl.style.color = '#ffc107';
 
-  // Gather all inputs for this trade
   const section = document.getElementById(`${trade}-section`);
+  
+  if (!section) {
+    console.error(`❌ Section not found: ${trade}-section`);
+    statusEl.textContent = '❌ Section not found';
+    statusEl.style.color = '#dc3545';
+    return;
+  }
+  
   const inputs = section.querySelectorAll('input');
   const config = {};
 
   inputs.forEach(input => {
-    if (input.value !== '' && input.value !== null) {
-      config[input.id] = parseFloat(input.value) || input.value;
+    // Use value if entered, otherwise skip (don't save empty)
+    if (input.value !== '' && input.value !== undefined) {
+      config[input.id] = parseFloat(input.value);
     }
   });
+
+  console.log('📦 Trade:', trade);
+  console.log('📦 Config:', config);
+  console.log('📦 Input count:', inputs.length);
+
+  // Allow saving even if some fields empty - just save what's filled
+  if (!trade) {
+    console.error('❌ Missing trade');
+    statusEl.textContent = '❌ Error';
+    statusEl.style.color = '#dc3545';
+    return;
+  }
 
   try {
     const token = localStorage.getItem('session_token');
@@ -2780,20 +2800,21 @@ async function saveConfig(trade) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ trade, config })
+      body: JSON.stringify({ trade, pricing: config })
     });
 
     const data = await response.json();
+    console.log('📦 Response:', data);
 
     if (data.success) {
       statusEl.textContent = '✅ Saved!';
       statusEl.style.color = '#28a745';
     } else {
-      throw new Error(data.error);
+      throw new Error(data.error || 'Save failed');
     }
   } catch (error) {
     console.error('Save error:', error);
-    statusEl.textContent = '❌ Error saving';
+    statusEl.textContent = '❌ ' + error.message;
     statusEl.style.color = '#dc3545';
   }
 
