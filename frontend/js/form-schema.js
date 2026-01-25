@@ -83,17 +83,19 @@ const TRADE_FORM_SCHEMA = {
       ]
     },
     {
-      "name": "material",
-      "label": "Material Cost ($/sqft)",
-      "type": "select",
-      "required": true,
-      "options": [
-        { "value": "2.50", "label": "Asphalt Shingles ($2.50/sqft)" },
-        { "value": "4.50", "label": "Architectural Shingles ($4.50/sqft)" },
-        { "value": "8.00", "label": "Metal Roofing ($8.00/sqft)" },
-        { "value": "12.00", "label": "Tile/Slate ($12.00/sqft)" }
-      ]
-    },
+  "name": "material",
+  "label": "Roofing Material",
+  "type": "select",
+  "required": true,
+  "options": [
+    { "value": "", "label": "Select..." },
+    { "value": "asphalt", "label": "Asphalt Shingles" },
+    { "value": "architectural", "label": "Architectural Shingles" },
+    { "value": "metal", "label": "Metal" },
+    { "value": "tile", "label": "Tile" },
+    { "value": "wood_shake", "label": "Wood Shake" }
+  ]
+},
     {
       "name": "stories",
       "label": "Number of Stories",
@@ -134,7 +136,7 @@ const TRADE_FORM_SCHEMA = {
       "placeholder": "0"
     }
   ]
-}
+},
 
   
   "hvac": {
