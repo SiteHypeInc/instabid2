@@ -1793,25 +1793,26 @@ try {
       lineItems.push({ description: 'Equipment', amount: estimate.equipmentCost || 0 });
     }
 
-    res.json({
-      success: true,
-      estimateId,
-      lineItems,
-      displaySettings, // Pass to frontend for PDF generation
-      subtotal: estimate.totalCost,
-      tax: estimate.totalCost * 0.0825,
-      total: estimate.totalCost * 1.0825,
-      msa: msa,
-      timeline: Math.ceil(estimate.laborHours / 8) + ' days',
-      estimate: {
-        totalCost: estimate.totalCost,
-        laborCost: estimate.laborCost,
-        materialCost: estimate.materialCost,
-        equipmentCost: estimate.equipmentCost || 0,
-        laborHours: estimate.laborHours,
-        laborRate: estimate.laborRate
-      }
-    });
+   res.json({
+  success: true,
+  estimateId,
+  lineItems,
+  displaySettings,
+  subtotal: estimate.totalCost,
+  taxRate: taxRate,
+  tax: taxAmount,
+  total: totalWithTax,
+  msa: msa,
+  timeline: Math.ceil(estimate.laborHours / 8) + ' days',
+  estimate: {
+    totalCost: estimate.totalCost,
+    laborCost: estimate.laborCost,
+    materialCost: estimate.materialCost,
+    equipmentCost: estimate.equipmentCost || 0,
+    laborHours: estimate.laborHours,
+    laborRate: estimate.laborRate
+  }
+});
 
 
   } catch (error) {
