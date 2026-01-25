@@ -1660,6 +1660,9 @@ try {
     console.log(`   Labor: ${estimate.laborHours} hrs × $${hourlyRate} = $${estimate.laborCost.toFixed(2)}`);
     console.log(`   Total (pre-tax): $${estimate.totalCost.toFixed(2)}`);
 
+    const taxRate = parseFloat(contractor.tax_rate) || 8.25;
+    const taxAmount = estimate.totalCost * (taxRate / 100);
+    const totalWithTax = estimate.totalCost * (1 + taxRate / 100);
 
    
 
