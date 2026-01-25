@@ -1656,6 +1656,108 @@ function renderTradeDetails(trade, details) {
   return html || '<p style="color: #999;">No additional specifications</p>';
 }
 
+// ✅ NEW: Display material list from database (no recalculation)
+async function generateMaterialList(estimateId) {
+  const btn = document.getElementById('generateMaterialListBtn');
+  btn.innerHTML = '⏳ Loading...';
+  btn.disabled = true;
+  
+  try {
+    // Fetch the estimate which already has material_list saved
+    const response = await authFetch(`${window.RAILWAY_API}/api/estimates/${estimateId}`);
+    const estimate = await response.json();
+    
+    // Check if material list exists
+    if (!estimate.material_list || !estimate.material_list.materialList) {
+      btn.innerHTML = '❌ No material list available';
+      setTimeout(() => {
+        btn.innerHTML = '📋 Generate Material List';
+        btn.disabled = false;
+      }, 2000);
+      return;
+    }
+    
+    const materialList = estimate.material_list.materialList;
+    const totalCost = estimate.material_list.totalMaterialCost;
+    const laborHours = estimate.material_list.laborHours;
+    
+    // Get regional multiplier from state
+    const stateMultipliers = {
+      'WA': 1.25, 'CA': 1.35, 'NY': 1.30, 'TX': 1.05, 'FL': 1.10
+      // Add more as needed, or fetch from backend
+    };
+    const multiplier = stateMultipliers[estimate.state] || 1.0;
+    
+    // Build the material list HTML
+    const materialListHTML = `
+      <div id="materialListResults" style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-top: 20px;">
+        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #00d4ff;">📦 Material List</h3>
+        <p style="font-size: 12px; color: #8b949e; margin-bottom: 15px;">
+          Region: ${estimate.state} State Average (${(multiplier * 100).toFixed(0)}% of national avg)
+        </p>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+          <thead>
+            <tr style="border-bottom: 2px solid #30363d;">
+              <th style="text-align: left; padding: 10px; color: #8b949e;">Item</th>
+              <th style="text-align: right; padding: 10px; color: #8b949e;">Qty</th>
+              <th style="text-align: left; padding: 10px; color: #8b949e;">Unit</th>
+              <th style="text-align: right; padding: 10px; color: #8b949e;">Unit Cost</th>
+              <th style="text-align: right; padding: 10px; color: #8b949e;">Total</th>
+              <th style="text-align: left; padding: 10px; color: #8b949e;">Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${materialList.map(item => `
+              <tr style="border-bottom: 1px solid #21262d;">
+                <td style="padding: 10px; color: #e6edf3;">${item.item}</td>
+                <td style="padding: 10px; color: #e6edf3; text-align: right;">${item.quantity}</td>
+                <td style="padding: 10px; color: #8b949e;">${item.unit}</td>
+                <td style="padding: 10px; color: #e6edf3; text-align: right;">$${item.unitCost.toFixed(2)}</td>
+                <td style="padding: 10px; color: #e6edf3; text-align: right;">$${item.totalCost.toFixed(2)}</td>
+                <td style="padding: 10px; color: #8b949e;">${item.category}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #30363d; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+          <div>
+            <div style="font-size: 12px; color: #8b949e;">Total Items</div>
+            <div style="font-size: 20px; font-weight: 600; color: #e6edf3;">${materialList.length}</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #8b949e;">Labor Hours</div>
+            <div style="font-size: 20px; font-weight: 600; color: #e6edf3;">${laborHours}</div>
+          </div>
+          <div>
+            <div style="font-size: 12px; color: #8b949e;">Material Cost</div>
+            <div style="font-size: 20px; font-weight: 600; color: #00d4ff;">$${totalCost.toFixed(2)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Remove old results if any
+    const oldResults = document.getElementById('materialListResults');
+    if (oldResults) oldResults.remove();
+    
+    // Insert after the button
+    btn.insertAdjacentHTML('afterend', materialListHTML);
+    btn.innerHTML = '✅ Material List Loaded';
+    btn.disabled = false;
+    
+  } catch (error) {
+    console.error('Error loading material list:', error);
+    btn.innerHTML = '❌ Error loading material list';
+    setTimeout(() => {
+      btn.innerHTML = '📋 Generate Material List';
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+
  // Google Maps instances
 let aerialMap = null;
 let streetViewPanorama = null;
@@ -2557,7 +2659,7 @@ function copyApiKey() {
 </script>""
 
 
-<!-- InstaBid Material Calculator Scripts -->
+<!-- InstaBid Material Calculator Scripts 
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/roofingCalculatorEnhanced.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/paintingCalculator.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/hvacCalculator.js"></script>
@@ -2569,7 +2671,7 @@ function copyApiKey() {
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialMatcher.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/SiteHypeInc/instabid2@main/js/calculators/materialListGenerator.js?v=2"></script>
 
-
+-->
 
 <script>
 // MAIN TAB SWITCHING
