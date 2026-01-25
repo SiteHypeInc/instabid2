@@ -367,132 +367,160 @@ body {
 <div class="tab-content">
 
   <!-- ============================================ -->
-  <!-- ROOFING SECTION (24 fields) -->
-  <!-- ============================================ -->
-  <div class="config-section tab-pane active" id="roofing-section">
-    <h3>🏠 Roofing Configuration</h3>
-    
-    <h4>Pitch Multipliers</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="pitch_low">Low Pitch (0-3:12)</label>
-        <input type="number" id="pitch_low" step="0.01" placeholder="1.0">
-      </div>
-      <div class="input-group">
-        <label for="pitch_med">Medium Pitch (4-6:12)</label>
-        <input type="number" id="pitch_med" step="0.01" placeholder="1.15">
-      </div>
-      <div class="input-group">
-        <label for="pitch_high">High Pitch (7-9:12)</label>
-        <input type="number" id="pitch_high" step="0.01" placeholder="1.35">
-      </div>
-      <div class="input-group">
-        <label for="pitch_steep">Steep Pitch (10+:12)</label>
-        <input type="number" id="pitch_steep" step="0.01" placeholder="1.6">
-      </div>
+<!-- ROOFING SECTION - Synced with materialListGenerator.js -->
+<!-- ============================================ -->
+<div class="config-section tab-pane active" id="roofing-section">
+  <h3>🏠 Roofing Configuration</h3>
+  
+  <h4>Pitch Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="pitch_3_12">3/12 Pitch</label>
+      <input type="number" id="pitch_3_12" step="0.01" placeholder="1.0">
     </div>
-
-    <h4>Story Multipliers</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="story_1">1 Story</label>
-        <input type="number" id="story_1" step="0.01" placeholder="1.0">
-      </div>
-      <div class="input-group">
-        <label for="story_2">2 Story</label>
-        <input type="number" id="story_2" step="0.01" placeholder="1.25">
-      </div>
-      <div class="input-group">
-        <label for="story_3">3 Story</label>
-        <input type="number" id="story_3" step="0.01" placeholder="1.5">
-      </div>
+    <div class="input-group">
+      <label for="pitch_4_12">4/12 Pitch</label>
+      <input type="number" id="pitch_4_12" step="0.01" placeholder="1.0">
     </div>
-
-    <h4>Material Costs (per sqft)</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="mat_asphalt">3-Tab Asphalt</label>
-        <input type="number" id="mat_asphalt" step="0.01" placeholder="4.50">
-      </div>
-      <div class="input-group">
-        <label for="mat_arch">Architectural</label>
-        <input type="number" id="mat_arch" step="0.01" placeholder="5.75">
-      </div>
-      <div class="input-group">
-        <label for="mat_metal">Metal</label>
-        <input type="number" id="mat_metal" step="0.01" placeholder="9.50">
-      </div>
-      <div class="input-group">
-        <label for="mat_tile">Tile</label>
-        <input type="number" id="mat_tile" step="0.01" placeholder="12.00">
-      </div>
-      <div class="input-group">
-        <label for="mat_slate">Slate</label>
-        <input type="number" id="mat_slate" step="0.01" placeholder="18.00">
-      </div>
+    <div class="input-group">
+      <label for="pitch_5_12">5/12 Pitch</label>
+      <input type="number" id="pitch_5_12" step="0.01" placeholder="1.05">
     </div>
-
-    <h4>Additional Materials</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="underlayment_sqft">Underlayment (per sqft)</label>
-        <input type="number" id="underlayment_sqft" step="0.01" placeholder="0.45">
-      </div>
-      <div class="input-group">
-        <label for="drip_edge_lf">Drip Edge (per LF)</label>
-        <input type="number" id="drip_edge_lf" step="0.01" placeholder="2.75">
-      </div>
-      <div class="input-group">
-        <label for="ice_shield_lf">Ice Shield (per LF)</label>
-        <input type="number" id="ice_shield_lf" step="0.01" placeholder="4.50">
-      </div>
-      <div class="input-group">
-        <label for="starter_lf">Starter Strip (per LF)</label>
-        <input type="number" id="starter_lf" step="0.01" placeholder="2.50">
-      </div>
-      <div class="input-group">
-        <label for="nails_box">Nails (per box)</label>
-        <input type="number" id="nails_box" step="0.01" placeholder="45">
-      </div>
+    <div class="input-group">
+      <label for="pitch_6_12">6/12 Pitch</label>
+      <input type="number" id="pitch_6_12" step="0.01" placeholder="1.1">
     </div>
-
-    <h4>Fixed Costs</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="tearoff_cost">Tear-off Cost</label>
-        <input type="number" id="tearoff_cost" step="1" placeholder="2200">
-      </div>
-      <div class="input-group">
-        <label for="plywood_cost">Plywood (per sheet)</label>
-        <input type="number" id="plywood_cost" step="0.01" placeholder="32">
-      </div>
-      <div class="input-group">
-        <label for="chimney_cost">Chimney Flashing</label>
-        <input type="number" id="chimney_cost" step="1" placeholder="450">
-      </div>
-      <div class="input-group">
-        <label for="valley_cost">Valley (per LF)</label>
-        <input type="number" id="valley_cost" step="0.01" placeholder="12">
-      </div>
-      <div class="input-group">
-        <label for="skylight_cost">Skylight Flashing</label>
-        <input type="number" id="skylight_cost" step="1" placeholder="400">
-      </div>
-      <div class="input-group">
-        <label for="ridge_cost">Ridge Cap (per LF)</label>
-        <input type="number" id="ridge_cost" step="0.01" placeholder="14">
-      </div>
-      <div class="input-group">
-        <label for="dumpster_fee">Dumpster Fee</label>
-        <input type="number" id="dumpster_fee" step="1" placeholder="650">
-      </div>
+    <div class="input-group">
+      <label for="pitch_7_12">7/12 Pitch</label>
+      <input type="number" id="pitch_7_12" step="0.01" placeholder="1.15">
     </div>
-
-    <div class="section-actions">
-      <button class="btn-save" onclick="saveConfig('roofing')">💾 Save Roofing Config</button>
-      <span id="roofing-status" class="status-message"></span>
+    <div class="input-group">
+      <label for="pitch_8_12">8/12 Pitch</label>
+      <input type="number" id="pitch_8_12" step="0.01" placeholder="1.2">
+    </div>
+    <div class="input-group">
+      <label for="pitch_9_12">9/12 Pitch</label>
+      <input type="number" id="pitch_9_12" step="0.01" placeholder="1.3">
+    </div>
+    <div class="input-group">
+      <label for="pitch_10_12">10/12 Pitch</label>
+      <input type="number" id="pitch_10_12" step="0.01" placeholder="1.4">
+    </div>
+    <div class="input-group">
+      <label for="pitch_11_12">11/12 Pitch</label>
+      <input type="number" id="pitch_11_12" step="0.01" placeholder="1.5">
+    </div>
+    <div class="input-group">
+      <label for="pitch_12_12">12/12+ Pitch</label>
+      <input type="number" id="pitch_12_12" step="0.01" placeholder="1.6">
     </div>
   </div>
+
+  <h4>Shingle Costs (per bundle)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="mat_arch">Architectural Shingles</label>
+      <input type="number" id="mat_arch" step="0.01" placeholder="44.96">
+    </div>
+  </div>
+
+  <h4>Materials</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="underlayment_roll">Underlayment (per roll)</label>
+      <input type="number" id="underlayment_roll" step="0.01" placeholder="45.00">
+    </div>
+    <div class="input-group">
+      <label for="nails_box">Roofing Nails (per box)</label>
+      <input type="number" id="nails_box" step="0.01" placeholder="85.00">
+    </div>
+    <div class="input-group">
+      <label for="starter_lf">Starter Shingles (per LF)</label>
+      <input type="number" id="starter_lf" step="0.01" placeholder="2.50">
+    </div>
+    <div class="input-group">
+      <label for="ridge_lf">Ridge Cap (per LF)</label>
+      <input type="number" id="ridge_lf" step="0.01" placeholder="3.00">
+    </div>
+    <div class="input-group">
+      <label for="drip_edge_lf">Drip Edge (per LF)</label>
+      <input type="number" id="drip_edge_lf" step="0.01" placeholder="2.75">
+    </div>
+    <div class="input-group">
+      <label for="ice_shield_lf">Ice & Water Shield (per LF)</label>
+      <input type="number" id="ice_shield_lf" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="vent_unit">Roof Vent (each)</label>
+      <input type="number" id="vent_unit" step="0.01" placeholder="25.00">
+    </div>
+    <div class="input-group">
+      <label for="ridge_vent_lf">Ridge Vent (per LF)</label>
+      <input type="number" id="ridge_vent_lf" step="0.01" placeholder="5.50">
+    </div>
+    <div class="input-group">
+      <label for="osb_sheet">OSB Sheathing (per sheet)</label>
+      <input type="number" id="osb_sheet" step="0.01" placeholder="28.00">
+    </div>
+  </div>
+
+  <h4>Disposal (per sqft by material type)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="disposal_asphalt_sqft">Asphalt Disposal (per sqft)</label>
+      <input type="number" id="disposal_asphalt_sqft" step="0.01" placeholder="0.40">
+    </div>
+    <div class="input-group">
+      <label for="disposal_wood_sqft">Wood Shake Disposal (per sqft)</label>
+      <input type="number" id="disposal_wood_sqft" step="0.01" placeholder="0.40">
+    </div>
+    <div class="input-group">
+      <label for="disposal_metal_sqft">Metal Disposal (per sqft)</label>
+      <input type="number" id="disposal_metal_sqft" step="0.01" placeholder="0.50">
+    </div>
+    <div class="input-group">
+      <label for="disposal_tile_sqft">Tile Disposal (per sqft)</label>
+      <input type="number" id="disposal_tile_sqft" step="0.01" placeholder="0.75">
+    </div>
+  </div>
+
+  <h4>Flashing Kits</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="chimney_flash">Chimney Flashing Kit</label>
+      <input type="number" id="chimney_flash" step="0.01" placeholder="125.00">
+    </div>
+    <div class="input-group">
+      <label for="skylight_flash">Skylight Flashing Kit</label>
+      <input type="number" id="skylight_flash" step="0.01" placeholder="85.00">
+    </div>
+    <div class="input-group">
+      <label for="valley_lf">Valley Flashing (per LF)</label>
+      <input type="number" id="valley_lf" step="0.01" placeholder="6.00">
+    </div>
+  </div>
+
+  <h4>Labor</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="labor_rate_sqft">Base Labor (hrs per sqft)</label>
+      <input type="number" id="labor_rate_sqft" step="0.001" placeholder="0.04">
+    </div>
+    <div class="input-group">
+      <label for="chimney_labor_hrs">Chimney Labor (hrs each)</label>
+      <input type="number" id="chimney_labor_hrs" step="0.5" placeholder="3">
+    </div>
+    <div class="input-group">
+      <label for="skylight_labor_hrs">Skylight Labor (hrs each)</label>
+      <input type="number" id="skylight_labor_hrs" step="0.5" placeholder="2">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('roofing')">💾 Save Roofing Config</button>
+    <span id="roofing-status" class="status-message"></span>
+  </div>
+</div>
 
   <!-- ============================================ -->
   <!-- HVAC SECTION (14 fields) -->
