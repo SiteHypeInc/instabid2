@@ -930,128 +930,334 @@ case 'siding': {
       };
     }
 
-    // ============================================
-    // 7. ELECTRICAL
-    // ============================================
-    case 'electrical': {
-      const {
-        serviceType = 'panel',
-        amperage = 200,
-        squareFeet = 0,
-        outletCount = 0,
-        switchCount = 0,
-        fixtureCount = 0,
-        evCharger = false,
-        homeAge = 'modern'
-      } = criteria;
+   // ============================================
+// 7. ELECTRICAL
+// ============================================
+case 'electrical': {
+  const {
+    serviceType = 'panel',
+    amperage = 200,
+    squareFootage = 0,
+    homeAge = '1990+',
+    stories = 1,
+    outletCount = 0,
+    gfciCount = 0,
+    switchCount = 0,
+    dimmerCount = 0,
+    fixtureCount = 0,
+    recessedCount = 0,
+    circuits20a = 0,
+    circuits30a = 0,
+    circuits50a = 0,
+    evCharger = 'no',
+    permit = 'yes'
+  } = criteria;
 
-      let laborHours = 0;
-      const materialList = [];
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.electrical?.[key] ?? defaultValue;
+  };
 
-      // Panel
-      if (serviceType === 'panel' || serviceType === 'panel_upgrade') {
-        const panelCosts = { 100: 1800, 200: 2500, 400: 3500 };
-        const panelLabor = { 100: 8, 200: 10, 400: 14 };
+  let laborHours = 0;
+  const materialList = [];
 
-        materialList.push({
-          item: `${amperage}A Electrical Panel`,
-          quantity: 1,
-          unit: 'panel',
-          unitCost: panelCosts[amperage] || 2500,
-          totalCost: panelCosts[amperage] || 2500,
-          category: 'panels'
-        });
+  // Age multiplier (labor only)
+  let ageMultiplier = 1.0;
+  const homeAgeLower = (homeAge || '1990+').toLowerCase();
+  if (homeAgeLower.includes('pre-1960') || homeAgeLower.includes('before 1960')) {
+    ageMultiplier = 2.0;
+  } else if (homeAgeLower.includes('1960') || homeAgeLower.includes('1970') || homeAgeLower.includes('1980') || homeAgeLower.includes('1960-1990')) {
+    ageMultiplier = 1.25;
+  }
 
-        laborHours = panelLabor[amperage] || 10;
-      }
+  // Story multiplier (labor only)
+  let storyMultiplier = 1.0;
+  const storyCount = parseInt(stories) || 1;
+  if (storyCount >= 3) {
+    storyMultiplier = 1.35;
+  } else if (storyCount === 2) {
+    storyMultiplier = 1.15;
+  }
 
-      // Rewire
-      if (serviceType === 'rewire' && squareFeet > 0) {
-        const wireFeet = squareFeet * 4;
-        materialList.push({
-          item: 'Romex Wire (14/2, 12/2)',
-          quantity: wireFeet,
-          unit: 'feet',
-          unitCost: 0.75,
-          totalCost: wireFeet * 0.75,
-          category: 'wire'
-        });
+  const svcType = (serviceType || 'panel').toLowerCase();
+  const amp = parseInt(amperage) || 200;
+  const sqft = parseFloat(squareFootage) || 0;
 
-        laborHours = (squareFeet / 100) * 3;
-        if (homeAge === 'old') laborHours *= 1.4;
-      }
+  // ===== PANEL UPGRADE =====
+  if (svcType === 'panel' || svcType === 'panel_upgrade') {
+    const panelCosts = { 100: 450, 200: 550, 400: 1200 };
+    const panelMisc = { 100: 200, 200: 250, 400: 400 };
+    const panelLabor = { 100: 8, 200: 10, 400: 14 };
 
-      // Outlets
-      if (outletCount > 0) {
-        materialList.push({
-          item: 'Electrical Outlets',
-          quantity: outletCount,
-          unit: 'outlets',
-          unitCost: 125,
-          totalCost: outletCount * 125,
-          category: 'outlets'
-        });
-        laborHours += outletCount * 0.75;
-      }
+    materialList.push({
+      item: `${amp}A Electrical Panel`,
+      quantity: 1,
+      unit: 'panel',
+      unitCost: getPrice('elec_panel_' + amp, panelCosts[amp] || 550),
+      totalCost: getPrice('elec_panel_' + amp, panelCosts[amp] || 550),
+      category: 'panels'
+    });
 
-      // Switches
-      if (switchCount > 0) {
-        materialList.push({
-          item: 'Light Switches',
-          quantity: switchCount,
-          unit: 'switches',
-          unitCost: 110,
-          totalCost: switchCount * 110,
-          category: 'switches'
-        });
-        laborHours += switchCount * 0.5;
-      }
+    materialList.push({
+      item: 'Panel Misc (breakers, connectors, grounding)',
+      quantity: 1,
+      unit: 'set',
+      unitCost: panelMisc[amp] || 250,
+      totalCost: panelMisc[amp] || 250,
+      category: 'panels'
+    });
 
-      // Fixtures
-      if (fixtureCount > 0) {
-        materialList.push({
-          item: 'Light Fixtures (installed)',
-          quantity: fixtureCount,
-          unit: 'fixtures',
-          unitCost: 150,
-          totalCost: fixtureCount * 150,
-          category: 'fixtures'
-        });
-        laborHours += fixtureCount * 1.0;
-      }
+    laborHours = panelLabor[amp] || 10;
+  }
 
-      // EV Charger
-      if (evCharger) {
-        materialList.push({
-          item: 'EV Charger (240V)',
-          quantity: 1,
-          unit: 'charger',
-          unitCost: 1200,
-          totalCost: 1200,
-          category: 'fixtures'
-        });
-        laborHours += 4;
-      }
+  // ===== WHOLE HOUSE REWIRE =====
+  if (svcType === 'rewire' && sqft > 0) {
+    const wireFeet = sqft * 3.8;
+    const wireRate = getPrice('elec_wire_per_sqft', 0.95);
 
-      // Breakers & misc
-      materialList.push({
-        item: 'Breakers & Misc Supplies',
-        quantity: 1,
-        unit: 'set',
-        unitCost: 150,
-        totalCost: 150,
-        category: 'breakers'
-      });
+    materialList.push({
+      item: 'Romex Wire (14/2, 12/2, 10/2 blended)',
+      quantity: Math.round(wireFeet),
+      unit: 'feet',
+      unitCost: wireRate,
+      totalCost: Math.round(wireFeet * wireRate * 100) / 100,
+      category: 'wire'
+    });
 
-      const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+    // Panel included with rewire
+    materialList.push({
+      item: '200A Electrical Panel',
+      quantity: 1,
+      unit: 'panel',
+      unitCost: getPrice('elec_panel_200', 550),
+      totalCost: getPrice('elec_panel_200', 550),
+      category: 'panels'
+    });
 
-      return {
-        trade: 'electrical',
-        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-        laborHours: Math.round(laborHours * 100) / 100,
-        materialList
-      };
-    }
+    materialList.push({
+      item: 'Panel Misc (breakers, connectors, grounding)',
+      quantity: 1,
+      unit: 'set',
+      unitCost: 250,
+      totalCost: 250,
+      category: 'panels'
+    });
+
+    // Base labor: 4 hrs per 100 sqft × age × story multipliers
+    laborHours = (sqft / 100) * 4.0 * ageMultiplier * storyMultiplier;
+  }
+
+  // ===== DEDICATED CIRCUITS ONLY =====
+  if (svcType === 'circuits' || svcType === 'dedicated_circuits') {
+    materialList.push({
+      item: 'Misc Electrical Supplies',
+      quantity: 1,
+      unit: 'set',
+      unitCost: 50,
+      totalCost: 50,
+      category: 'misc'
+    });
+    laborHours = 1; // minimum, circuits add below
+  }
+
+  // ===== GENERAL ELECTRICAL =====
+  if (svcType === 'general') {
+    materialList.push({
+      item: 'Misc Electrical Supplies',
+      quantity: 1,
+      unit: 'set',
+      unitCost: 50,
+      totalCost: 50,
+      category: 'misc'
+    });
+    laborHours = 1; // minimum service call
+  }
+
+  // ===== ADD-ON ITEMS =====
+
+  // Standard Outlets
+  if (parseInt(outletCount) > 0) {
+    const qty = parseInt(outletCount);
+    materialList.push({
+      item: 'Standard Outlets (120V)',
+      quantity: qty,
+      unit: 'outlets',
+      unitCost: getPrice('elec_outlet', 12),
+      totalCost: qty * getPrice('elec_outlet', 12),
+      category: 'outlets'
+    });
+    laborHours += qty * 0.75;
+  }
+
+  // GFCI Outlets
+  if (parseInt(gfciCount) > 0) {
+    const qty = parseInt(gfciCount);
+    materialList.push({
+      item: 'GFCI Outlets',
+      quantity: qty,
+      unit: 'outlets',
+      unitCost: getPrice('elec_outlet_gfci', 35),
+      totalCost: qty * getPrice('elec_outlet_gfci', 35),
+      category: 'outlets'
+    });
+    laborHours += qty * 0.75;
+  }
+
+  // Standard Switches
+  if (parseInt(switchCount) > 0) {
+    const qty = parseInt(switchCount);
+    materialList.push({
+      item: 'Standard Switches',
+      quantity: qty,
+      unit: 'switches',
+      unitCost: getPrice('elec_switch', 10),
+      totalCost: qty * getPrice('elec_switch', 10),
+      category: 'switches'
+    });
+    laborHours += qty * 0.5;
+  }
+
+  // Dimmer Switches
+  if (parseInt(dimmerCount) > 0) {
+    const qty = parseInt(dimmerCount);
+    materialList.push({
+      item: 'Dimmer Switches',
+      quantity: qty,
+      unit: 'switches',
+      unitCost: getPrice('elec_switch_dimmer', 50),
+      totalCost: qty * getPrice('elec_switch_dimmer', 50),
+      category: 'switches'
+    });
+    laborHours += qty * 0.6;
+  }
+
+  // Light Fixtures (customer provides, labor only)
+  if (parseInt(fixtureCount) > 0) {
+    const qty = parseInt(fixtureCount);
+    materialList.push({
+      item: 'Light Fixture Installation (customer-provided)',
+      quantity: qty,
+      unit: 'fixtures',
+      unitCost: 15,
+      totalCost: qty * 15,
+      category: 'fixtures'
+    });
+    laborHours += qty * 1.0;
+  }
+
+  // Recessed Lights
+  if (parseInt(recessedCount) > 0) {
+    const qty = parseInt(recessedCount);
+    materialList.push({
+      item: 'Recessed/Can Lights (LED)',
+      quantity: qty,
+      unit: 'lights',
+      unitCost: getPrice('elec_recessed', 55),
+      totalCost: qty * getPrice('elec_recessed', 55),
+      category: 'fixtures'
+    });
+    laborHours += qty * 1.25;
+  }
+
+  // 20A Dedicated Circuits
+  if (parseInt(circuits20a) > 0) {
+    const qty = parseInt(circuits20a);
+    materialList.push({
+      item: '20A Dedicated Circuit',
+      quantity: qty,
+      unit: 'circuits',
+      unitCost: getPrice('elec_circuit_20a', 95),
+      totalCost: qty * getPrice('elec_circuit_20a', 95),
+      category: 'circuits'
+    });
+    laborHours += qty * 1.5;
+  }
+
+  // 30A Dedicated Circuits
+  if (parseInt(circuits30a) > 0) {
+    const qty = parseInt(circuits30a);
+    materialList.push({
+      item: '30A Dedicated Circuit',
+      quantity: qty,
+      unit: 'circuits',
+      unitCost: getPrice('elec_circuit_30a', 130),
+      totalCost: qty * getPrice('elec_circuit_30a', 130),
+      category: 'circuits'
+    });
+    laborHours += qty * 2.0;
+  }
+
+  // 50A Dedicated Circuits
+  if (parseInt(circuits50a) > 0) {
+    const qty = parseInt(circuits50a);
+    materialList.push({
+      item: '50A Dedicated Circuit',
+      quantity: qty,
+      unit: 'circuits',
+      unitCost: getPrice('elec_circuit_50a', 185),
+      totalCost: qty * getPrice('elec_circuit_50a', 185),
+      category: 'circuits'
+    });
+    laborHours += qty * 2.5;
+  }
+
+  // EV Charger (only if yes)
+  if (evCharger === 'yes') {
+    materialList.push({
+      item: 'EV Charger (Level 2, 240V)',
+      quantity: 1,
+      unit: 'charger',
+      unitCost: getPrice('elec_ev_charger', 350),
+      totalCost: getPrice('elec_ev_charger', 350),
+      category: 'specialty'
+    });
+    materialList.push({
+      item: 'EV Charger Wire Run (6/2, avg 25ft)',
+      quantity: 1,
+      unit: 'set',
+      unitCost: 100,
+      totalCost: 100,
+      category: 'wire'
+    });
+    laborHours += 5;
+  }
+
+  // Permit (only if yes)
+  if (permit === 'yes' || permit !== 'no') {
+    materialList.push({
+      item: 'Electrical Permit',
+      quantity: 1,
+      unit: 'permit',
+      unitCost: getPrice('elec_permit', 200),
+      totalCost: getPrice('elec_permit', 200),
+      category: 'permit'
+    });
+  }
+
+  // Equipment (meters, testers, consumables)
+  materialList.push({
+    item: 'Equipment & Consumables',
+    quantity: 1,
+    unit: 'set',
+    unitCost: 150,
+    totalCost: 150,
+    category: 'equipment'
+  });
+
+  // Apply story multiplier to non-rewire labor
+  if (svcType !== 'rewire') {
+    laborHours *= storyMultiplier;
+  }
+
+  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+
+  return {
+    trade: 'electrical',
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    laborHours: Math.round(laborHours * 100) / 100,
+    materialList
+  };
+}
 
     // ============================================
     // 8. DRYWALL
