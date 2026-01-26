@@ -799,60 +799,183 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
       equipmentCost = 250;
       break;
 
-    // ========== ELECTRICAL - CALIBRATED ==========
+    // ========== ELECTRICAL - RECALIBRATED JAN 2026 ==========
 
-    case 'electrical':
-      const elecServiceType = (data.serviceType || 'panel').toLowerCase();
-      const amperage = parseInt(data.amperage) || 200;
-      const elecSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
-      const outletCount = parseInt(data.outletCount || data.outlets) || 0;
-      const switchCount = parseInt(data.switchCount || data.switches) || 0;
-      const fixtureCount = parseInt(data.fixtureCount || data.fixtures) || 0;
-      const evCharger = data.evCharger === 'yes' || data.evCharger === true;
+case 'electrical':
+  const elecServiceType = (data.serviceType || 'panel').toLowerCase();
+  const amperage = parseInt(data.amperage) || 200;
+  const elecSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
+  const elecHomeAge = (data.homeAge || '1990+').toLowerCase();
+  const elecStories = parseInt(data.stories) || 1;
+  
+  // Counts
+  const outletCount = parseInt(data.outletCount || data.outlets) || 0;
+  const gfciCount = parseInt(data.gfciCount || data.gfciOutlets) || 0;
+  const switchCount = parseInt(data.switchCount || data.switches) || 0;
+  const dimmerCount = parseInt(data.dimmerCount || data.dimmers) || 0;
+  const fixtureCount = parseInt(data.fixtureCount || data.fixtures) || 0;
+  const recessedCount = parseInt(data.recessedCount || data.recessedLights) || 0;
+  
+  // Dedicated circuits
+  const circuits20a = parseInt(data.circuits20a) || 0;
+  const circuits30a = parseInt(data.circuits30a) || 0;
+  const circuits50a = parseInt(data.circuits50a) || 0;
+  
+  // Add-ons
+  const evCharger = data.evCharger === 'yes' || data.evCharger === true;
+  const needsPermit = data.permit !== 'no' && data.permit !== false;
 
-      // Panel work - CALIBRATED (John said ~$10k for 200 amp)
-      if (elecServiceType === 'panel' || elecServiceType === 'panel_upgrade') {
-        if (amperage <= 100) {
-          materialCost = getPrice('electrical', 'elec_panel_100');
-          laborHours = 12;
-        } else if (amperage <= 200) {
-          materialCost = getPrice('electrical', 'elec_panel_200');
-          laborHours = 18; // was 10
-        } else {
-          materialCost = getPrice('electrical', 'elec_panel_400');
-          laborHours = 24;
-        }
-        materialCost += 400; // breakers, wire, misc
-      } else if (elecServiceType === 'rewire' && elecSqft > 0) {
-        const wireFeet = elecSqft * 4;
-        materialCost = wireFeet * 0.85 + 300;
-        laborHours = (elecSqft / 100) * 4; // was 3
-      } else {
-        materialCost = 200;
-        laborHours = 3;
-      }
+  // Home age labor multiplier (older homes = more difficult)
+  let elecAgeMultiplier = 1.0;
+  if (elecHomeAge.includes('pre-1960') || elecHomeAge.includes('knob') || elecHomeAge.includes('before 1960')) {
+    elecAgeMultiplier = 2.0;
+  } else if (elecHomeAge.includes('1960') || elecHomeAge.includes('1970') || elecHomeAge.includes('1980') || elecHomeAge.includes('1960-1990')) {
+    elecAgeMultiplier = 1.25;
+  }
+  
+  // Story multiplier (running wire through multiple floors)
+  let elecStoryMultiplier = 1.0;
+  if (elecStories >= 3) {
+    elecStoryMultiplier = 1.35;
+  } else if (elecStories === 2) {
+    elecStoryMultiplier = 1.15;
+  }
 
-      // Outlets, switches, fixtures
-      if (outletCount > 0) {
-        materialCost += outletCount * getPrice('electrical', 'elec_outlet');
-        laborHours += outletCount * 1.0; // was 0.75
-      }
-      if (switchCount > 0) {
-        materialCost += switchCount * getPrice('electrical', 'elec_switch');
-        laborHours += switchCount * 0.75; // was 0.5
-      }
-      if (fixtureCount > 0) {
-        materialCost += fixtureCount * getPrice('electrical', 'elec_fixture');
-        laborHours += fixtureCount * 1.25; // was 1.0
-      }
-      if (evCharger) {
-        materialCost += getPrice('electrical', 'elec_ev');
-        laborHours += 6; // was 4
-      }
+  // ===== SERVICE TYPE CALCULATIONS =====
+  
+  // PANEL UPGRADE
+  if (elecServiceType === 'panel' || elecServiceType === 'panel_upgrade') {
+    if (amperage <= 100) {
+      materialCost = getPrice('electrical', 'elec_panel_100') || 450;
+      materialCost += 200; // breakers, connectors, misc
+      laborHours = 8;
+    } else if (amperage <= 200) {
+      materialCost = getPrice('electrical', 'elec_panel_200') || 550;
+      materialCost += 250; // breakers, connectors, misc
+      laborHours = 10;
+    } else {
+      materialCost = getPrice('electrical', 'elec_panel_400') || 1200;
+      materialCost += 400; // breakers, connectors, misc
+      laborHours = 14;
+    }
+  }
+  
+  // WHOLE HOUSE REWIRE
+  else if (elecServiceType === 'rewire' && elecSqft > 0) {
+    // Wire calculation: ~4 linear feet per sqft, mixed gauges
+    // Blended rate accounts for 14/2, 12/2, 10/2 mix
+    const wirePerSqft = getPrice('electrical', 'elec_wire_per_sqft') || 0.95;
+    const wireFeet = elecSqft * 4;
+    materialCost = wireFeet * wirePerSqft;
+    
+    // Add panel (usually upgraded during rewire)
+    materialCost += (getPrice('electrical', 'elec_panel_200') || 550) + 300;
+    
+    // Add outlets/switches (estimate ~1 per 100 sqft each if not specified)
+    const estOutlets = outletCount || Math.ceil(elecSqft / 100);
+    const estSwitches = switchCount || Math.ceil(elecSqft / 150);
+    materialCost += estOutlets * (getPrice('electrical', 'elec_outlet') || 12);
+    materialCost += estSwitches * (getPrice('electrical', 'elec_switch') || 10);
+    
+    // Base labor: 4.0 hrs per 100 sqft
+    laborHours = (elecSqft / 100) * 4.0;
+    
+    // Apply age multiplier (knob & tube removal adds significant time)
+    laborHours *= elecAgeMultiplier;
+    
+    // Apply story multiplier
+    laborHours *= elecStoryMultiplier;
+  }
+  
+  // DEDICATED CIRCUITS ONLY
+  else if (elecServiceType === 'circuits' || elecServiceType === 'dedicated_circuits') {
+    materialCost = 0;
+    laborHours = 0;
+    // Handled in circuits section below
+  }
+  
+  // GENERAL ELECTRICAL WORK (outlets, switches, fixtures)
+  else {
+    materialCost = 50; // misc supplies
+    laborHours = 1; // minimum service call
+  }
 
-      materialCost *= regionalMultiplier;
-      equipmentCost = 175;
-      break;
+  // ===== ADD-ON ITEMS (apply to all service types) =====
+  
+  // Standard outlets
+  if (outletCount > 0) {
+    materialCost += outletCount * (getPrice('electrical', 'elec_outlet') || 12);
+    laborHours += outletCount * 0.75;
+  }
+  
+  // GFCI outlets (kitchen, bath, outdoor, garage)
+  if (gfciCount > 0) {
+    materialCost += gfciCount * (getPrice('electrical', 'elec_outlet_gfci') || 35);
+    laborHours += gfciCount * 0.75;
+  }
+  
+  // Standard switches
+  if (switchCount > 0) {
+    materialCost += switchCount * (getPrice('electrical', 'elec_switch') || 10);
+    laborHours += switchCount * 0.5;
+  }
+  
+  // Dimmer switches
+  if (dimmerCount > 0) {
+    materialCost += dimmerCount * (getPrice('electrical', 'elec_switch_dimmer') || 50);
+    laborHours += dimmerCount * 0.6;
+  }
+  
+  // Standard light fixtures (customer provides fixture)
+  if (fixtureCount > 0) {
+    materialCost += fixtureCount * 15; // mounting hardware, wire nuts
+    laborHours += fixtureCount * 1.0;
+  }
+  
+  // Recessed/can lights
+  if (recessedCount > 0) {
+    materialCost += recessedCount * (getPrice('electrical', 'elec_recessed') || 55);
+    laborHours += recessedCount * 1.25;
+  }
+  
+  // Dedicated circuits
+  if (circuits20a > 0) {
+    materialCost += circuits20a * (getPrice('electrical', 'elec_circuit_20a') || 95);
+    laborHours += circuits20a * 1.5;
+  }
+  if (circuits30a > 0) {
+    materialCost += circuits30a * (getPrice('electrical', 'elec_circuit_30a') || 130);
+    laborHours += circuits30a * 2.0;
+  }
+  if (circuits50a > 0) {
+    materialCost += circuits50a * (getPrice('electrical', 'elec_circuit_50a') || 185);
+    laborHours += circuits50a * 2.5;
+  }
+  
+  // EV Charger installation (Level 2, 50A circuit + outlet)
+  if (evCharger) {
+    materialCost += getPrice('electrical', 'elec_ev_charger') || 350;
+    materialCost += 100; // 6/2 wire run (avg 25ft)
+    laborHours += 5;
+  }
+  
+  // Permit fee
+  if (needsPermit) {
+    materialCost += getPrice('electrical', 'elec_permit') || 200;
+  }
+
+  // Apply story multiplier to all labor (if not rewire, which already applied it)
+  if (elecServiceType !== 'rewire') {
+    laborHours *= elecStoryMultiplier;
+  }
+
+  // Apply regional multiplier to materials
+  materialCost *= regionalMultiplier;
+  
+  // Equipment (meters, testers, etc)
+  equipmentCost = 150;
+  
+  break;
 
     // ========== PLUMBING - CALIBRATED ==========
     // ========== PLUMBING - CALIBRATED ==========
