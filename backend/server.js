@@ -1071,10 +1071,21 @@ case 'electrical': {
   // Apply regional multiplier
   materialCost *= regionalMultiplier;
 
-  const laborCost = laborHours * laborRate;
+   const laborCost = laborHours * laborRate;
   const totalCost = materialCost + laborCost + equipmentCost;
 
-    break;
+  return {
+    trade: 'electrical',
+    serviceType,
+    materials: Math.round(materialCost * 100) / 100,
+    labor: Math.round(laborCost * 100) / 100,
+    laborHours: Math.round(laborHours * 100) / 100,
+    laborRate,
+    equipment: equipmentCost,
+    total: Math.round(totalCost * 100) / 100,
+    regionalMultiplier,
+    complexityMultiplier
+  };
 }
 
    // ========== PLUMBING - SYNCED WITH DASHBOARD ==========
