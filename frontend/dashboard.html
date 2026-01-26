@@ -1779,12 +1779,9 @@ async function generateMaterialList(estimateId) {
     const totalCost = estimate.material_list.totalMaterialCost;
     const laborHours = estimate.material_list.laborHours;
     
-    // Get regional multiplier from state
-    const stateMultipliers = {
-      'WA': 1.25, 'CA': 1.35, 'NY': 1.30, 'TX': 1.05, 'FL': 1.10
-      // Add more as needed, or fetch from backend
-    };
-    const multiplier = stateMultipliers[estimate.state] || 1.0;
+  
+   // Get regional multiplier from estimate (calculated by backend)
+const multiplier = estimate.regional_multiplier || estimate.material_list.regionalMultiplier || 1.0;
     
     // Build the material list HTML
     const materialListHTML = `

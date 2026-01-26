@@ -539,10 +539,17 @@ async function getHourlyRate(state, trade, contractorId = null) {
 }
 
 // ========== TRADE CALCULATION FUNCTION - CALIBRATED ==========
-async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contractorId = null) {
+async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contractorId = null, regionalMultiplier = null) {
   console.log(`🔧 Starting estimate calculation for ${trade}`);
   console.log(`📍 Location: ${state}, ${msa}`);
   console.log(`💼 Base labor rate: $${hourlyRate}/hr`);
+
+  // Use passed multiplier, or look up from cache as fallback
+  if (!regionalMultiplier) {
+    regionalMultiplier = STATE_MULTIPLIERS_CACHE[state] || 1.0;
+  }
+  console.log(`📍 Regional multiplier for ${state}: ${regionalMultiplier}x`);
+
 
   let contractorMarkup = 1.0;
   
@@ -564,9 +571,6 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
   let laborHours = 0;
   let materialCost = 0;
   let equipmentCost = 0;
-
-  const regionalMultiplier = STATE_MULTIPLIERS_CACHE[state] || 1.0;
-  console.log(`📍 Regional multiplier for ${state}: ${regionalMultiplier}x`);
 
   switch(trade.toLowerCase()) {
 
@@ -796,6 +800,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
       break;
 
     // ========== ELECTRICAL - CALIBRATED ==========
+
     case 'electrical':
       const elecServiceType = (data.serviceType || 'panel').toLowerCase();
       const amperage = parseInt(data.amperage) || 200;
@@ -1630,13 +1635,14 @@ try {
     console.log(`💼 Labor rate for ${state}: $${hourlyRate}/hr`);
     
     const estimate = await calculateTradeEstimate(
-      trade,
-      tradeSpecificFields,
-      hourlyRate,
-      state,
-      finalZipCode,
-      contractor_id 
-    );
+  trade,
+  tradeSpecificFields,
+  hourlyRate,
+  state,
+  finalZipCode,
+  contractor_id,
+  regionalMultiplier
+);
 
     console.log(`💰 Estimate calculated: $${estimate.totalCost}`);
 
