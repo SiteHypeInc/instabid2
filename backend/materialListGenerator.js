@@ -276,122 +276,191 @@ totalCost: valleyLF * getPrice('valley_lf', 6.00),
   };
 }
 
-    // ============================================
-    // 2. SIDING
-    // ============================================
-    case 'siding': {
-      const {
-        squareFeet,
-        sidingType = 'vinyl',
-        stories = 1,
-        removal = false,
-        windowCount = 0
-      } = criteria;
+// ============================================
+// 2. SIDING
+// ============================================
+case 'siding': {
+  let {
+    squareFeet,
+    sidingType = 'vinyl',
+    stories = 1,
+    removal,
+    needsRemoval,
+    windowCount = 0,
+    doorCount = 0,
+    trimLinearFeet
+  } = criteria;
 
-      const wasteMultiplier = 1.12;
-      const adjustedSqft = squareFeet * wasteMultiplier;
-      const trim = Math.sqrt(squareFeet) * 4;
+  // Normalize siding type from form
+  if (sidingType === 'wood_cedar') sidingType = 'wood';
+  if (sidingType === 'metal_aluminum') sidingType = 'metal';
+  
+  // Handle removal field from form
+  removal = removal || needsRemoval === 'yes';
 
-      const materialCosts = {
-        'vinyl': 5.50,
-        'fiber_cement': 9.50,
-        'wood': 14.00,
-        'metal': 8.00,
-        'stucco': 11.00
-      };
+  const wasteMultiplier = 1.12;
+  const adjustedSqft = squareFeet * wasteMultiplier;
+  const trim = trimLinearFeet || Math.sqrt(squareFeet) * 4;
 
-      const laborCosts = {
-        'vinyl': 3.50,
-        'fiber_cement': 5.50,
-        'wood': 6.50,
-        'metal': 4.50,
-        'stucco': 7.50
-      };
+  const materialCosts = {
+    'vinyl': getPrice('siding_vinyl', 5.50),
+    'fiber_cement': getPrice('siding_fiber_cement', 9.50),
+    'wood': getPrice('siding_wood', 14.00),
+    'metal': getPrice('siding_metal', 8.00),
+    'stucco': getPrice('siding_stucco', 11.00)
+  };
 
-      const materialList = [];
+  const laborRates = {
+    'vinyl': getPrice('siding_labor_vinyl', 3.50),
+    'fiber_cement': getPrice('siding_labor_fiber', 5.50),
+    'wood': getPrice('siding_labor_wood', 6.50),
+    'metal': getPrice('siding_labor_metal', 4.50),
+    'stucco': getPrice('siding_labor_stucco', 7.50)
+  };
 
-      // Siding material
-      const sidingCostPerSqft = materialCosts[sidingType] || 5.50;
-      materialList.push({
-        item: `${sidingType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Siding`,
-        quantity: Math.ceil(adjustedSqft),
-        unit: 'sqft',
-        unitCost: sidingCostPerSqft,
-        totalCost: adjustedSqft * sidingCostPerSqft,
-        category: 'siding_material'
-      });
+  const materialList = [];
 
-      // House wrap
-      materialList.push({
-        item: 'House Wrap',
-        quantity: squareFeet,
-        unit: 'sqft',
-        unitCost: 0.50,
-        totalCost: squareFeet * 0.50,
-        category: 'house_wrap'
-      });
+  // Siding material
+  const sidingCostPerSqft = materialCosts[sidingType] || getPrice('siding_vinyl', 5.50);
+  materialList.push({
+    item: `${sidingType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Siding`,
+    quantity: Math.ceil(adjustedSqft),
+    unit: 'sqft',
+    unitCost: sidingCostPerSqft,
+    totalCost: adjustedSqft * sidingCostPerSqft,
+    category: 'siding_material'
+  });
 
-      // Trim & J-Channel
-      materialList.push({
-        item: 'Trim & J-Channel',
-        quantity: Math.ceil(trim),
-        unit: 'linear ft',
-        unitCost: 5.50,
-        totalCost: trim * 5.50,
-        category: 'trim'
-      });
+  // House wrap (roll covers ~1000 sqft)
+  const houseWrapRollCost = getPrice('housewrap_roll', 175);
+  const houseWrapRolls = Math.ceil(squareFeet / 1000);
+  materialList.push({
+    item: 'House Wrap',
+    quantity: houseWrapRolls,
+    unit: 'rolls',
+    unitCost: houseWrapRollCost,
+    totalCost: houseWrapRolls * houseWrapRollCost,
+    category: 'house_wrap'
+  });
 
-      // Window wrapping
-      if (windowCount > 0) {
-        materialList.push({
-          item: 'Window Trim & Wrapping',
-          quantity: windowCount,
-          unit: 'windows',
-          unitCost: 55.00,
-          totalCost: windowCount * 55.00,
-          category: 'trim'
-        });
-      }
+  // J-Channel (12ft pieces)
+  const jChannelCost = getPrice('j_channel_12ft', 12);
+  const jChannelPieces = Math.ceil(trim / 12);
+  materialList.push({
+    item: 'J-Channel',
+    quantity: jChannelPieces,
+    unit: 'pieces (12ft)',
+    unitCost: jChannelCost,
+    totalCost: jChannelPieces * jChannelCost,
+    category: 'trim'
+  });
 
-      // Fasteners kit
-      materialList.push({
-        item: 'Fasteners, Flashing & Caulk',
-        quantity: 1,
-        unit: 'kit',
-        unitCost: 175.00,
-        totalCost: 175.00,
-        category: 'fasteners'
-      });
+  // Corner posts (estimate 4 outside + 2 inside for typical house)
+  const cornerPostCost = getPrice('corner_post', 35);
+  const cornerPosts = stories <= 1 ? 6 : stories * 6;
+  materialList.push({
+    item: 'Corner Posts',
+    quantity: cornerPosts,
+    unit: 'posts',
+    unitCost: cornerPostCost,
+    totalCost: cornerPosts * cornerPostCost,
+    category: 'trim'
+  });
 
-      // Removal
-      if (removal) {
-        materialList.push({
-          item: 'Old Siding Removal & Disposal',
-          quantity: squareFeet,
-          unit: 'sqft',
-          unitCost: 1.75,
-          totalCost: squareFeet * 1.75,
-          category: 'removal'
-        });
-      }
+  // Window wrapping
+  if (windowCount > 0) {
+    const windowTrimCost = getPrice('window_trim_each', 55.00);
+    materialList.push({
+      item: 'Window Trim & Wrapping',
+      quantity: windowCount,
+      unit: 'windows',
+      unitCost: windowTrimCost,
+      totalCost: windowCount * windowTrimCost,
+      category: 'trim'
+    });
+  }
 
-      // Labor
-      const laborRate = laborCosts[sidingType] || 3.50;
-      let laborHours = (squareFeet * laborRate) / 45; // Assuming $45/hr
-      if (stories >= 2) laborHours *= 1.25;
-      if (stories >= 3) laborHours *= 1.5;
-      if (removal) laborHours += squareFeet * 0.02;
+  // Door wrapping
+  if (doorCount > 0) {
+    const doorTrimCost = getPrice('door_trim_each', 75.00);
+    materialList.push({
+      item: 'Door Trim & Wrapping',
+      quantity: doorCount,
+      unit: 'doors',
+      unitCost: doorTrimCost,
+      totalCost: doorCount * doorTrimCost,
+      category: 'trim'
+    });
+  }
 
-      const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  // Soffit (estimate perimeter × 1.5ft width)
+  const perimeter = Math.sqrt(squareFeet) * 4;
+  const soffitSqft = perimeter * 1.5;
+  const soffitCost = getPrice('soffit_sqft', 8);
+  materialList.push({
+    item: 'Soffit',
+    quantity: Math.ceil(soffitSqft),
+    unit: 'sqft',
+    unitCost: soffitCost,
+    totalCost: soffitSqft * soffitCost,
+    category: 'soffit'
+  });
 
-      return {
-        trade: 'siding',
-        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-        laborHours: Math.round(laborHours * 100) / 100,
-        materialList
-      };
-    }
+  // Fascia
+  const fasciaCost = getPrice('fascia_lf', 6);
+  materialList.push({
+    item: 'Fascia',
+    quantity: Math.ceil(perimeter),
+    unit: 'linear ft',
+    unitCost: fasciaCost,
+    totalCost: perimeter * fasciaCost,
+    category: 'fascia'
+  });
 
+  // Fasteners kit
+  const fastenerKitCost = getPrice('fastener_kit', 175.00);
+  materialList.push({
+    item: 'Fasteners, Flashing & Caulk',
+    quantity: 1,
+    unit: 'kit',
+    unitCost: fastenerKitCost,
+    totalCost: fastenerKitCost,
+    category: 'fasteners'
+  });
+
+  // Removal
+  if (removal) {
+    const removalCost = getPrice('removal_sqft', 1.75);
+    materialList.push({
+      item: 'Old Siding Removal & Disposal',
+      quantity: squareFeet,
+      unit: 'sqft',
+      unitCost: removalCost,
+      totalCost: squareFeet * removalCost,
+      category: 'removal'
+    });
+  }
+
+  // Labor
+  const laborRate = laborRates[sidingType] || getPrice('siding_labor_vinyl', 3.50);
+  const laborHourlyRate = getPrice('labor_hourly', 45);
+  let laborHours = (squareFeet * laborRate) / laborHourlyRate;
+  
+  // Story multipliers
+  if (stories >= 3) laborHours *= 1.5;
+  else if (stories >= 2) laborHours *= 1.25;
+  
+  if (removal) laborHours += squareFeet * 0.02;
+
+  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+
+  return {
+    trade: 'siding',
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    laborHours: Math.round(laborHours * 100) / 100,
+    materialList
+  };
+}
     // ============================================
     // 3. PLUMBING
     // ============================================

@@ -1088,89 +1088,128 @@ body {
   </div>
 
   <!-- ============================================ -->
-  <!-- SIDING SECTION (15 fields) -->
-  <!-- ============================================ -->
-  <div class="config-section tab-pane" id="siding-section">
-    <h3>🏗️ Siding Configuration</h3>
-    
-    <h4>Material Costs (per sqft)</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="siding_vinyl">Vinyl</label>
-        <input type="number" id="siding_vinyl" step="0.01" placeholder="5.50">
-      </div>
-      <div class="input-group">
-        <label for="siding_fiber_cement">Fiber Cement</label>
-        <input type="number" id="siding_fiber_cement" step="0.01" placeholder="9.50">
-      </div>
-      <div class="input-group">
-        <label for="siding_wood">Wood</label>
-        <input type="number" id="siding_wood" step="0.01" placeholder="14.00">
-      </div>
-      <div class="input-group">
-        <label for="siding_metal">Metal</label>
-        <input type="number" id="siding_metal" step="0.01" placeholder="8.00">
-      </div>
-      <div class="input-group">
-        <label for="siding_stucco">Stucco</label>
-        <input type="number" id="siding_stucco" step="0.01" placeholder="11.00">
-      </div>
+<!-- SIDING SECTION -->
+<!-- ============================================ -->
+<div class="config-section tab-pane" id="siding-section">
+  <h3>🏠 Siding Configuration</h3>
+  
+  <h4>Material Costs (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="mat_vinyl">Vinyl</label>
+      <input type="number" id="mat_vinyl" step="0.01" placeholder="5.50">
     </div>
-
-    <h4>Labor (per sqft)</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="siding_labor_vinyl">Vinyl Install</label>
-        <input type="number" id="siding_labor_vinyl" step="0.01" placeholder="3.50">
-      </div>
-      <div class="input-group">
-        <label for="siding_labor_fiber">Fiber Cement Install</label>
-        <input type="number" id="siding_labor_fiber" step="0.01" placeholder="5.50">
-      </div>
-      <div class="input-group">
-        <label for="siding_labor_wood">Wood Install</label>
-        <input type="number" id="siding_labor_wood" step="0.01" placeholder="6.50">
-      </div>
-      <div class="input-group">
-        <label for="siding_labor_metal">Metal Install</label>
-        <input type="number" id="siding_labor_metal" step="0.01" placeholder="4.50">
-      </div>
-      <div class="input-group">
-        <label for="siding_labor_stucco">Stucco Install</label>
-        <input type="number" id="siding_labor_stucco" step="0.01" placeholder="7.50">
-      </div>
+    <div class="input-group">
+      <label for="mat_fiber_cement">Fiber Cement (Hardie)</label>
+      <input type="number" id="mat_fiber_cement" step="0.01" placeholder="9.50">
     </div>
-
-    <h4>Extras</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="housewrap_roll">Housewrap (roll)</label>
-        <input type="number" id="housewrap_roll" step="1" placeholder="175">
-      </div>
-      <div class="input-group">
-        <label for="j_channel_12ft">J-Channel (12ft)</label>
-        <input type="number" id="j_channel_12ft" step="0.01" placeholder="12">
-      </div>
-      <div class="input-group">
-        <label for="corner_post">Corner Post</label>
-        <input type="number" id="corner_post" step="1" placeholder="35">
-      </div>
-      <div class="input-group">
-        <label for="soffit_sqft">Soffit (per sqft)</label>
-        <input type="number" id="soffit_sqft" step="0.01" placeholder="8">
-      </div>
-      <div class="input-group">
-        <label for="fascia_lf">Fascia (per LF)</label>
-        <input type="number" id="fascia_lf" step="0.01" placeholder="6">
-      </div>
+    <div class="input-group">
+      <label for="mat_wood">Wood</label>
+      <input type="number" id="mat_wood" step="0.01" placeholder="14.00">
     </div>
-
-    <div class="section-actions">
-      <button class="btn-save" onclick="saveConfig('siding')">💾 Save Siding Config</button>
-      <span id="siding-status" class="status-message"></span>
+    <div class="input-group">
+      <label for="mat_metal_siding">Metal</label>
+      <input type="number" id="mat_metal_siding" step="0.01" placeholder="8.00">
+    </div>
+    <div class="input-group">
+      <label for="mat_stucco">Stucco</label>
+      <input type="number" id="mat_stucco" step="0.01" placeholder="11.00">
     </div>
   </div>
 
+  <h4>Labor Rates (per sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="labor_vinyl">Vinyl Labor</label>
+      <input type="number" id="labor_vinyl" step="0.01" placeholder="3.50">
+    </div>
+    <div class="input-group">
+      <label for="labor_fiber_cement">Fiber Cement Labor</label>
+      <input type="number" id="labor_fiber_cement" step="0.01" placeholder="5.50">
+    </div>
+    <div class="input-group">
+      <label for="labor_wood">Wood Labor</label>
+      <input type="number" id="labor_wood" step="0.01" placeholder="6.50">
+    </div>
+    <div class="input-group">
+      <label for="labor_metal_siding">Metal Labor</label>
+      <input type="number" id="labor_metal_siding" step="0.01" placeholder="4.50">
+    </div>
+    <div class="input-group">
+      <label for="labor_stucco">Stucco Labor</label>
+      <input type="number" id="labor_stucco" step="0.01" placeholder="7.50">
+    </div>
+    <div class="input-group">
+      <label for="labor_hourly">Hourly Rate ($)</label>
+      <input type="number" id="labor_hourly" step="1" placeholder="45">
+    </div>
+  </div>
+
+  <h4>Additional Materials</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="house_wrap_sqft">House Wrap (per sqft)</label>
+      <input type="number" id="house_wrap_sqft" step="0.01" placeholder="0.50">
+    </div>
+    <div class="input-group">
+      <label for="trim_lf">Trim & J-Channel (per LF)</label>
+      <input type="number" id="trim_lf" step="0.01" placeholder="5.50">
+    </div>
+    <div class="input-group">
+      <label for="window_trim_each">Window Trim (each)</label>
+      <input type="number" id="window_trim_each" step="0.01" placeholder="55.00">
+    </div>
+    <div class="input-group">
+      <label for="fastener_kit">Fasteners/Flashing Kit</label>
+      <input type="number" id="fastener_kit" step="0.01" placeholder="175.00">
+    </div>
+    <div class="input-group">
+      <label for="removal_sqft">Removal & Disposal (per sqft)</label>
+      <input type="number" id="removal_sqft" step="0.01" placeholder="1.75">
+    </div>
+  </div>
+
+  <h4>Story Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="story_2">2 Story</label>
+      <input type="number" id="story_2" step="0.01" placeholder="1.25">
+    </div>
+    <div class="input-group">
+      <label for="story_3">3 Story</label>
+      <input type="number" id="story_3" step="0.01" placeholder="1.5">
+    </div>
+  </div>
+
+  <h4>Trim & Finishing</h4>
+<div class="input-grid">
+  <div class="input-group">
+    <label for="window_trim_each">Window Trim (each)</label>
+    <input type="number" id="window_trim_each" step="0.01" placeholder="55.00">
+  </div>
+  <div class="input-group">
+    <label for="door_trim_each">Door Trim (each)</label>
+    <input type="number" id="door_trim_each" step="0.01" placeholder="75.00">
+  </div>
+  <div class="input-group">
+    <label for="fastener_kit">Fasteners/Caulk Kit</label>
+    <input type="number" id="fastener_kit" step="0.01" placeholder="175.00">
+  </div>
+  <div class="input-group">
+    <label for="removal_sqft">Removal (per sqft)</label>
+    <input type="number" id="removal_sqft" step="0.01" placeholder="1.75">
+  </div>
+  <div class="input-group">
+    <label for="labor_hourly">Hourly Rate ($)</label>
+    <input type="number" id="labor_hourly" step="1" placeholder="45">
+  </div>
+</div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('siding')">💾 Save Siding Config</button>
+    <span id="siding-status" class="status-message"></span>
+  </div>
+</div>
   <!-- ============================================ -->
   <!-- REGIONAL SECTION (16 fields) -->
   <!-- ============================================ -->
