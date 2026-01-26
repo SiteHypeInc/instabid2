@@ -1448,7 +1448,8 @@ case 'drywall': {
   equipmentCost = 100; // lifts, scaffolding, sanders
   
   break;
-}
+  }
+
 
     // ========== SIDING - CALIBRATED ==========
     case 'siding':
