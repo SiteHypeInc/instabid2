@@ -532,6 +532,7 @@ var TRADE_FORM_SCHEMA = {
     { name: 'rooms', label: 'Number of Rooms', type: 'number', required: false, placeholder: '0', min: 0 },
     { name: 'includeCeilings', label: 'Include Ceilings?', type: 'radio', options: ['yes', 'no'], required: false, default: 'no' },
     { name: 'includeTrim', label: 'Include Trim?', type: 'radio', options: ['yes', 'no'], required: false, default: 'no' },
+    { name: 'trimLinearFeet', label: 'Trim Linear Feet (avg. 60 LF per standard room)', type: 'number', required: false, placeholder: '0', min: 0 },
     { name: 'doorCount', label: 'Number of Doors', type: 'number', required: false, placeholder: '0', min: 0 },
     { name: 'windowCount', label: 'Number of Windows', type: 'number', required: false, placeholder: '0', min: 0 },
     { name: 'sidingType', label: 'Siding Type (Exterior)', type: 'select', options: ['','wood', 'vinyl', 'brick', 'stucco', 'hardie', 'metal'], required: false },

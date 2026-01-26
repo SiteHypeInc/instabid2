@@ -257,198 +257,246 @@ async function initDatabase() {
 
 // ============================================
 // 2024-2025 CALIBRATED PRICING CONSTANTS
-// Based on: Bolt comparison, Home Depot research,
-// John's real-world contractor feedback
+// Synced with Dashboard Pricing Keys
+// Last Updated: Jan 26, 2025
 // ============================================
 const DEFAULT_PRICING = {
+  
+  // ========== ROOFING (32 keys) ==========
   roofing: {
-    // Pitch multipliers (unchanged)
-    pitch_low: 1.0,
-    pitch_med: 1.15,
-    pitch_high: 1.35,
-    pitch_steep: 1.6,
-    // Story multipliers (unchanged)
-    story_1: 1.0,
-    story_2: 1.25,
-    story_3: 1.5,
-    // Material costs per sqft - UPDATED 2024-2025
-    mat_asphalt: 4.50,      // was 2.50
-    mat_arch: 5.75,         // was 3.50
-    mat_metal: 9.50,        // was 5.00
-    mat_tile: 12.00,        // was 7.00
-    mat_slate: 18.00,       // was 12.00
-    // Fixed costs - UPDATED
-    tearoff_cost: 2200,     // was 1500
-    plywood_cost: 32,       // per sheet, was 4.5 (wrong unit)
-    chimney_cost: 450,      // was 400
-    valley_cost: 12,        // was 8
-    skylight_cost: 400,     // was 300
-    ridge_cost: 14,         // was 10
-    // Additional materials
-    underlayment_sqft: 0.45,
-    drip_edge_lf: 2.75,
-    ice_shield_lf: 4.50,
-    starter_lf: 2.50,
-    nails_box: 45,
-    dumpster_fee: 650
+    // Pitch multipliers
+    roof_pitch_low: 1.0,        // 0-4:12
+    roof_pitch_medium: 1.15,    // 5-7:12
+    roof_pitch_high: 1.35,      // 8-10:12
+    roof_pitch_steep: 1.6,      // 11+:12
+    // Story multipliers
+    roof_story_1: 1.0,
+    roof_story_2: 1.25,
+    roof_story_3: 1.5,
+    // Material costs per sqft
+    roof_mat_asphalt_3tab: 4.50,
+    roof_mat_architectural: 5.75,
+    roof_mat_metal_standing: 9.50,
+    roof_mat_metal_corrugated: 7.50,
+    roof_mat_tile_clay: 12.00,
+    roof_mat_tile_concrete: 10.00,
+    roof_mat_slate: 18.00,
+    roof_mat_wood_shake: 14.00,
+    // Labor per square (100 sqft)
+    roof_labor_rate: 75,
+    roof_labor_per_square: 150,
+    // Fixed costs
+    roof_tearoff_layer: 125,    // per square per layer
+    roof_plywood_sheet: 32,
+    roof_dumpster: 650,
+    // Linear foot items
+    roof_drip_edge_lf: 2.75,
+    roof_ice_shield_lf: 4.50,
+    roof_starter_lf: 2.50,
+    roof_ridge_cap_lf: 14,
+    roof_valley_lf: 12,
+    // Extras
+    roof_underlayment_sqft: 0.45,
+    roof_chimney_flash: 450,
+    roof_skylight_flash: 400,
+    roof_vent_pipe: 45,
+    roof_ridge_vent_lf: 8,
+    roof_nails_box: 45,
+    // Permit
+    roof_permit: 350
   },
-  
-  hvac: {
-    // Size multipliers (unchanged)
-    hvac_size_small: 0.85,
-    hvac_size_med: 1.0,
-    hvac_size_large: 1.25,
-    hvac_size_xlarge: 1.5,
-    // Equipment costs - UPDATED 2024-2025
-    hvac_furnace: 4200,     // was 3500
-    hvac_ac: 5500,          // was 4000
-    hvac_heatpump: 8000,    // was 5500
-    hvac_minisplit: 3200,   // was 2500
-    // Additional costs
-    hvac_duct: 18,          // was 15
-    hvac_thermostat: 250,   // was 350 (smart thermostats cheaper now)
-    hvac_handler: 1500,     // was 1200
-    // Complexity multipliers
-    hvac_standard: 1.0,
-    hvac_moderate: 1.25,
-    hvac_complex: 1.5
-  },
-  
-  electrical: {
-    // Panel & service - UPDATED
-    elec_panel_100: 2200,   // was 1800
-    elec_panel_200: 3500,   // was 2500 (John said ~$10k total job)
-    elec_panel_400: 5500,   // new
-    elec_subpanel: 1500,    // was 1200
-    // Fixtures & devices - UPDATED
-    elec_outlet: 185,       // was 125
-    elec_switch: 145,       // was 110
-    elec_fixture: 200,      // was 150
-    elec_fan: 275,          // was 200
-    elec_gfci: 225,         // was 175
-    // Specialty work - UPDATED
-    elec_ev: 1800,          // was 1200
-    elec_generator: 2200,   // was 1500
-    elec_hottub: 1100,      // was 800
-    // Labor rates
-    elec_labor_std: 95,     // was 85
-    elec_labor_complex: 125 // was 110
-  },
-  
-  plumbing: {
-    // Fixtures - UPDATED
-    plumb_toilet: 425,      // was 350
-    plumb_sink: 500,        // was 400
-    plumb_shower: 1500,     // was 1200
-    plumb_tub: 1800,        // was 1500
-    plumb_dishwasher: 400,  // was 300
-    // Water systems - UPDATED (John said $3k for tankless)
-    plumb_heater_tank: 2400,      // was 1800
-    plumb_heater_tankless: 1800,  // UNIT cost, was 3200 (included labor)
-    plumb_sump: 1100,       // was 850
-    plumb_softener: 1800,   // was 1400
-    // Pipes & drains - UPDATED
-    plumb_pipe_repair: 65,  // was 45
-    plumb_pipe_replace: 95, // was 75
-    plumb_drain: 325,       // was 250
-    plumb_sewer: 165,       // was 125
-    // Labor rates
-    plumb_labor_std: 110,   // was 95
-    plumb_labor_emerg: 165  // was 140
-  },
-  
-  flooring: {
-    // Material costs per sqft - UPDATED
-    floor_carpet: 5.00,     // was 3.50
-    floor_vinyl: 3.50,      // was 4.00 (LVP gotten cheaper)
-    floor_laminate: 4.00,   // was 4.50
-    floor_lvp: 4.50,        // new - luxury vinyl plank
-    floor_hardwood_eng: 10.00,  // was 8.00
-    floor_hardwood_solid: 14.00, // was 12.00
-    floor_tile_ceramic: 7.50,   // was 6.00
-    floor_tile_porcelain: 10.00, // was 8.50
-    // Installation labor per sqft - UPDATED
-    floor_labor_carpet: 2.00,    // was 1.50
-    floor_labor_vinyl: 2.50,     // was 2.00
-    floor_labor_hardwood: 5.00,  // was 4.00
-    floor_labor_tile: 6.50,      // was 5.00
-    // Prep & extras
-    floor_subfloor: 4.00,   // was 3.00
-    floor_removal: 2.00,    // was 1.50
-    floor_underlay: 0.50,   // was 0.75
-    floor_baseboard: 5.00,  // was 4.00
-    // Complexity multipliers
-    floor_standard: 1.0,
-    floor_moderate: 1.2,
-    floor_complex: 1.4
-  },
-  
-  painting: {
-    // Interior rates per sqft - UPDATED
-    paint_int_walls_1: 2.00,  // was 1.50
-    paint_int_walls_2: 3.25,  // was 2.50
-    paint_int_ceiling: 2.75,  // was 2.00
-    paint_int_trim: 2.50,     // was 1.75
-    paint_int_door: 95,       // was 75
-    paint_int_cabinet: 50,    // was 35
-    // Exterior rates per sqft - UPDATED
-    paint_ext_siding_1: 2.75, // was 2.00
-    paint_ext_siding_2: 4.50, // was 3.50
-    paint_ext_trim: 3.25,     // was 2.50
-    paint_ext_deck: 3.00,     // was 2.25
-    paint_ext_fence: 4.00,    // was 3.00
-    // Prep & specialty
-    paint_prep: 1.25,         // was 1.00
-    paint_primer: 1.00,       // was 0.75
-    paint_wallpaper: 2.00,    // was 1.50
-    paint_texture: 4.00,      // was 3.00
-    // Complexity multipliers
-    paint_standard: 1.0,
-    paint_moderate: 1.2,
-    paint_complex: 1.4,
-    // Paint costs per gallon
-    paint_gallon_std: 45,
-    paint_gallon_premium: 65,
-    primer_gallon: 35
-  },
-  
-  drywall: {
-    // Materials - UPDATED
-    drywall_sheet_half: 16,   // 1/2" 4x8, was ~15
-    drywall_sheet_5_8: 20,    // 5/8" 4x8, was ~18
-    joint_compound_bucket: 20, // 5 gal
-    drywall_tape_roll: 8,
-    corner_bead_8ft: 5,
-    screws_box: 12,
-    // Labor per sqft
-    drywall_hang_labor: 1.50,
-    drywall_tape_labor: 1.25,
-    drywall_sand_labor: 0.75,
-    // Finish levels
-    finish_level_3: 1.0,      // standard
-    finish_level_4: 1.2,      // smooth
-    finish_level_5: 1.5       // glass smooth
-  },
-  
+
+  // ========== SIDING (21 keys) ==========
   siding: {
-    // Material costs per sqft - UPDATED
-    siding_vinyl: 5.50,       // was 4.50
-    siding_fiber_cement: 9.50, // was 8.00
-    siding_wood: 14.00,       // was 12.00
-    siding_metal: 8.00,       // was 6.50
-    siding_stucco: 11.00,     // was 9.00
+    // Material costs per sqft
+    siding_vinyl: 5.50,
+    siding_fiber_cement: 9.50,
+    siding_wood_cedar: 14.00,
+    siding_wood_pine: 10.00,
+    siding_metal_aluminum: 8.00,
+    siding_metal_steel: 9.00,
+    siding_stucco: 11.00,
+    siding_brick_veneer: 18.00,
+    siding_stone_veneer: 22.00,
     // Labor per sqft
+    siding_labor_rate: 65,
     siding_labor_vinyl: 3.50,
     siding_labor_fiber: 5.50,
     siding_labor_wood: 6.50,
     siding_labor_metal: 4.50,
     siding_labor_stucco: 7.50,
-    // Extras
-    housewrap_roll: 175,
-    j_channel_12ft: 12,
-    corner_post: 35,
-    soffit_sqft: 8,
-    fascia_lf: 6
+    // Extras & trim
+    siding_housewrap_roll: 175,
+    siding_j_channel_12ft: 12,
+    siding_corner_post: 35,
+    siding_soffit_sqft: 8,
+    siding_fascia_lf: 6,
+    // Story multiplier
+    siding_story_2: 1.2,
+    siding_story_3: 1.4
+  },
+
+  // ========== ELECTRICAL (20 keys) ==========
+  electrical: {
+    // Labor rates
+    elec_labor_rate: 95,
+    elec_labor_complex: 125,
+    // Panel & service
+    elec_panel_100: 2200,
+    elec_panel_200: 3500,
+    elec_panel_400: 5500,
+    elec_subpanel_60: 1200,
+    elec_subpanel_100: 1500,
+    // Fixtures & devices
+    elec_outlet_standard: 185,
+    elec_outlet_gfci: 225,
+    elec_outlet_240v: 350,
+    elec_switch_standard: 145,
+    elec_switch_dimmer: 185,
+    elec_switch_smart: 250,
+    elec_fixture_standard: 200,
+    elec_fixture_recessed: 175,
+    elec_ceiling_fan: 275,
+    // Specialty
+    elec_ev_charger_l2: 1800,
+    elec_generator_hookup: 2200,
+    elec_hot_tub: 1100,
+    // Wire per foot
+    elec_wire_14_2: 0.85,
+    elec_wire_12_2: 1.10,
+    elec_wire_10_2: 1.75
+  },
+
+  // ========== PAINTING (13 keys) ==========
+  painting: {
+    // Labor
+    paint_labor_rate: 65,
+    // Per sqft rates
+    paint_interior_sqft: 4.50,
+    paint_exterior_sqft: 3.50,
+    paint_ceiling_sqft: 1.25,
+    // Per unit rates
+    paint_trim_lf: 1.50,
+    paint_door: 75,
+    paint_window: 50,
+    // Prep work
+    paint_power_wash_sqft: 0.25,
+    paint_patch_minor: 150,
+    paint_patch_moderate: 350,
+    paint_patch_extensive: 750,
+    // Specialty
+    paint_lead_abatement: 500,
+    paint_primer_coat: 0.50   // dramatic color change per sqft
+  },
+
+  // ========== DRYWALL (19 keys) ==========
+  drywall: {
+    // Labor
+    drywall_labor_rate: 55,
+    drywall_hang_sqft: 0.75,
+    drywall_tape_sqft: 0.65,
+    drywall_sand_sqft: 0.35,
+    // Materials
+    drywall_sheet_half: 12,      // 1/2" 4x8 sheet
+    drywall_sheet_5_8: 18,       // 5/8" fire-rated
+    drywall_joint_compound: 18,  // 5 gal bucket
+    drywall_tape: 8,             // roll
+    drywall_screws: 12,          // box
+    drywall_corner_bead: 5,      // 8ft piece
+    // Finish level multipliers
+    drywall_finish_level_3: 1.0,   // standard
+    drywall_finish_level_4: 1.25,  // smooth
+    drywall_finish_level_5: 1.5,   // glass smooth
+    // Texture per sqft
+    drywall_texture_none: 0,
+    drywall_texture_orange_peel: 0.80,
+    drywall_texture_knockdown: 1.00,
+    drywall_texture_popcorn: 0.65,
+    // Ceiling height multipliers
+    drywall_ceiling_10ft: 1.15,
+    drywall_ceiling_12ft: 1.30,
+    // Repair flat rates
+    drywall_repair_minor: 175,
+    drywall_repair_moderate: 400,
+    drywall_repair_extensive: 900
+  },
+
+  // ========== PLUMBING (28 keys) ==========
+  plumbing: {
+    // Labor rates
+    plumb_labor_rate: 95,
+    plumb_labor_emergency: 175,
+    plumb_service_call: 95,
+    // Fixture installs (labor + basic materials)
+    plumb_toilet: 375,
+    plumb_sink_bath: 350,
+    plumb_sink_kitchen: 550,
+    plumb_faucet_bath: 225,
+    plumb_faucet_kitchen: 300,
+    plumb_shower_valve: 450,
+    plumb_tub: 1200,
+    plumb_dishwasher: 200,
+    plumb_garbage_disposal: 325,
+    plumb_ice_maker: 150,
+    // Water heaters (installed)
+    plumb_heater_tank_40: 1200,
+    plumb_heater_tank_50: 1600,
+    plumb_heater_tankless_gas: 3500,
+    plumb_heater_tankless_elec: 2200,
+    // Water systems
+    plumb_water_softener: 1800,
+    plumb_sump_pump: 650,
+    // Repipe per linear foot
+    plumb_repipe_pex_lf: 2.50,
+    plumb_repipe_copper_lf: 4.50,
+    // Big jobs
+    plumb_main_line: 1200,
+    plumb_gas_line_new: 500,
+    // Access type multipliers
+    plumb_access_basement: 1.0,
+    plumb_access_crawlspace: 1.15,
+    plumb_access_slab: 1.35,
+    // Water heater location multipliers
+    plumb_location_garage: 1.0,
+    plumb_location_basement: 1.0,
+    plumb_location_closet: 1.1,
+    plumb_location_attic: 1.25
+  },
+
+  // ========== HVAC (parked - defaults only) ==========
+  hvac: {
+    hvac_labor_rate: 85,
+    hvac_furnace_gas: 4200,
+    hvac_furnace_electric: 3200,
+    hvac_ac_unit: 5500,
+    hvac_heat_pump: 8000,
+    hvac_mini_split: 3200,
+    hvac_ductwork_lf: 18,
+    hvac_thermostat_standard: 150,
+    hvac_thermostat_smart: 250,
+    hvac_air_handler: 1500,
+    hvac_size_small: 0.85,
+    hvac_size_medium: 1.0,
+    hvac_size_large: 1.25,
+    hvac_size_xlarge: 1.5
+  },
+
+  // ========== FLOORING (parked - defaults only) ==========
+  flooring: {
+    floor_labor_rate: 55,
+    floor_carpet_sqft: 5.00,
+    floor_vinyl_sqft: 3.50,
+    floor_lvp_sqft: 4.50,
+    floor_laminate_sqft: 4.00,
+    floor_hardwood_eng_sqft: 10.00,
+    floor_hardwood_solid_sqft: 14.00,
+    floor_tile_ceramic_sqft: 7.50,
+    floor_tile_porcelain_sqft: 10.00,
+    floor_removal_sqft: 2.00,
+    floor_subfloor_sqft: 4.00,
+    floor_underlayment_sqft: 0.50,
+    floor_baseboard_lf: 5.00,
+    floor_transition_piece: 25
   }
 };
 
@@ -692,44 +740,137 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
       equipmentCost = 450 + (stories === '2' ? 200 : 0) + (stories === '3+' ? 400 : 0);
       break;
       
-    // ========== PAINTING - CALIBRATED ==========
-    case 'painting':
-      const paintSqft = parseFloat(data.squareFeet || data.paintArea) || 0;
-      const paintSurface = (data.surface || data.paintType || 'exterior').toLowerCase();
-      const paintStories = parseInt(data.stories) || 1;
-      const paintCondition = data.condition || 'good';
-      const paintCoats = parseInt(data.coats) || 2;
-      const paintTrim = parseFloat(data.trim || data.trimFeet) || 0;
-      const paintDoors = parseInt(data.doors) || 0;
-
-      // Coverage and paint calculation
-      const coveragePerGallon = paintSurface === 'exterior' ? 300 : 350;
-      const gallonsNeeded = Math.ceil((paintSqft * paintCoats * 1.15) / coveragePerGallon);
-      const paintUnitCost = paintSurface === 'exterior' 
-        ? getPrice('painting', 'paint_gallon_premium') 
-        : getPrice('painting', 'paint_gallon_std');
-      const primerGallons = Math.ceil(gallonsNeeded * 0.4);
-      const primerCost = primerGallons * getPrice('painting', 'primer_gallon');
-      
-      // Materials: paint + primer + supplies
-      materialCost = (gallonsNeeded * paintUnitCost) + primerCost + 150; // supplies
-      
-      // Condition multipliers
-      const conditionMultipliers = { 'good': 1.0, 'fair': 1.35, 'poor': 1.7 };
-      const storyMultipliersPaint = { 1: 1.0, 2: 1.3, 3: 1.6 };
-      
-      // CALIBRATED: Labor hours (~1.5 hrs per gallon per coat is reasonable)
-      laborHours = gallonsNeeded * 1.75 * paintCoats;
-      laborHours *= (conditionMultipliers[paintCondition] || 1.0);
-      if (paintSurface === 'exterior') {
-        laborHours *= (storyMultipliersPaint[paintStories] || 1.0);
-      }
-      if (paintTrim > 0) laborHours += paintTrim / 40; // 40 lf per hour
-      if (paintDoors > 0) laborHours += paintDoors * 1.0; // 1 hour per door
-
-      materialCost *= regionalMultiplier;
-      equipmentCost = paintSurface === 'exterior' ? 175 : 100;
-      break;
+   // ========== PAINTING - SYNCED WITH FORM & DASHBOARD ==========
+  case 'painting': {
+  const paintSqft = parseFloat(data.squareFeet) || 0;
+  const paintType = (data.paintType || 'exterior').toLowerCase();
+  const stories = parseInt(data.stories) || 1;
+  const coats = parseInt(data.coats) || 2;
+  const rooms = parseInt(data.rooms) || 1;
+  
+  // Boolean/option fields
+  const includeCeilings = data.includeCeilings === 'yes';
+  const trimLinearFeet = parseFloat(data.trimLinearFeet) || 0;
+  const doorCount = parseInt(data.doorCount) || 0;
+  const windowCount = parseInt(data.windowCount) || 0;
+  
+  // Exterior specific
+  const sidingCondition = (data.sidingCondition || 'good').toLowerCase();
+  const powerWashing = data.powerWashing === 'yes';
+  
+  // Interior specific
+  const wallCondition = (data.wallCondition || 'smooth').toLowerCase();
+  const patchingNeeded = (data.patchingNeeded || 'none').toLowerCase();
+  
+  // Specialty
+  const leadPaint = (data.leadPaint || 'no').toLowerCase();
+  const colorChangeDramatic = data.colorChangeDramatic === 'yes';
+  
+  // Initialize costs
+  let interiorCost = 0;
+  let exteriorCost = 0;
+  let laborHours = 0;
+  
+  // Multipliers
+  const coatMultiplier = { 1: 1.0, 2: 1.5, 3: 2.0 }[coats] || 1.5;
+  const storyMultiplier = { 1: 1.0, 2: 1.15, 3: 1.35, 4: 1.5 }[stories] || 1.0;
+  
+  // Condition multiplier (affects labor)
+  const getConditionMultiplier = (condition) => {
+    const mult = { 'excellent': 0.9, 'good': 1.0, 'smooth': 1.0, 'fair': 1.15, 'textured': 1.1, 'poor': 1.25, 'damaged': 1.35, 'needs_repair': 1.4 };
+    return mult[condition] || 1.0;
+  };
+  
+  // ===== INTERIOR CALCULATION =====
+  if (paintType === 'interior' || paintType === 'both') {
+    const intSqft = paintType === 'both' ? paintSqft * 0.5 : paintSqft;
+    
+    // Walls
+    interiorCost += intSqft * getPrice('painting', 'paint_interior_sqft') * coatMultiplier;
+    laborHours += intSqft / 200; // 200 sqft/hr base
+    
+    // Ceilings
+    if (includeCeilings) {
+      const ceilingSqft = intSqft * 0.9; // ~90% of floor area
+      interiorCost += ceilingSqft * getPrice('painting', 'paint_ceiling_sqft') * coatMultiplier;
+      laborHours += ceilingSqft / 250; // 250 sqft/hr for ceilings
+    }
+    
+    // Condition multiplier on labor
+    laborHours *= getConditionMultiplier(wallCondition);
+    
+    // Patching
+    if (patchingNeeded === 'minor') {
+      interiorCost += getPrice('painting', 'paint_patch_minor');
+      laborHours += 2;
+    } else if (patchingNeeded === 'moderate') {
+      interiorCost += getPrice('painting', 'paint_patch_moderate');
+      laborHours += 4;
+    } else if (patchingNeeded === 'extensive') {
+      interiorCost += getPrice('painting', 'paint_patch_extensive');
+      laborHours += 8;
+    }
+  }
+  
+  // ===== EXTERIOR CALCULATION =====
+  if (paintType === 'exterior' || paintType === 'both') {
+    const extSqft = paintType === 'both' ? paintSqft * 0.5 : paintSqft;
+    
+    // Siding
+    exteriorCost += extSqft * getPrice('painting', 'paint_exterior_sqft') * coatMultiplier * storyMultiplier;
+    laborHours += (extSqft / 150) * storyMultiplier; // 150 sqft/hr, slower for stories
+    
+    // Condition multiplier
+    laborHours *= getConditionMultiplier(sidingCondition);
+    
+    // Power washing
+    if (powerWashing) {
+      exteriorCost += extSqft * getPrice('painting', 'paint_power_wash_sqft');
+      laborHours += extSqft / 500; // 500 sqft/hr
+    }
+  }
+  
+  // ===== TRIM, DOORS, WINDOWS =====
+  if (trimLinearFeet > 0) {
+    interiorCost += trimLinearFeet * getPrice('painting', 'paint_trim_lf');
+    laborHours += trimLinearFeet / 30; // 30 LF/hr
+  }
+  
+  if (doorCount > 0) {
+    interiorCost += doorCount * getPrice('painting', 'paint_door');
+    laborHours += doorCount * 0.75; // 45 min per door
+  }
+  
+  if (windowCount > 0) {
+    interiorCost += windowCount * getPrice('painting', 'paint_window');
+    laborHours += windowCount * 0.5; // 30 min per window (standard style)
+  }
+  
+  // ===== SPECIALTY =====
+  // Dramatic color change (extra primer)
+  if (colorChangeDramatic) {
+    const totalSqft = paintType === 'both' ? paintSqft : paintSqft;
+    interiorCost += totalSqft * getPrice('painting', 'paint_primer_coat');
+    laborHours += totalSqft / 300; // primer goes faster
+  }
+  
+  // Lead paint
+  if (leadPaint === 'yes') {
+    interiorCost += getPrice('painting', 'paint_lead_abatement');
+    laborHours += 8; // extra time for protocols
+  }
+  
+  // ===== FINAL CALCULATIONS =====
+  materialCost = (interiorCost + exteriorCost) * regionalMultiplier;
+  
+  // Minimum 4 hours
+  laborHours = Math.max(laborHours, 4);
+  
+  // Equipment
+  equipmentCost = paintType === 'exterior' || paintType === 'both' ? 175 : 100;
+  
+  break;
+}
 
     // ========== HVAC - CALIBRATED ==========
     case 'hvac':
@@ -1054,53 +1195,112 @@ case 'plumbing':
       equipmentCost = 125;
       break;
 
-    // ========== DRYWALL - CALIBRATED ==========
-    case 'drywall':
-      const drywallSqft = parseFloat(data.squareFeet || data.wallArea) || 0;
-      const drywallServiceType = (data.serviceType || 'installation').toLowerCase();
-      const finishLevel = (data.finishLevel || 'smooth').toLowerCase();
-      const ceilingHeight = parseInt(data.ceilingHeight) || 8;
-
-      if (drywallServiceType === 'installation') {
-        const adjustedDrywallSqft = drywallSqft * 1.12; // 12% waste
-        const sheetsNeeded = Math.ceil(adjustedDrywallSqft / 32);
-        
-        // Materials
-        materialCost = (sheetsNeeded * getPrice('drywall', 'drywall_sheet_half')) +
-                       (Math.ceil(sheetsNeeded / 4) * getPrice('drywall', 'joint_compound_bucket')) +
-                       (Math.ceil(sheetsNeeded / 8) * getPrice('drywall', 'drywall_tape_roll')) +
-                       (Math.ceil(sheetsNeeded / 15) * getPrice('drywall', 'corner_bead_8ft')) +
-                       (Math.ceil(sheetsNeeded / 5) * getPrice('drywall', 'screws_box')) +
-                       75; // misc supplies
-        
-        // Labor: hang + tape + sand
-        const hangHours = drywallSqft * getPrice('drywall', 'drywall_hang_labor') / 50;
-        const tapeHours = drywallSqft * getPrice('drywall', 'drywall_tape_labor') / 50;
-        const sandHours = drywallSqft * getPrice('drywall', 'drywall_sand_labor') / 50;
-        laborHours = hangHours + tapeHours + sandHours;
-        
-        // Finish level multiplier
-        if (finishLevel === 'smooth' || finishLevel === 'level4') {
-          laborHours *= getPrice('drywall', 'finish_level_4');
-        } else if (finishLevel === 'level5') {
-          laborHours *= getPrice('drywall', 'finish_level_5');
-        }
-        
-        // Ceiling height adjustment
-        if (ceilingHeight >= 10) laborHours *= 1.2;
-        if (ceilingHeight >= 12) laborHours *= 1.15;
-        
-      } else if (drywallServiceType === 'repair') {
-        materialCost = 175;
-        laborHours = 4;
-      } else {
-        materialCost = 125;
-        laborHours = 3;
+    // ========== DRYWALL - SYNCED WITH FORM & DASHBOARD ==========
+case 'drywall': {
+  const drywallSqft = parseFloat(data.squareFeet) || 0;
+  const projectType = (data.projectType || 'new_construction').toLowerCase();
+  const rooms = parseInt(data.rooms) || 1;
+  const ceilingHeightRaw = data.ceilingHeight || '8ft';
+  const ceilingHeight = parseInt(ceilingHeightRaw) || 8;
+  const finishLevel = (data.finishLevel || 'level_3_standard').toLowerCase();
+  const textureType = (data.textureType || 'none').toLowerCase();
+  const damageExtent = (data.damageExtent || 'minor').toLowerCase();
+  
+  // ===== NEW CONSTRUCTION / INSTALLATION =====
+  if (projectType === 'new_construction') {
+    const wasteMultiplier = 1.12; // 12% waste
+    const adjustedSqft = drywallSqft * wasteMultiplier;
+    const sheetsNeeded = Math.ceil(adjustedSqft / 32); // 4x8 sheets
+    
+    // Materials
+    const sheetCost = sheetsNeeded * getPrice('drywall', 'drywall_sheet_half');
+    const compoundBuckets = Math.ceil(sheetsNeeded / 4);
+    const compoundCost = compoundBuckets * getPrice('drywall', 'drywall_joint_compound');
+    const tapeRolls = Math.ceil(sheetsNeeded / 8);
+    const tapeCost = tapeRolls * getPrice('drywall', 'drywall_tape');
+    const screwBoxes = Math.ceil(sheetsNeeded / 5);
+    const screwCost = screwBoxes * getPrice('drywall', 'drywall_screws');
+    const cornerBeads = Math.ceil(rooms * 4); // ~4 corners per room
+    const cornerCost = cornerBeads * getPrice('drywall', 'drywall_corner_bead');
+    
+    materialCost = sheetCost + compoundCost + tapeCost + screwCost + cornerCost + 75; // misc supplies
+    
+    // Labor: hang + tape + sand (per sqft rates)
+    const hangLabor = drywallSqft * getPrice('drywall', 'drywall_hang_sqft');
+    const tapeLabor = drywallSqft * getPrice('drywall', 'drywall_tape_sqft');
+    const sandLabor = drywallSqft * getPrice('drywall', 'drywall_sand_sqft');
+    let laborCost = hangLabor + tapeLabor + sandLabor;
+    
+    // Finish level multiplier
+    let finishMultiplier = getPrice('drywall', 'drywall_finish_level_3');
+    if (finishLevel === 'level_4_smooth') {
+      finishMultiplier = getPrice('drywall', 'drywall_finish_level_4');
+    } else if (finishLevel === 'level_5_glass') {
+      finishMultiplier = getPrice('drywall', 'drywall_finish_level_5');
+    }
+    laborCost *= finishMultiplier;
+    
+    // Ceiling height multiplier
+    if (ceilingHeight >= 12) {
+      laborCost *= getPrice('drywall', 'drywall_ceiling_12ft');
+    } else if (ceilingHeight >= 10) {
+      laborCost *= getPrice('drywall', 'drywall_ceiling_10ft');
+    }
+    
+    // Texture cost (per sqft add-on)
+    let textureCost = 0;
+    if (textureType === 'orange_peel') {
+      textureCost = drywallSqft * getPrice('drywall', 'drywall_texture_orange_peel');
+    } else if (textureType === 'knockdown') {
+      textureCost = drywallSqft * getPrice('drywall', 'drywall_texture_knockdown');
+    } else if (textureType === 'popcorn') {
+      textureCost = drywallSqft * getPrice('drywall', 'drywall_texture_popcorn');
+    }
+    
+    // Convert labor cost to hours for consistency
+    const laborRate = getPrice('drywall', 'drywall_labor_rate');
+    laborHours = (laborCost + textureCost) / laborRate;
+    
+    // Add texture material cost
+    materialCost += textureCost * 0.3; // ~30% of texture cost is material
+    
+  // ===== REPAIR =====
+  } else if (projectType === 'repair') {
+    if (damageExtent === 'minor') {
+      materialCost = getPrice('drywall', 'drywall_repair_minor') * 0.3; // 30% materials
+      laborHours = getPrice('drywall', 'drywall_repair_minor') * 0.7 / getPrice('drywall', 'drywall_labor_rate');
+    } else if (damageExtent === 'moderate') {
+      materialCost = getPrice('drywall', 'drywall_repair_moderate') * 0.3;
+      laborHours = getPrice('drywall', 'drywall_repair_moderate') * 0.7 / getPrice('drywall', 'drywall_labor_rate');
+    } else if (damageExtent === 'extensive') {
+      materialCost = getPrice('drywall', 'drywall_repair_extensive') * 0.3;
+      laborHours = getPrice('drywall', 'drywall_repair_extensive') * 0.7 / getPrice('drywall', 'drywall_labor_rate');
+    } else {
+      materialCost = 175 * 0.3;
+      laborHours = 3;
+    }
+    
+    // Still apply texture if selected for repair
+    if (textureType !== 'none') {
+      let textureCost = 0;
+      const repairSqft = Math.min(drywallSqft, 100); // Cap texture calc for repairs
+      if (textureType === 'orange_peel') {
+        textureCost = repairSqft * getPrice('drywall', 'drywall_texture_orange_peel');
+      } else if (textureType === 'knockdown') {
+        textureCost = repairSqft * getPrice('drywall', 'drywall_texture_knockdown');
+      } else if (textureType === 'popcorn') {
+        textureCost = repairSqft * getPrice('drywall', 'drywall_texture_popcorn');
       }
-
-      materialCost *= regionalMultiplier;
-      equipmentCost = 100;
-      break;
+      materialCost += textureCost * 0.3;
+      laborHours += textureCost * 0.7 / getPrice('drywall', 'drywall_labor_rate');
+    }
+  }
+  
+  materialCost *= regionalMultiplier;
+  equipmentCost = 100; // lifts, scaffolding, sanders
+  
+  break;
+}
 
     // ========== SIDING - CALIBRATED ==========
     case 'siding':
