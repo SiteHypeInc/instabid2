@@ -767,9 +767,10 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
   const colorChangeDramatic = data.colorChangeDramatic === 'yes';
   
   // Initialize costs
-  let interiorCost = 0;
-  let exteriorCost = 0;
   let laborHours = 0;
+  let materialCost = 0;
+  let laborCost = 0;
+  let equipmentCost = 0;
   
   // Multipliers
   const coatMultiplier = { 1: 1.0, 2: 1.5, 3: 2.0 }[coats] || 1.5;
@@ -1135,7 +1136,9 @@ case 'plumbing': {
   const locationMultiplier = locationMultipliers[waterHeaterLocation] || 1.0;
   
   let laborHours = 0;
-  materialCost = 0;
+  let materialCost = 0;
+  let laborCost = 0;
+  let equipmentCost = 0;
   
   // ========== SERVICE TYPE: REPIPE ==========
   if (serviceType === 'repipe' && squareFeet > 0) {
