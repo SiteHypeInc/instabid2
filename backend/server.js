@@ -1074,18 +1074,7 @@ case 'electrical': {
   const laborCost = laborHours * laborRate;
   const totalCost = materialCost + laborCost + equipmentCost;
 
-  return {
-    trade: 'electrical',
-    serviceType,
-    materials: Math.round(materialCost * 100) / 100,
-    labor: Math.round(laborCost * 100) / 100,
-    laborHours: Math.round(laborHours * 100) / 100,
-    laborRate,
-    equipment: equipmentCost,
-    total: Math.round(totalCost * 100) / 100,
-    regionalMultiplier,
-    complexityMultiplier
-  };
+    break;
 }
 
    // ========== PLUMBING - SYNCED WITH DASHBOARD ==========
@@ -1139,6 +1128,7 @@ case 'plumbing': {
   let materialCost = 0;
   let laborCost = 0;
   let equipmentCost = 0;
+  console.log('🔧 PLUMBING DEBUG:', { serviceType, squareFeet });
   
   // ========== SERVICE TYPE: REPIPE ==========
   if (serviceType === 'repipe' && squareFeet > 0) {
