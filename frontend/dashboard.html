@@ -623,91 +623,99 @@ body {
     </div>
   </div>
 
-  <!-- Electrical Config Tab Content -->
+  <!-- ELECTRICAL CONFIG SECTION -->
 <div class="config-section tab-pane" id="electrical-section">
-  <h3>Electrical Pricing Configuration</h3>
+  <h3>Electrical Pricing</h3>
   
-  <div class="config-section">
-    <h4>Panel Upgrades</h4>
-    <div class="config-row">
-      <label>100 Amp Panel</label>
-      <input type="number" id="cfg-elec-panel-100" data-key="elec_panel_100" value="450" step="10">
-    </div>
-    <div class="config-row">
-      <label>200 Amp Panel</label>
-      <input type="number" id="cfg-elec-panel-200" data-key="elec_panel_200" value="550" step="10">
-    </div>
-    <div class="config-row">
-      <label>400 Amp Panel</label>
-      <input type="number" id="cfg-elec-panel-400" data-key="elec_panel_400" value="1200" step="10">
-    </div>
+  <h4>Labor</h4>
+  <div class="config-row">
+    <label>Labor Rate ($/hr)</label>
+    <input type="number" data-key="elec_labor_rate" step="0.01" placeholder="75.00">
   </div>
-
-  <div class="config-section">
-    <h4>Wire & Rewire</h4>
-    <div class="config-row">
-      <label>Wire Cost per Sqft (rewire)</label>
-      <input type="number" id="cfg-elec-wire-sqft" data-key="elec_wire_per_sqft" value="0.95" step="0.05">
-    </div>
+  
+  <h4>Wire & Rewire</h4>
+  <div class="config-row">
+    <label>Wire per Linear Foot ($)</label>
+    <input type="number" data-key="elec_wire_lf" step="0.01" placeholder="1.00">
   </div>
-
-  <div class="config-section">
-    <h4>Outlets & Switches</h4>
-    <div class="config-row">
-      <label>Standard Outlet</label>
-      <input type="number" id="cfg-elec-outlet" data-key="elec_outlet" value="12" step="1">
-    </div>
-    <div class="config-row">
-      <label>GFCI Outlet</label>
-      <input type="number" id="cfg-elec-gfci" data-key="elec_outlet_gfci" value="35" step="1">
-    </div>
-    <div class="config-row">
-      <label>Standard Switch</label>
-      <input type="number" id="cfg-elec-switch" data-key="elec_switch" value="10" step="1">
-    </div>
-    <div class="config-row">
-      <label>Dimmer Switch</label>
-      <input type="number" id="cfg-elec-dimmer" data-key="elec_switch_dimmer" value="50" step="1">
-    </div>
+  <div class="config-row">
+    <label>Full Rewire per Sqft ($)</label>
+    <input type="number" data-key="elec_rewire_sqft" step="0.01" placeholder="11.50">
   </div>
-
-  <div class="config-section">
-    <h4>Lighting</h4>
-    <div class="config-row">
-      <label>Recessed Light (can)</label>
-      <input type="number" id="cfg-elec-recessed" data-key="elec_recessed" value="55" step="1">
-    </div>
+  
+  <h4>Panel Upgrades</h4>
+  <div class="config-row">
+    <label>100A Panel ($)</label>
+    <input type="number" data-key="elec_panel_100" step="0.01" placeholder="450.00">
   </div>
-
-  <div class="config-section">
-    <h4>Dedicated Circuits</h4>
-    <div class="config-row">
-      <label>20 Amp Circuit</label>
-      <input type="number" id="cfg-elec-circuit-20" data-key="elec_circuit_20a" value="95" step="5">
-    </div>
-    <div class="config-row">
-      <label>30 Amp Circuit</label>
-      <input type="number" id="cfg-elec-circuit-30" data-key="elec_circuit_30a" value="130" step="5">
-    </div>
-    <div class="config-row">
-      <label>50 Amp Circuit</label>
-      <input type="number" id="cfg-elec-circuit-50" data-key="elec_circuit_50a" value="185" step="5">
-    </div>
+  <div class="config-row">
+    <label>200A Panel ($)</label>
+    <input type="number" data-key="elec_panel_200" step="0.01" placeholder="550.00">
   </div>
-
-  <div class="config-section">
-    <h4>Specialty</h4>
-    <div class="config-row">
-      <label>EV Charger Install</label>
-      <input type="number" id="cfg-elec-ev" data-key="elec_ev_charger" value="350" step="10">
-    </div>
-    <div class="config-row">
-      <label>Permit Fee</label>
-      <input type="number" id="cfg-elec-permit" data-key="elec_permit" value="200" step="10">
-    </div>
+  <div class="config-row">
+    <label>400A Panel ($)</label>
+    <input type="number" data-key="elec_panel_400" step="0.01" placeholder="1200.00">
   </div>
-
-  <button class="save-config-btn" onclick="saveConfig('electrical')">Save Electrical Pricing</button>
+  
+  <h4>Outlets & Switches</h4>
+  <div class="config-row">
+    <label>Standard Outlet ($)</label>
+    <input type="number" data-key="elec_outlet" step="0.01" placeholder="12.00">
+  </div>
+  <div class="config-row">
+    <label>GFCI Outlet ($)</label>
+    <input type="number" data-key="elec_outlet_gfci" step="0.01" placeholder="35.00">
+  </div>
+  <div class="config-row">
+    <label>Standard Switch ($)</label>
+    <input type="number" data-key="elec_switch" step="0.01" placeholder="10.00">
+  </div>
+  <div class="config-row">
+    <label>Dimmer Switch ($)</label>
+    <input type="number" data-key="elec_switch_dimmer" step="0.01" placeholder="50.00">
+  </div>
+  
+  <h4>Lighting Installation (Labor Only - Customer Provided)</h4>
+  <div class="config-row">
+    <label>Light Fixture Install ($)</label>
+    <input type="number" data-key="elec_light_install" step="0.01" placeholder="35.00">
+  </div>
+  <div class="config-row">
+    <label>Recessed Light Install ($)</label>
+    <input type="number" data-key="elec_recessed_install" step="0.01" placeholder="75.00">
+  </div>
+  <div class="config-row">
+    <label>Ceiling Fan Install ($)</label>
+    <input type="number" data-key="elec_ceiling_fan_install" step="0.01" placeholder="200.00">
+  </div>
+  <div class="config-row">
+    <label>Recessed Light (Material + Install) ($)</label>
+    <input type="number" data-key="elec_recessed" step="0.01" placeholder="55.00">
+  </div>
+  
+  <h4>Dedicated Circuits</h4>
+  <div class="config-row">
+    <label>20A Circuit ($)</label>
+    <input type="number" data-key="elec_circuit_20a" step="0.01" placeholder="95.00">
+  </div>
+  <div class="config-row">
+    <label>30A Circuit ($)</label>
+    <input type="number" data-key="elec_circuit_30a" step="0.01" placeholder="130.00">
+  </div>
+  <div class="config-row">
+    <label>50A Circuit ($)</label>
+    <input type="number" data-key="elec_circuit_50a" step="0.01" placeholder="185.00">
+  </div>
+  
+  <h4>Specialty</h4>
+  <div class="config-row">
+    <label>EV Charger Install ($)</label>
+    <input type="number" data-key="elec_ev_charger" step="0.01" placeholder="350.00">
+  </div>
+  <div class="config-row">
+    <label>Permit ($)</label>
+    <input type="number" data-key="elec_permit" step="0.01" placeholder="200.00">
+  </div>
 </div>
 
   <!-- ============================================ -->
