@@ -1087,56 +1087,201 @@ case 'electrical': {
   };
 }
 
-    // ========== PLUMBING - CALIBRATED ==========
-    // ========== PLUMBING - CALIBRATED ==========
-case 'plumbing':
-  const plumbServiceType = (data.plumbingType || data.serviceType || data.workType || 'fixture').toLowerCase();
-  const fixtureType = (data.fixtureType || 'toilet').toLowerCase();
-  const plumbFixtureCount = parseInt(data.fixtureCount || data.fixtures) || 1;
-  const plumbSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
-  const waterHeaterType = (data.waterHeaterType || data.heaterType || (data.tankless === 'yes' ? 'tankless' : 'tank')).toLowerCase();
-
-      if (plumbServiceType === 'fixture') {
-        const fixtureCosts = { 
-          'toilet': getPrice('plumbing', 'plumb_toilet'), 
-          'sink': getPrice('plumbing', 'plumb_sink'), 
-          'shower': getPrice('plumbing', 'plumb_shower'), 
-          'tub': getPrice('plumbing', 'plumb_tub'), 
-          'dishwasher': getPrice('plumbing', 'plumb_dishwasher') 
-        };
-        const laborPerFixture = { 
-          'toilet': 3.5,  // was 3
-          'sink': 3,      // was 2.5
-          'shower': 8,    // was 6
-          'tub': 10,      // was 8
-          'dishwasher': 2.5 // was 2
-        };
-        
-        materialCost = (fixtureCosts[fixtureType] || 425) * plumbFixtureCount + 125;
-        laborHours = (laborPerFixture[fixtureType] || 3.5) * plumbFixtureCount;
-        
-      } else if (plumbServiceType === 'repipe' && plumbSqft > 0) {
-        const pipeFeet = plumbSqft * 0.5;
-        materialCost = pipeFeet * 3.00 + 150; // was 2.50
-        laborHours = (plumbSqft / 100) * 5; // was 4
-        
-      } else if (plumbServiceType === 'waterheater' || plumbServiceType === 'water_heater') {
-        // CALIBRATED: John said tankless = $3k total
-        if (waterHeaterType === 'tankless') {
-          materialCost = getPrice('plumbing', 'plumb_heater_tankless') + 200; // unit + supplies
-          laborHours = 12; // was 8
-        } else {
-          materialCost = getPrice('plumbing', 'plumb_heater_tank') + 150;
-          laborHours = 8; // was 6
-        }
+   // ========== PLUMBING - SYNCED WITH DASHBOARD ==========
+case 'plumbing': {
+  const serviceType = (data.serviceType || 'general').toLowerCase();
+  const squareFeet = parseFloat(data.squareFeet) || 0;
+  const stories = parseInt(data.stories) || 1;
+  const bathrooms = parseInt(data.bathrooms) || 1;
+  const kitchens = parseInt(data.kitchens) || 1;
+  const laundryRooms = parseInt(data.laundryRooms) || 0;
+  
+  // Access & location
+  const accessType = (data.accessType || 'basement').toLowerCase();
+  const heaterType = (data.heaterType || 'tank').toLowerCase();
+  const waterHeaterLocation = (data.waterHeaterLocation || 'garage').toLowerCase();
+  
+  // Add-ons (yes/no fields)
+  const gasLineNeeded = data.gasLineNeeded === 'yes';
+  const mainLineReplacement = data.mainLineReplacement === 'yes';
+  const garbageDisposal = data.garbageDisposal === 'yes';
+  const iceMaker = data.iceMaker === 'yes';
+  const waterSoftener = data.waterSoftener === 'yes';
+  
+  // Fixture counts
+  const toiletCount = parseInt(data.toiletCount) || 0;
+  const sinkCount = parseInt(data.sinkCount) || 0;
+  const faucetCount = parseInt(data.faucetCount) || 0;
+  const tubShowerCount = parseInt(data.tubShowerCount) || 0;
+  
+  // Get labor rate
+  const laborRate = getPrice('plumbing', 'plumb_labor_rate');
+  
+  // Access multiplier
+  const accessMultipliers = {
+    'basement': getPrice('plumbing', 'plumb_access_basement'),
+    'crawlspace': getPrice('plumbing', 'plumb_access_crawlspace'),
+    'slab': getPrice('plumbing', 'plumb_access_slab')
+  };
+  const accessMultiplier = accessMultipliers[accessType] || 1.0;
+  
+  // Location multiplier (for water heater)
+  const locationMultipliers = {
+    'garage': getPrice('plumbing', 'plumb_location_garage'),
+    'basement': getPrice('plumbing', 'plumb_location_basement'),
+    'closet': getPrice('plumbing', 'plumb_location_closet'),
+    'attic': getPrice('plumbing', 'plumb_location_attic')
+  };
+  const locationMultiplier = locationMultipliers[waterHeaterLocation] || 1.0;
+  
+  let laborHours = 0;
+  materialCost = 0;
+  
+  // ========== SERVICE TYPE: REPIPE ==========
+  if (serviceType === 'repipe' && squareFeet > 0) {
+    // Estimate pipe linear feet: ~0.5 LF per sqft + extra for bathrooms/kitchens
+    const basePipeFeet = squareFeet * 0.5;
+    const fixturePipeFeet = (bathrooms * 25) + (kitchens * 30) + (laundryRooms * 15);
+    const totalPipeFeet = basePipeFeet + fixturePipeFeet;
+    
+    // PEX is standard now
+    const pexCostPerFoot = getPrice('plumbing', 'plumb_repipe_pex_lf');
+    materialCost = totalPipeFeet * pexCostPerFoot;
+    
+    // Fittings & valves: ~30% of pipe cost
+    materialCost += materialCost * 0.30;
+    
+    // Shutoff valves: 2 per bathroom, 2 per kitchen, 1 per laundry
+    const valveCount = (bathrooms * 2) + (kitchens * 2) + laundryRooms;
+    materialCost += valveCount * 25; // $25 per valve
+    
+    // Labor: 5 hours per 100 sqft base
+    laborHours = (squareFeet / 100) * 5;
+    
+    // Story multiplier for labor
+    if (stories >= 2) laborHours *= 1.2;
+    if (stories >= 3) laborHours *= 1.15; // additional
+    
+    // Access multiplier
+    laborHours *= accessMultiplier;
+    
+    // Main line replacement add-on
+    if (mainLineReplacement) {
+      materialCost += getPrice('plumbing', 'plumb_main_line') * 0.4; // 40% materials
+      laborHours += getPrice('plumbing', 'plumb_main_line') * 0.6 / laborRate; // 60% labor
+    }
+  }
+  
+  // ========== SERVICE TYPE: WATER HEATER ==========
+  else if (serviceType === 'water_heater') {
+    if (heaterType === 'tankless') {
+      // Check if gas or electric based on gasLineNeeded
+      if (gasLineNeeded) {
+        materialCost = getPrice('plumbing', 'plumb_heater_tankless_gas');
+        laborHours = 10; // Gas tankless takes longer
       } else {
-        materialCost = 400;
-        laborHours = 4;
+        materialCost = getPrice('plumbing', 'plumb_heater_tankless_elec');
+        laborHours = 8;
       }
-
-      materialCost *= regionalMultiplier;
-      equipmentCost = 125;
-      break;
+    } else {
+      // Tank water heater - assume 50 gal standard
+      materialCost = getPrice('plumbing', 'plumb_heater_tank_50');
+      laborHours = 6;
+    }
+    
+    // Location multiplier affects labor
+    laborHours *= locationMultiplier;
+    
+    // Supplies (flex lines, fittings, etc.)
+    materialCost += 150;
+    
+    // Gas line add-on if needed
+    if (gasLineNeeded) {
+      materialCost += getPrice('plumbing', 'plumb_gas_line_new');
+      laborHours += 4;
+    }
+  }
+  
+  // ========== SERVICE TYPE: FIXTURE ==========
+  else if (serviceType === 'fixture') {
+    // Toilets
+    if (toiletCount > 0) {
+      materialCost += getPrice('plumbing', 'plumb_toilet') * toiletCount;
+      laborHours += 2.5 * toiletCount;
+    }
+    
+    // Sinks (assume mix of bath/kitchen)
+    if (sinkCount > 0) {
+      const avgSinkCost = (getPrice('plumbing', 'plumb_sink_bath') + getPrice('plumbing', 'plumb_sink_kitchen')) / 2;
+      materialCost += avgSinkCost * sinkCount;
+      laborHours += 3 * sinkCount;
+    }
+    
+    // Faucets (assume mix)
+    if (faucetCount > 0) {
+      const avgFaucetCost = (getPrice('plumbing', 'plumb_faucet_bath') + getPrice('plumbing', 'plumb_faucet_kitchen')) / 2;
+      materialCost += avgFaucetCost * faucetCount;
+      laborHours += 1.5 * faucetCount;
+    }
+    
+    // Tubs/Showers
+    if (tubShowerCount > 0) {
+      materialCost += getPrice('plumbing', 'plumb_tub') * tubShowerCount;
+      laborHours += 6 * tubShowerCount;
+    }
+    
+    // Access multiplier on labor
+    laborHours *= accessMultiplier;
+    
+    // Minimum 2 hours for any fixture job
+    laborHours = Math.max(laborHours, 2);
+  }
+  
+  // ========== SERVICE TYPE: GENERAL ==========
+  else {
+    // General plumbing - service call + estimated work
+    materialCost = getPrice('plumbing', 'plumb_service_call');
+    laborHours = 2; // Base service call
+    
+    // Handle add-ons
+    if (garbageDisposal) {
+      materialCost += getPrice('plumbing', 'plumb_garbage_disposal');
+      laborHours += 1.5;
+    }
+    
+    if (iceMaker) {
+      materialCost += getPrice('plumbing', 'plumb_ice_maker');
+      laborHours += 1;
+    }
+    
+    if (waterSoftener) {
+      materialCost += getPrice('plumbing', 'plumb_water_softener');
+      laborHours += 4;
+    }
+    
+    if (mainLineReplacement) {
+      materialCost += getPrice('plumbing', 'plumb_main_line');
+      laborHours += 8;
+    }
+    
+    if (gasLineNeeded) {
+      materialCost += getPrice('plumbing', 'plumb_gas_line_new');
+      laborHours += 4;
+    }
+  }
+  
+  // Calculate labor cost
+  laborCost = laborHours * laborRate;
+  
+  // Apply regional multiplier
+  materialCost *= regionalMultiplier;
+  laborCost *= regionalMultiplier;
+  
+  // Equipment (tools, truck stock)
+  equipmentCost = 75;
+  
+  break;
+}
 
     // ========== FLOORING - CALIBRATED ==========
     case 'flooring':

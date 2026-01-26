@@ -718,93 +718,162 @@ body {
   </div>
 </div>
 
-  <!-- ============================================ -->
-  <!-- PLUMBING SECTION (15 fields) -->
-  <!-- ============================================ -->
-  <div class="config-section tab-pane" id="plumbing-section">
-    <h3>🔧 Plumbing Configuration</h3>
-    
-    <h4>Fixture Installation</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="plumb_toilet">Toilet</label>
-        <input type="number" id="plumb_toilet" step="1" placeholder="425">
-      </div>
-      <div class="input-group">
-        <label for="plumb_sink">Sink</label>
-        <input type="number" id="plumb_sink" step="1" placeholder="500">
-      </div>
-      <div class="input-group">
-        <label for="plumb_shower">Shower</label>
-        <input type="number" id="plumb_shower" step="1" placeholder="1500">
-      </div>
-      <div class="input-group">
-        <label for="plumb_tub">Bathtub</label>
-        <input type="number" id="plumb_tub" step="1" placeholder="1800">
-      </div>
-      <div class="input-group">
-        <label for="plumb_dishwasher">Dishwasher</label>
-        <input type="number" id="plumb_dishwasher" step="1" placeholder="400">
-      </div>
+  <!-- ========== PLUMBING PRICING ========== -->
+<div class="config-section tab-pane" id="plumbing-section">
+  <h3>🔧 Plumbing Pricing</h3>
+  
+  <h4>Labor Rates</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Standard Labor (per hour)</label>
+      <input type="number" id="plumb_labor_rate" value="95" step="5">
     </div>
-
-    <h4>Water Systems</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="plumb_heater_tank">Tank Water Heater</label>
-        <input type="number" id="plumb_heater_tank" step="1" placeholder="2400">
-      </div>
-      <div class="input-group">
-        <label for="plumb_heater_tankless">Tankless (unit only)</label>
-        <input type="number" id="plumb_heater_tankless" step="1" placeholder="1800">
-      </div>
-      <div class="input-group">
-        <label for="plumb_sump">Sump Pump</label>
-        <input type="number" id="plumb_sump" step="1" placeholder="1100">
-      </div>
-      <div class="input-group">
-        <label for="plumb_softener">Water Softener</label>
-        <input type="number" id="plumb_softener" step="1" placeholder="1800">
-      </div>
+    <div class="config-item">
+      <label>Emergency Labor (per hour)</label>
+      <input type="number" id="plumb_labor_emergency" value="175" step="5">
     </div>
-
-    <h4>Pipes & Drains</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="plumb_pipe_repair">Pipe Repair (per LF)</label>
-        <input type="number" id="plumb_pipe_repair" step="1" placeholder="65">
-      </div>
-      <div class="input-group">
-        <label for="plumb_pipe_replace">Pipe Replace (per LF)</label>
-        <input type="number" id="plumb_pipe_replace" step="1" placeholder="95">
-      </div>
-      <div class="input-group">
-        <label for="plumb_drain">Drain Cleaning</label>
-        <input type="number" id="plumb_drain" step="1" placeholder="325">
-      </div>
-      <div class="input-group">
-        <label for="plumb_sewer">Sewer Line (per LF)</label>
-        <input type="number" id="plumb_sewer" step="1" placeholder="165">
-      </div>
-    </div>
-
-    <h4>Labor Rates (per hour)</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="plumb_labor_std">Standard Labor</label>
-        <input type="number" id="plumb_labor_std" step="1" placeholder="110">
-      </div>
-      <div class="input-group">
-        <label for="plumb_labor_emerg">Emergency Labor</label>
-        <input type="number" id="plumb_labor_emerg" step="1" placeholder="165">
-      </div>
-    </div>
-
-    <div class="section-actions">
-      <button class="btn-save" onclick="saveConfig('plumbing')">💾 Save Plumbing Config</button>
-      <span id="plumbing-status" class="status-message"></span>
+    <div class="config-item">
+      <label>Service Call Fee</label>
+      <input type="number" id="plumb_service_call" value="95" step="5">
     </div>
   </div>
+  
+  <h4>Fixture Installation (includes basic materials)</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Toilet Install</label>
+      <input type="number" id="plumb_toilet" value="375" step="25">
+    </div>
+    <div class="config-item">
+      <label>Bathroom Sink Install</label>
+      <input type="number" id="plumb_sink_bath" value="350" step="25">
+    </div>
+    <div class="config-item">
+      <label>Kitchen Sink Install</label>
+      <input type="number" id="plumb_sink_kitchen" value="550" step="25">
+    </div>
+    <div class="config-item">
+      <label>Bathroom Faucet Install</label>
+      <input type="number" id="plumb_faucet_bath" value="225" step="25">
+    </div>
+    <div class="config-item">
+      <label>Kitchen Faucet Install</label>
+      <input type="number" id="plumb_faucet_kitchen" value="300" step="25">
+    </div>
+    <div class="config-item">
+      <label>Shower Valve Install</label>
+      <input type="number" id="plumb_shower_valve" value="450" step="25">
+    </div>
+    <div class="config-item">
+      <label>Tub Install</label>
+      <input type="number" id="plumb_tub" value="1200" step="50">
+    </div>
+    <div class="config-item">
+      <label>Dishwasher Hookup</label>
+      <input type="number" id="plumb_dishwasher" value="200" step="25">
+    </div>
+    <div class="config-item">
+      <label>Garbage Disposal Install</label>
+      <input type="number" id="plumb_garbage_disposal" value="325" step="25">
+    </div>
+    <div class="config-item">
+      <label>Ice Maker Line</label>
+      <input type="number" id="plumb_ice_maker" value="150" step="25">
+    </div>
+  </div>
+  
+  <h4>Water Heaters (installed)</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Tank 40 gal</label>
+      <input type="number" id="plumb_heater_tank_40" value="1200" step="50">
+    </div>
+    <div class="config-item">
+      <label>Tank 50 gal</label>
+      <input type="number" id="plumb_heater_tank_50" value="1600" step="50">
+    </div>
+    <div class="config-item">
+      <label>Tankless Gas</label>
+      <input type="number" id="plumb_heater_tankless_gas" value="3500" step="100">
+    </div>
+    <div class="config-item">
+      <label>Tankless Electric</label>
+      <input type="number" id="plumb_heater_tankless_elec" value="2200" step="100">
+    </div>
+  </div>
+  
+  <h4>Water Systems</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Water Softener Install</label>
+      <input type="number" id="plumb_water_softener" value="1800" step="100">
+    </div>
+    <div class="config-item">
+      <label>Sump Pump Install</label>
+      <input type="number" id="plumb_sump_pump" value="650" step="50">
+    </div>
+  </div>
+  
+  <h4>Repipe (per linear foot)</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>PEX Pipe</label>
+      <input type="number" id="plumb_repipe_pex_lf" value="2.50" step="0.25">
+    </div>
+    <div class="config-item">
+      <label>Copper Pipe</label>
+      <input type="number" id="plumb_repipe_copper_lf" value="4.50" step="0.25">
+    </div>
+  </div>
+  
+  <h4>Major Jobs</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Main Line Replacement</label>
+      <input type="number" id="plumb_main_line" value="1200" step="100">
+    </div>
+    <div class="config-item">
+      <label>New Gas Line</label>
+      <input type="number" id="plumb_gas_line_new" value="500" step="50">
+    </div>
+  </div>
+  
+  <h4>Access Type Multipliers</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Basement (easy)</label>
+      <input type="number" id="plumb_access_basement" value="1.0" step="0.05">
+    </div>
+    <div class="config-item">
+      <label>Crawlspace</label>
+      <input type="number" id="plumb_access_crawlspace" value="1.15" step="0.05">
+    </div>
+    <div class="config-item">
+      <label>Slab (hardest)</label>
+      <input type="number" id="plumb_access_slab" value="1.35" step="0.05">
+    </div>
+  </div>
+  
+  <h4>Water Heater Location Multipliers</h4>
+  <div class="config-grid">
+    <div class="config-item">
+      <label>Garage</label>
+      <input type="number" id="plumb_location_garage" value="1.0" step="0.05">
+    </div>
+    <div class="config-item">
+      <label>Basement</label>
+      <input type="number" id="plumb_location_basement" value="1.0" step="0.05">
+    </div>
+    <div class="config-item">
+      <label>Closet</label>
+      <input type="number" id="plumb_location_closet" value="1.1" step="0.05">
+    </div>
+    <div class="config-item">
+      <label>Attic (hardest)</label>
+      <input type="number" id="plumb_location_attic" value="1.25" step="0.05">
+    </div>
+  </div>
+</div>
 
   <!-- ============================================ -->
   <!-- FLOORING SECTION (19 fields) -->

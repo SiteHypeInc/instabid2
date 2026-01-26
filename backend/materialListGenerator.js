@@ -462,133 +462,294 @@ case 'siding': {
   };
 }
     // ============================================
-    // 3. PLUMBING
-    // ============================================
-    case 'plumbing': {
-      const {
-        serviceType = 'fixture',
-        fixtureType = 'toilet',
-        fixtureCount = 1,
-        squareFeet = 0,
-        pipeType = 'PEX',
-        waterHeaterType = 'tank',
-        drainLength = 0,
-        sewerLength = 0,
-        homeAge = 'modern'
-      } = criteria;
+// PLUMBING - SYNCED WITH SERVER.JS
+// ============================================
+case 'plumbing': {
+  const {
+    serviceType = 'general',
+    squareFeet = 0,
+    stories = 1,
+    bathrooms = 1,
+    kitchens = 1,
+    laundryRooms = 0,
+    accessType = 'basement',
+    heaterType = 'tank',
+    waterHeaterLocation = 'garage',
+    gasLineNeeded = 'no',
+    mainLineReplacement = 'no',
+    garbageDisposal = 'no',
+    iceMaker = 'no',
+    waterSoftener = 'no',
+    toiletCount = 0,
+    sinkCount = 0,
+    faucetCount = 0,
+    tubShowerCount = 0
+  } = criteria;
 
-      let laborHours = 0;
-      const materialList = [];
+  const materialList = [];
+  let laborHours = 0;
+  const laborRate = 95; // default
 
-      // Fixtures
-      if (serviceType === 'fixture') {
-        const fixtureCosts = {
-          'toilet': 350, 'sink': 400, 'shower': 1200, 'tub': 1500, 'dishwasher': 300
-        };
-        const laborPerFixture = {
-          'toilet': 3, 'sink': 2.5, 'shower': 6, 'tub': 8, 'dishwasher': 2
-        };
+  // Access multiplier
+  const accessMultipliers = { 'basement': 1.0, 'crawlspace': 1.15, 'slab': 1.35 };
+  const accessMult = accessMultipliers[accessType] || 1.0;
+  
+  // Location multiplier
+  const locationMultipliers = { 'garage': 1.0, 'basement': 1.0, 'closet': 1.1, 'attic': 1.25 };
+  const locationMult = locationMultipliers[waterHeaterLocation] || 1.0;
 
-        materialList.push({
-          item: `${fixtureType.charAt(0).toUpperCase() + fixtureType.slice(1)} Installation`,
-          quantity: fixtureCount,
-          unit: 'fixtures',
-          unitCost: fixtureCosts[fixtureType] || 350,
-          totalCost: (fixtureCosts[fixtureType] || 350) * fixtureCount,
-          category: 'fixtures'
-        });
-
-        laborHours = (laborPerFixture[fixtureType] || 3) * fixtureCount;
-      }
-
-      // Repipe
-      if (serviceType === 'repipe' && squareFeet > 0) {
-        const pipeFeet = squareFeet * 0.5;
-        const pipeCosts = { 'PEX': 2.50, 'copper': 4.50, 'PVC': 1.50 };
-        const pipeCostPerFoot = pipeCosts[pipeType] || 2.50;
-
-        materialList.push({
-          item: `${pipeType} Pipe`,
-          quantity: Math.ceil(pipeFeet),
-          unit: 'linear feet',
-          unitCost: pipeCostPerFoot,
-          totalCost: pipeFeet * pipeCostPerFoot,
-          category: 'pipes'
-        });
-
-        const fittingsCost = pipeFeet * pipeCostPerFoot * 0.3;
-        materialList.push({
-          item: 'Fittings & Valves',
-          quantity: 1,
-          unit: 'set',
-          unitCost: fittingsCost,
-          totalCost: fittingsCost,
-          category: 'fittings'
-        });
-
-        laborHours = (squareFeet / 100) * 4;
-        if (homeAge === 'old') laborHours *= 1.3;
-      }
-
-      // Water heater
-      if (serviceType === 'water_heater') {
-        const heaterCost = waterHeaterType === 'tankless' ? 3200 : 1800;
-        materialList.push({
-          item: waterHeaterType === 'tankless' ? 'Tankless Water Heater' : 'Tank Water Heater',
-          quantity: 1,
-          unit: 'unit',
-          unitCost: heaterCost,
-          totalCost: heaterCost,
-          category: 'water_heaters'
-        });
-        laborHours = waterHeaterType === 'tankless' ? 8 : 6;
-      }
-
-      // Drain
-      if (serviceType === 'drain' && drainLength > 0) {
-        materialList.push({
-          item: 'Drain Cleaning',
-          quantity: drainLength,
-          unit: 'linear feet',
-          unitCost: 250 / drainLength,
-          totalCost: 250,
-          category: 'drains'
-        });
-        laborHours = 2;
-      }
-
-      // Sewer
-      if (serviceType === 'sewer' && sewerLength > 0) {
-        materialList.push({
-          item: 'Sewer Line Replacement',
-          quantity: sewerLength,
-          unit: 'linear feet',
-          unitCost: 125,
-          totalCost: sewerLength * 125,
-          category: 'drains'
-        });
-        laborHours = sewerLength / 10;
-      }
-
-      // Misc supplies
+  // ========== REPIPE ==========
+  if (serviceType === 'repipe' && squareFeet > 0) {
+    const basePipeFeet = squareFeet * 0.5;
+    const fixturePipeFeet = (bathrooms * 25) + (kitchens * 30) + (laundryRooms * 15);
+    const totalPipeFeet = Math.ceil(basePipeFeet + fixturePipeFeet);
+    
+    materialList.push({
+      item: 'PEX Pipe',
+      quantity: totalPipeFeet,
+      unit: 'linear feet',
+      unitCost: 2.50,
+      totalCost: totalPipeFeet * 2.50,
+      category: 'Pipe'
+    });
+    
+    const fittingsCost = totalPipeFeet * 2.50 * 0.30;
+    materialList.push({
+      item: 'Fittings & Connectors',
+      quantity: 1,
+      unit: 'set',
+      unitCost: fittingsCost,
+      totalCost: fittingsCost,
+      category: 'Pipe'
+    });
+    
+    const valveCount = (bathrooms * 2) + (kitchens * 2) + laundryRooms;
+    materialList.push({
+      item: 'Shutoff Valves',
+      quantity: valveCount,
+      unit: 'valves',
+      unitCost: 25,
+      totalCost: valveCount * 25,
+      category: 'Pipe'
+    });
+    
+    laborHours = (squareFeet / 100) * 5;
+    if (stories >= 2) laborHours *= 1.2;
+    if (stories >= 3) laborHours *= 1.15;
+    laborHours *= accessMult;
+    
+    if (mainLineReplacement === 'yes') {
       materialList.push({
-        item: 'Misc Plumbing Supplies',
+        item: 'Main Line Replacement',
         quantity: 1,
-        unit: 'set',
-        unitCost: 100,
-        totalCost: 100,
-        category: 'supplies'
+        unit: 'job',
+        unitCost: 1200,
+        totalCost: 1200,
+        category: 'Main Line'
       });
-
-      const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
-
-      return {
-        trade: 'plumbing',
-        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-        laborHours: Math.round(laborHours * 100) / 100,
-        materialList
-      };
+      laborHours += 8;
     }
+  }
+  
+  // ========== WATER HEATER ==========
+  else if (serviceType === 'water_heater') {
+    let heaterCost, heaterName;
+    
+    if (heaterType === 'tankless') {
+      if (gasLineNeeded === 'yes') {
+        heaterCost = 3500;
+        heaterName = 'Tankless Water Heater (Gas)';
+        laborHours = 10;
+      } else {
+        heaterCost = 2200;
+        heaterName = 'Tankless Water Heater (Electric)';
+        laborHours = 8;
+      }
+    } else {
+      heaterCost = 1600;
+      heaterName = 'Tank Water Heater (50 gal)';
+      laborHours = 6;
+    }
+    
+    materialList.push({
+      item: heaterName,
+      quantity: 1,
+      unit: 'unit',
+      unitCost: heaterCost,
+      totalCost: heaterCost,
+      category: 'Water Heater'
+    });
+    
+    materialList.push({
+      item: 'Installation Supplies (flex lines, fittings)',
+      quantity: 1,
+      unit: 'set',
+      unitCost: 150,
+      totalCost: 150,
+      category: 'Water Heater'
+    });
+    
+    laborHours *= locationMult;
+    
+    if (gasLineNeeded === 'yes') {
+      materialList.push({
+        item: 'Gas Line Installation',
+        quantity: 1,
+        unit: 'job',
+        unitCost: 500,
+        totalCost: 500,
+        category: 'Gas'
+      });
+      laborHours += 4;
+    }
+  }
+  
+  // ========== FIXTURE ==========
+  else if (serviceType === 'fixture') {
+    if (toiletCount > 0) {
+      materialList.push({
+        item: 'Toilet Installation',
+        quantity: toiletCount,
+        unit: 'fixtures',
+        unitCost: 375,
+        totalCost: 375 * toiletCount,
+        category: 'Fixtures'
+      });
+      laborHours += 2.5 * toiletCount;
+    }
+    
+    if (sinkCount > 0) {
+      materialList.push({
+        item: 'Sink Installation',
+        quantity: sinkCount,
+        unit: 'fixtures',
+        unitCost: 450,
+        totalCost: 450 * sinkCount,
+        category: 'Fixtures'
+      });
+      laborHours += 3 * sinkCount;
+    }
+    
+    if (faucetCount > 0) {
+      materialList.push({
+        item: 'Faucet Installation',
+        quantity: faucetCount,
+        unit: 'fixtures',
+        unitCost: 262,
+        totalCost: 262 * faucetCount,
+        category: 'Fixtures'
+      });
+      laborHours += 1.5 * faucetCount;
+    }
+    
+    if (tubShowerCount > 0) {
+      materialList.push({
+        item: 'Tub/Shower Installation',
+        quantity: tubShowerCount,
+        unit: 'fixtures',
+        unitCost: 1200,
+        totalCost: 1200 * tubShowerCount,
+        category: 'Fixtures'
+      });
+      laborHours += 6 * tubShowerCount;
+    }
+    
+    laborHours *= accessMult;
+    laborHours = Math.max(laborHours, 2);
+  }
+  
+  // ========== GENERAL ==========
+  else {
+    materialList.push({
+      item: 'Service Call',
+      quantity: 1,
+      unit: 'visit',
+      unitCost: 95,
+      totalCost: 95,
+      category: 'Service'
+    });
+    laborHours = 2;
+    
+    if (garbageDisposal === 'yes') {
+      materialList.push({
+        item: 'Garbage Disposal Installation',
+        quantity: 1,
+        unit: 'unit',
+        unitCost: 325,
+        totalCost: 325,
+        category: 'Add-ons'
+      });
+      laborHours += 1.5;
+    }
+    
+    if (iceMaker === 'yes') {
+      materialList.push({
+        item: 'Ice Maker Line Installation',
+        quantity: 1,
+        unit: 'line',
+        unitCost: 150,
+        totalCost: 150,
+        category: 'Add-ons'
+      });
+      laborHours += 1;
+    }
+    
+    if (waterSoftener === 'yes') {
+      materialList.push({
+        item: 'Water Softener Installation',
+        quantity: 1,
+        unit: 'unit',
+        unitCost: 1800,
+        totalCost: 1800,
+        category: 'Add-ons'
+      });
+      laborHours += 4;
+    }
+    
+    if (mainLineReplacement === 'yes') {
+      materialList.push({
+        item: 'Main Line Replacement',
+        quantity: 1,
+        unit: 'job',
+        unitCost: 1200,
+        totalCost: 1200,
+        category: 'Main Line'
+      });
+      laborHours += 8;
+    }
+    
+    if (gasLineNeeded === 'yes') {
+      materialList.push({
+        item: 'Gas Line Installation',
+        quantity: 1,
+        unit: 'job',
+        unitCost: 500,
+        totalCost: 500,
+        category: 'Gas'
+      });
+      laborHours += 4;
+    }
+  }
+  
+  // Labor line item
+  materialList.push({
+    item: `Plumbing Labor (${accessType} access)`,
+    quantity: Math.round(laborHours * 10) / 10,
+    unit: 'hours',
+    unitCost: laborRate,
+    totalCost: Math.round(laborHours * laborRate * 100) / 100,
+    category: 'Labor'
+  });
+
+  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+
+  return {
+    trade: 'plumbing',
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    laborHours: Math.round(laborHours * 10) / 10,
+    materialList
+  };
+}
 
    // ============================================
 // PAINTING - SYNCED WITH FORM & SERVER.JS

@@ -1,319 +1,222 @@
-const axios = require('axios');
-const fs = require('fs');
+// ============================================
+// INSTABID TRADE TESTER
+// Runs 5 estimates per trade across different states
+// ============================================
 
-const API_URL = 'https://roofbid-backend-production.up.railway.app';
+const fetch = require('node-fetch');
+const API_BASE = 'https://roofbid-backend-production.up.railway.app';
 const API_KEY = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
 
-const testCases = [
-  // ROOFING TESTS
-  {
-    trade: 'roofing',
-    customerName: 'Test Roofer 1',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '123 Main St',
-    city: 'Phoenix',
-    state: 'AZ',
-    zipCode: '85001',
-    squareFeet: '2000',
-    pitch: '6/12',
-    stories: '1',
-    material: 'Architectural Shingles ($3.50/sqft)',
-    existingRoofType: 'asphalt',
-    needsPlywood: 'no',
-    layers: '1',
-    valleys: '2',
-    chimneys: '1',
-    skylights: '0',
-    ridgeVentFeet: '40'
-  },
-  {
-    trade: 'roofing',
-    customerName: 'Cache Test - High Cost CA',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '123 Test St',
-    city: 'Los Angeles',
-    state: 'CA',
-    zipCode: '90001',
-    squareFeet: '2000',
-    pitch: '6/12',
-    stories: '1',
-    material: 'Architectural Shingles ($3.50/sqft)',
-    existingRoofType: 'asphalt',
-    needsPlywood: 'no',
-    layers: '1',
-    valleys: '2',
-    chimneys: '1',
-    skylights: '0',
-    ridgeVentFeet: '40',
-    _expectedMultiplier: 1.35
-  },
-  {
-    trade: 'roofing',
-    customerName: 'Cache Test - Low Cost TX',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '456 Test St',
-    city: 'Dallas',
-    state: 'TX',
-    zipCode: '75201',
-    squareFeet: '2000',
-    pitch: '6/12',
-    stories: '1',
-    material: 'Architectural Shingles ($3.50/sqft)',
-    existingRoofType: 'asphalt',
-    needsPlywood: 'no',
-    layers: '1',
-    valleys: '2',
-    chimneys: '1',
-    skylights: '0',
-    ridgeVentFeet: '40',
-    _expectedMultiplier: 1.05
-  },
-  {
-    trade: 'roofing',
-    customerName: 'Cache Test - Cheapest MS',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '789 Test St',
-    city: 'Jackson',
-    state: 'MS',
-    zipCode: '39201',
-    squareFeet: '2000',
-    pitch: '6/12',
-    stories: '1',
-    material: 'Architectural Shingles ($3.50/sqft)',
-    existingRoofType: 'asphalt',
-    needsPlywood: 'no',
-    layers: '1',
-    valleys: '2',
-    chimneys: '1',
-    skylights: '0',
-    ridgeVentFeet: '40',
-    _expectedMultiplier: 0.84
-  },
-  // PAINTING
-  {
-    trade: 'painting',
-    customerName: 'Test Painter WA',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '789 Elm St',
-    city: 'Seattle',
-    state: 'WA',
-    zipCode: '98101',
-    squareFeet: '1600',
-    workType: 'exterior',
-    stories: '2',
-    condition: 'fair'
-  },
-  // HVAC
-  {
-    trade: 'hvac',
-    customerName: 'Test HVAC TX',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '321 Pine St',
-    city: 'Austin',
-    state: 'TX',
-    zipCode: '78701',
-    squareFeet: '2000',
-    systemType: 'central_air',
-    complexity: 'standard'
-  },
-  // ELECTRICAL
-  {
-    trade: 'electrical',
-    customerName: 'Test Electrician CO',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '654 Maple Ave',
-    city: 'Denver',
-    state: 'CO',
-    zipCode: '80201',
-    workType: 'panel_upgrade',
-    panelSize: '200'
-  },
-  // PLUMBING
-  {
-    trade: 'plumbing',
-    customerName: 'Test Plumber FL',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '987 Birch Ln',
-    city: 'Miami',
-    state: 'FL',
-    zipCode: '33101',
-    workType: 'water_heater',
-    heaterType: 'tankless',
-    heaterSize: '50'
-  },
-  // FLOORING
-  {
-    trade: 'flooring',
-    customerName: 'Test Flooring OR',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '147 Cedar St',
-    city: 'Portland',
-    state: 'OR',
-    zipCode: '97201',
-    squareFeet: '1200',
-    flooringType: 'hardwood',
-    complexity: 'standard'
-  },
-  // DRYWALL
-  {
-    trade: 'drywall',
-    customerName: 'Test Drywall GA',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '258 Spruce Dr',
-    city: 'Atlanta',
-    state: 'GA',
-    zipCode: '30301',
-    squareFeet: '800',
-    ceilings: 'yes',
-    texture: 'smooth'
-  },
-  // SIDING
-  {
-    trade: 'siding',
-    customerName: 'Test Siding MA',
-    customerEmail: 'test@test.com',
-    customerPhone: '555-1234',
-    address: '369 Willow Way',
-    city: 'Boston',
-    state: 'MA',
-    zipCode: '02101',
-    squareFeet: '1800',
-    sidingType: 'vinyl',
-    stories: '2'
-  }
-];
+// 5 test states for regional multiplier coverage
+const TEST_STATES = ['TX', 'CA', 'NY', 'FL', 'OH'];
 
-async function runTests() {
-  const results = [];
-  let passed = 0;
-  let failed = 0;
-
-  console.log('🧪 INSTABID AUTOMATED TEST SUITE\n');
-  console.log(`Testing ${testCases.length} scenarios across 8 trades\n`);
-  console.log('='.repeat(80) + '\n');
-
-  for (let i = 0; i < testCases.length; i++) {
-    const testCase = testCases[i];
-    const testNum = i + 1;
-
-    console.log(`TEST ${testNum}/${testCases.length}: ${testCase.trade.toUpperCase()} - ${testCase.city}, ${testCase.state}`);
-
-    try {
-      const response = await axios.post(`${API_URL}/api/estimate`, {
-        api_key: API_KEY,
-        ...testCase
-      });
-
-      const data = response.data;
-      const estimate = data.estimate; // 👈 KEY FIX: nested under estimate
-
-      // Validation checks
-      const checks = {
-        success: data.success === true,
-        hasEstimateId: !!data.estimateId,
-        hasValidTotal: estimate && estimate.totalCost > 0,
-        hasLaborCost: estimate && estimate.laborCost > 0,
-        hasMaterialCost: estimate && estimate.materialCost > 0,
-        hasLaborHours: estimate && estimate.laborHours > 0
-      };
-
-      const allPassed = Object.values(checks).every(v => v === true);
-
-      if (allPassed) {
-        console.log(`   ✅ PASSED`);
-        console.log(`      Total: $${estimate.totalCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`);
-        console.log(`      Labor: ${estimate.laborHours} hrs @ $${estimate.laborRate}/hr = $${estimate.laborCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`);
-        console.log(`      Materials: $${estimate.materialCost.toLocaleString('en-US', {minimumFractionDigits: 2})}`);
-        console.log(`      Timeline: ${data.timeline}`);
-        passed++;
-      } else {
-        console.log(`   ❌ FAILED`);
-        Object.entries(checks).forEach(([key, value]) => {
-          if (!value) console.log(`      - ${key}: FAILED`);
-        });
-        failed++;
-      }
-
-      results.push({
-        testNum,
-        trade: testCase.trade,
-        location: `${testCase.city}, ${testCase.state}`,
-        status: allPassed ? 'PASSED' : 'FAILED',
-        total: estimate?.totalCost,
-        labor: estimate?.laborCost,
-        materials: estimate?.materialCost,
-        hours: estimate?.laborHours,
-        rate: estimate?.laborRate,
-        timeline: data.timeline
-      });
-
-    } catch (error) {
-      console.log(`   ❌ ERROR: ${error.response?.data?.error || error.message}`);
-      failed++;
-
-      results.push({
-        testNum,
-        trade: testCase.trade,
-        location: `${testCase.city}, ${testCase.state}`,
-        status: 'ERROR',
-        error: error.response?.data?.error || error.message
-      });
-    }
-
-    console.log('');
-  }
-
-  // Summary
-  console.log('='.repeat(80));
-  console.log('\n📊 TEST SUMMARY\n');
-  console.log(`   ✅ Passed: ${passed}/${testCases.length}`);
-  console.log(`   ❌ Failed: ${failed}/${testCases.length}`);
-  console.log(`   📈 Success Rate: ${((passed/testCases.length)*100).toFixed(1)}%\n`);
-
-  // Price comparison table
-  console.log('='.repeat(80));
-  console.log('\n💰 PRICE COMPARISON (Same 2000 sqft roof across states)\n');
+// Test data generators for each trade
+const testData = {
   
-  const roofingTests = results.filter(r => r.trade === 'roofing' && r.total);
-  roofingTests.sort((a, b) => b.total - a.total);
-  
-  roofingTests.forEach(r => {
-    const bar = '█'.repeat(Math.round(r.total / 500));
-    console.log(`   ${r.location.padEnd(20)} $${r.total.toLocaleString('en-US', {minimumFractionDigits: 2}).padStart(12)} ${bar}`);
-  });
+  roofing: (state, index) => ({
+    name: `Test Roofer ${index + 1}`,
+    email: `test${index + 1}@rooftest.com`,
+    phone: '555-555-5555',
+    address: `${1000 + index} Test Street`,
+    city: 'Test City',
+    state: state,
+    zip: '75001',
+    squareFeet: [1800, 2200, 2800, 3500, 1500][index],
+    roofPitch: ['low', 'medium', 'high', 'steep', 'medium'][index],
+    stories: [1, 2, 2, 3, 1][index],
+    roofingMaterial: ['asphalt', 'architectural', 'metal', 'tile', 'asphalt'][index],
+    existingLayers: [1, 2, 1, 1, 2][index],
+    skylights: [0, 1, 2, 0, 1][index],
+    chimneys: [1, 0, 1, 2, 0][index]
+  }),
 
-  console.log('\n');
+  siding: (state, index) => ({
+    name: `Test Siding ${index + 1}`,
+    email: `test${index + 1}@sidingtest.com`,
+    phone: '555-555-5555',
+    address: `${2000 + index} Test Ave`,
+    city: 'Test City',
+    state: state,
+    zip: '75001',
+    squareFeet: [1200, 1800, 2400, 3000, 1500][index],
+    stories: [1, 2, 2, 3, 1][index],
+    sidingMaterial: ['vinyl', 'fiber_cement', 'wood', 'metal', 'vinyl'][index],
+    removeSiding: ['yes', 'no', 'yes', 'yes', 'no'][index]
+  }),
 
-  // Write results to file
-  const timestamp = new Date().toISOString();
-  let output = `INSTABID TEST RESULTS - ${timestamp}\n`;
-  output += `${'='.repeat(80)}\n\n`;
-  output += `SUMMARY: ${passed}/${testCases.length} passed (${((passed/testCases.length)*100).toFixed(1)}%)\n\n`;
-  output += `${'='.repeat(80)}\n\n`;
+  electrical: (state, index) => ({
+    name: `Test Electrical ${index + 1}`,
+    email: `test${index + 1}@elecest.com`,
+    phone: '555-555-5555',
+    address: `${3000 + index} Test Blvd`,
+    city: 'Test City',
+    state: state,
+    zip: '75001',
+    squareFeet: [1500, 2000, 2500, 3000, 1800][index],
+    serviceType: ['panel_upgrade', 'outlets', 'fixtures', 'ev_charger', 'panel_upgrade'][index],
+    panelSize: ['100', '200', '200', '400', '200'][index],
+    outletCount: [0, 10, 5, 0, 8][index],
+    switchCount: [0, 5, 3, 0, 4][index],
+    fixtureCount: [0, 3, 8, 0, 5][index],
+    evCharger: ['no', 'no', 'no', 'yes', 'no'][index]
+  }),
 
-  results.forEach(r => {
-    output += `${r.status} | ${r.trade.toUpperCase().padEnd(12)} | ${r.location.padEnd(20)}`;
-    if (r.total) {
-      output += ` | $${r.total.toLocaleString('en-US', {minimumFractionDigits: 2})} | ${r.hours}hrs @ $${r.rate}/hr`;
+  painting: (state, index) => ({
+    name: `Test Painting ${index + 1}`,
+    email: `test${index + 1}@painttest.com`,
+    phone: '555-555-5555',
+    address: `${4000 + index} Test Lane`,
+    city: 'Test City',
+    state: state,
+    zip: '75001',
+    squareFeet: [1500, 2000, 2500, 3200, 1800][index],
+    projectType: ['interior', 'exterior', 'both', 'interior', 'exterior'][index],
+    rooms: [4, 6, 8, 5, 0][index],
+    ceilings: ['yes', 'no', 'yes', 'yes', 'no'][index],
+    trim: ['yes', 'yes', 'no', 'yes', 'yes'][index],
+    doors: [4, 6, 8, 5, 2][index],
+    windows: [6, 8, 12, 10, 6][index],
+    exteriorSqft: [0, 0, 1800, 0, 2000][index],
+    prepWork: ['minor', 'moderate', 'extensive', 'minor', 'moderate'][index],
+    coats: [2, 2, 2, 1, 2][index]
+  }),
+
+  drywall: (state, index) => ({
+    name: `Test Drywall ${index + 1}`,
+    email: `test${index + 1}@drywalltest.com`,
+    phone: '555-555-5555',
+    address: `${5000 + index} Test Court`,
+    city: 'Test City',
+    state: state,
+    zip: '75001',
+    squareFeet: [500, 1000, 1500, 2000, 800][index],
+    projectType: ['new_construction', 'repair', 'new_construction', 'addition', 'repair'][index],
+    ceilingHeight: ['8', '9', '10', '12', '8'][index],
+    finishLevel: ['3', '4', '5', '4', '3'][index],
+    textureType: ['none', 'orange_peel', 'knockdown', 'none', 'popcorn'][index],
+    repairSize: ['none', 'minor', 'none', 'none', 'moderate'][index]
+  }),
+
+  plumbing: (state, index) => ({
+    name: `Test Plumbing ${index + 1}`,
+    email: `test${index + 1}@plumbtest.com`,
+    phone: '555-555-5555',
+    address: `${6000 + index} Test Drive`,
+    city: 'Test City',
+    state: state,
+    zip: '75001',
+    squareFeet: [1500, 2000, 2500, 0, 0][index],
+    serviceType: ['repipe', 'water_heater', 'fixture', 'general', 'water_heater'][index],
+    stories: [1, 2, 2, 1, 1][index],
+    bathrooms: [2, 3, 4, 2, 2][index],
+    kitchens: [1, 1, 2, 1, 1][index],
+    laundryRooms: [1, 1, 1, 0, 1][index],
+    accessType: ['basement', 'crawlspace', 'slab', 'basement', 'basement'][index],
+    heaterType: ['tank', 'tankless', 'tank', 'tank', 'tankless'][index],
+    waterHeaterLocation: ['garage', 'basement', 'closet', 'garage', 'attic'][index],
+    gasLineNeeded: ['no', 'yes', 'no', 'no', 'yes'][index],
+    mainLineReplacement: ['no', 'no', 'yes', 'no', 'no'][index],
+    garbageDisposal: ['no', 'no', 'no', 'yes', 'no'][index],
+    iceMaker: ['no', 'no', 'no', 'yes', 'no'][index],
+    waterSoftener: ['no', 'no', 'no', 'yes', 'no'][index],
+    toiletCount: [0, 0, 2, 0, 0][index],
+    sinkCount: [0, 0, 3, 0, 0][index],
+    faucetCount: [0, 0, 2, 0, 0][index],
+    tubShowerCount: [0, 0, 1, 0, 0][index]
+  })
+};
+
+// ============================================
+// TEST RUNNER
+// ============================================
+
+async function runEstimate(trade, data) {
+  try {
+    const response = await fetch(`${API_BASE}/api/estimate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY
+      },
+      body: JSON.stringify({
+        trade: trade,
+        contractorId: 4, // Bill's Plumbing test contractor
+        ...data
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: `HTTP ${response.status}: ${errorText}` };
     }
-    if (r.error) {
-      output += ` | ERROR: ${r.error}`;
-    }
-    output += '\n';
-  });
-
-  fs.writeFileSync('test-results.txt', output);
-  console.log('📄 Results saved to test-results.txt\n');
+    
+    const result = await response.json();
+    return { success: true, data: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
-runTests().catch(console.error);
+async function runAllTests() {
+  const trades = ['roofing', 'siding', 'electrical', 'painting', 'drywall', 'plumbing'];
+  const results = {};
+  
+  console.log('🚀 INSTABID TRADE TESTER');
+  console.log('========================\n');
+  
+  for (const trade of trades) {
+    console.log(`\n📋 Testing ${trade.toUpperCase()}...`);
+    console.log('-'.repeat(50));
+    
+    results[trade] = [];
+    
+    for (let i = 0; i < 5; i++) {
+      const state = TEST_STATES[i];
+      const data = testData[trade](state, i);
+      
+      console.log(`  Test ${i + 1}/5 (${state})...`);
+      
+      const result = await runEstimate(trade, data);
+      
+      if (result.success) {
+        const est = result.data;
+        console.log(`    ✅ $${est.totalCost?.toLocaleString() || est.total?.toLocaleString() || 'N/A'} | Materials: $${est.materialCost?.toLocaleString() || 'N/A'} | Labor: $${est.laborCost?.toLocaleString() || 'N/A'}`);
+        results[trade].push({ state, success: true, estimate: est });
+      } else {
+        console.log(`    ❌ FAILED: ${result.error}`);
+        results[trade].push({ state, success: false, error: result.error });
+      }
+      
+      // Small delay to not hammer the server
+      await new Promise(r => setTimeout(r, 200));
+    }
+    
+    // Summary for trade
+    const passed = results[trade].filter(r => r.success).length;
+    console.log(`\n  ${trade.toUpperCase()} SUMMARY: ${passed}/5 passed`);
+  }
+  
+  // Final summary
+  console.log('\n\n' + '='.repeat(50));
+  console.log('📊 FINAL RESULTS');
+  console.log('='.repeat(50));
+  
+  let totalPassed = 0;
+  let totalTests = 0;
+  
+  for (const trade of trades) {
+    const passed = results[trade].filter(r => r.success).length;
+    totalPassed += passed;
+    totalTests += 5;
+    const status = passed === 5 ? '✅' : passed > 0 ? '⚠️' : '❌';
+    console.log(`${status} ${trade.padEnd(12)} ${passed}/5`);
+  }
+  
+  console.log('-'.repeat(30));
+  console.log(`TOTAL: ${totalPassed}/${totalTests} (${Math.round(totalPassed/totalTests*100)}%)`);
+  
+  return results;
+}
+
+// Run it!
+runAllTests();
