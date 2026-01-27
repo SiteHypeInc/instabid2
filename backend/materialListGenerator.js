@@ -3,7 +3,7 @@
 // Add this to server.js after the estimate calculation logic
 // ============================================
 
-function generateMaterialList(trade, criteria, contractorId = null, pricingConfig = {}) {
+function generateMaterialList(trade, criteria, contractorId = null, pricingConfig = {}, hourlyRate = 65) {
   
   switch(trade.toLowerCase()) {
     
@@ -1583,7 +1583,7 @@ case 'drywall': {
     tape: 8.00,
     screws: 12.00,
     corner_bead: 5.00,
-    labor_rate: 55.00,
+    labor_rate: hourlyRate,
     hang_sqft: 0.75,
     tape_sqft: 0.65,
     sand_sqft: 0.35,

@@ -2047,7 +2047,7 @@ try {
   console.error('⚠️ Error loading contractor pricing:', err);
 }
 
-const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id, pricingConfig);
+const materialListResult = generateMaterialList(trade, tradeSpecificFields, contractor_id, pricingConfig, hourlyRate);
     
 console.log(`📦 Material list generated: ${materialListResult.materialList.length} items`);
     
