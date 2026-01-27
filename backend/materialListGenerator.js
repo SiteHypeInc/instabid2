@@ -1213,30 +1213,36 @@ case 'painting': {
         materialList
       };
     }
-    // ============================================
+       // ============================================
     // 7. ELECTRICAL
     // ============================================
 
   case 'electrical': {
-  const serviceType = data.serviceType || 'general';
-  const amperage = data.amperage || '200';
-  const squareFootage = parseFloat(data.squareFootage) || 0;
-  const homeAge = data.homeAge || '1990+';
-  const stories = parseInt(data.stories) || 1;
-  const outletCount = parseInt(data.outletCount) || 0;
-  const gfciCount = parseInt(data.gfciCount) || 0;
-  const switchCount = parseInt(data.switchCount) || 0;
-  const dimmerCount = parseInt(data.dimmerCount) || 0;
-  const fixtureCount = parseInt(data.fixtureCount) || 0;
-  const recessedCount = parseInt(data.recessedCount) || 0;
-  const circuits20a = parseInt(data.circuits20a) || 0;
-  const circuits30a = parseInt(data.circuits30a) || 0;
-  const circuits50a = parseInt(data.circuits50a) || 0;
-  const evCharger = data.evCharger;
-  const permit = data.permit;
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.electrical?.[key] ?? defaultValue;
+  };
 
-  const laborRate = getPrice('elec_labor_rate', contractor, 75);
-  const wireLF = getPrice('elec_wire_lf', contractor, 1.00);
+  const serviceType = criteria.serviceType || 'general';
+  const amperage = criteria.amperage || '200';
+  const squareFootage = parseFloat(criteria.squareFootage) || 0;
+  const homeAge = criteria.homeAge || '1990+';
+  const stories = parseInt(criteria.stories) || 1;
+  const outletCount = parseInt(criteria.outletCount) || 0;
+  const gfciCount = parseInt(criteria.gfciCount) || 0;
+  const switchCount = parseInt(criteria.switchCount) || 0;
+  const dimmerCount = parseInt(criteria.dimmerCount) || 0;
+  const fixtureCount = parseInt(criteria.fixtureCount) || 0;
+  const recessedCount = parseInt(criteria.recessedCount) || 0;
+  const ceilingFanCount = parseInt(criteria.ceilingFanCount) || 0;
+  const circuits20a = parseInt(criteria.circuits20a) || 0;
+  const circuits30a = parseInt(criteria.circuits30a) || 0;
+  const circuits50a = parseInt(criteria.circuits50a) || 0;
+  const evCharger = criteria.evCharger;
+  const permit = criteria.permit;
+
+  const laborRate = getPrice('elec_labor_rate', 75);
+  const wireLF = getPrice('elec_wire_lf', 1.00);
   const avgRunPerDevice = 25;
 
   // Age multiplier
@@ -1254,9 +1260,9 @@ case 'painting': {
 
   // Panel pricing
   const panelCosts = {
-    '100': getPrice('elec_panel_100', contractor, 450),
-    '200': getPrice('elec_panel_200', contractor, 550),
-    '400': getPrice('elec_panel_400', contractor, 1200)
+    '100': getPrice('elec_panel_100', 450),
+    '200': getPrice('elec_panel_200', 550),
+    '400': getPrice('elec_panel_400', 1200)
   };
   const panelMisc = { '100': 200, '200': 250, '400': 400 };
   const panelLabor = { '100': 8, '200': 10, '400': 16 };
@@ -1285,7 +1291,7 @@ case 'painting': {
 
   // FULL REWIRE
   if (serviceType === 'rewire') {
-    const rewireSqft = getPrice('elec_rewire_sqft', contractor, 11.50);
+    const rewireSqft = getPrice('elec_rewire_sqft', 11.50);
     const rewireTotal = squareFootage * rewireSqft;
     const rewireHours = (squareFootage / 100) * 4;
     totalLaborHours += rewireHours + panelLabor[amperage];
@@ -1320,26 +1326,25 @@ case 'painting': {
   if (serviceType === 'circuits' || serviceType === 'general') {
 
     // Ceiling Fans (customer provided - install labor only)
-const ceilingFanCount = parseInt(data.ceilingFanCount) || 0;
-if (ceilingFanCount > 0) {
-  const ceilingFanInstall = getPrice('elec_ceiling_fan_install', contractor, 200);
-  const fanHardware = 15;
-  const fanWire = avgRunPerDevice * wireLF;
-  const fanTotal = ceilingFanCount * (ceilingFanInstall + fanHardware + fanWire);
-  totalLaborHours += ceilingFanCount * (ceilingFanInstall / laborRate);
-  materials.push({
-    item: 'Ceiling Fan Install (labor + hardware + wire)',
-    quantity: ceilingFanCount,
-    unit: 'each',
-    unitCost: ceilingFanInstall + fanHardware + fanWire,
-    totalCost: fanTotal,
-    category: 'Lighting'
-  });
-}
+    if (ceilingFanCount > 0) {
+      const ceilingFanInstall = getPrice('elec_ceiling_fan_install', 200);
+      const fanHardware = 15;
+      const fanWire = avgRunPerDevice * wireLF;
+      const fanTotal = ceilingFanCount * (ceilingFanInstall + fanHardware + fanWire);
+      totalLaborHours += ceilingFanCount * (ceilingFanInstall / laborRate);
+      materials.push({
+        item: 'Ceiling Fan Install (labor + hardware + wire)',
+        quantity: ceilingFanCount,
+        unit: 'each',
+        unitCost: ceilingFanInstall + fanHardware + fanWire,
+        totalCost: fanTotal,
+        category: 'Lighting'
+      });
+    }
     
     // Standard Outlets
     if (outletCount > 0) {
-      const outletPrice = getPrice('elec_outlet', contractor, 12);
+      const outletPrice = getPrice('elec_outlet', 12);
       const wirePerOutlet = avgRunPerDevice * wireLF;
       const outletTotal = outletCount * (outletPrice + wirePerOutlet);
       totalLaborHours += outletCount * 0.75;
@@ -1355,7 +1360,7 @@ if (ceilingFanCount > 0) {
 
     // GFCI Outlets
     if (gfciCount > 0) {
-      const gfciPrice = getPrice('elec_outlet_gfci', contractor, 35);
+      const gfciPrice = getPrice('elec_outlet_gfci', 35);
       const wirePerGfci = avgRunPerDevice * wireLF;
       const gfciTotal = gfciCount * (gfciPrice + wirePerGfci);
       totalLaborHours += gfciCount * 1.0;
@@ -1371,7 +1376,7 @@ if (ceilingFanCount > 0) {
 
     // Standard Switches
     if (switchCount > 0) {
-      const switchPrice = getPrice('elec_switch', contractor, 10);
+      const switchPrice = getPrice('elec_switch', 10);
       const wirePerSwitch = avgRunPerDevice * wireLF;
       const switchTotal = switchCount * (switchPrice + wirePerSwitch);
       totalLaborHours += switchCount * 0.5;
@@ -1387,7 +1392,7 @@ if (ceilingFanCount > 0) {
 
     // Dimmer Switches
     if (dimmerCount > 0) {
-      const dimmerPrice = getPrice('elec_switch_dimmer', contractor, 50);
+      const dimmerPrice = getPrice('elec_switch_dimmer', 50);
       const wirePerDimmer = avgRunPerDevice * wireLF;
       const dimmerTotal = dimmerCount * (dimmerPrice + wirePerDimmer);
       totalLaborHours += dimmerCount * 0.75;
@@ -1403,7 +1408,7 @@ if (ceilingFanCount > 0) {
 
     // Light Fixtures (customer provided - install labor only)
     if (fixtureCount > 0) {
-      const lightInstall = getPrice('elec_light_install', contractor, 35);
+      const lightInstall = getPrice('elec_light_install', 35);
       const hardwareCost = 15;
       const fixtureTotal = fixtureCount * (lightInstall + hardwareCost);
       totalLaborHours += fixtureCount * (lightInstall / laborRate);
@@ -1419,7 +1424,7 @@ if (ceilingFanCount > 0) {
 
     // Recessed Lights
     if (recessedCount > 0) {
-      const recessedPrice = getPrice('elec_recessed', contractor, 55);
+      const recessedPrice = getPrice('elec_recessed', 55);
       const recessedTotal = recessedCount * recessedPrice;
       totalLaborHours += recessedCount * 1.5;
       materials.push({
@@ -1434,7 +1439,7 @@ if (ceilingFanCount > 0) {
 
     // 20A Circuits
     if (circuits20a > 0) {
-      const circuit20Price = getPrice('elec_circuit_20a', contractor, 95);
+      const circuit20Price = getPrice('elec_circuit_20a', 95);
       const circuit20Total = circuits20a * circuit20Price;
       totalLaborHours += circuits20a * 2.0;
       materials.push({
@@ -1449,7 +1454,7 @@ if (ceilingFanCount > 0) {
 
     // 30A Circuits
     if (circuits30a > 0) {
-      const circuit30Price = getPrice('elec_circuit_30a', contractor, 130);
+      const circuit30Price = getPrice('elec_circuit_30a', 130);
       const circuit30Total = circuits30a * circuit30Price;
       totalLaborHours += circuits30a * 2.5;
       materials.push({
@@ -1464,7 +1469,7 @@ if (ceilingFanCount > 0) {
 
     // 50A Circuits
     if (circuits50a > 0) {
-      const circuit50Price = getPrice('elec_circuit_50a', contractor, 185);
+      const circuit50Price = getPrice('elec_circuit_50a', 185);
       const circuit50Total = circuits50a * circuit50Price;
       totalLaborHours += circuits50a * 3.0;
       materials.push({
@@ -1480,7 +1485,7 @@ if (ceilingFanCount > 0) {
 
   // EV Charger
   if (evCharger === 'yes') {
-    const evPrice = getPrice('elec_ev_charger', contractor, 350);
+    const evPrice = getPrice('elec_ev_charger', 350);
     const evWireRun = 100;
     totalLaborHours += 4;
     materials.push({
@@ -1495,7 +1500,7 @@ if (ceilingFanCount > 0) {
 
   // Permit
   if (permit === 'yes' || permit !== 'no') {
-    const permitPrice = getPrice('elec_permit', contractor, 200);
+    const permitPrice = getPrice('elec_permit', 200);
     materials.push({
       item: 'Electrical Permit',
       quantity: 1,
