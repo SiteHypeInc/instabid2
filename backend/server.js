@@ -741,7 +741,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
       break;
       
    // ========== PAINTING - SYNCED WITH FORM & DASHBOARD ==========
-  case 'painting': {
+  case 'painting':{
   const paintSqft = parseFloat(data.squareFeet) || 0;
   const paintType = (data.paintType || 'exterior').toLowerCase();
   const stories = parseInt(data.stories) || 1;
@@ -871,6 +871,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
   
   break;
 }
+
 
     // ========== HVAC - CALIBRATED ==========
     case 'hvac':
@@ -1088,6 +1089,7 @@ case 'electrical': {
   };
 }
 
+
     // ========== PLUMBING - CALIBRATED ==========
     // ========== PLUMBING - CALIBRATED ==========
 case 'plumbing':
@@ -1197,7 +1199,7 @@ case 'plumbing':
       break;
 
     // ========== DRYWALL - SYNCED WITH FORM & DASHBOARD ==========
-case 'drywall': {
+case 'drywall':{ 
   const drywallSqft = parseFloat(data.squareFeet) || 0;
   const projectType = (data.projectType || 'new_construction').toLowerCase();
   const rooms = parseInt(data.rooms) || 1;
@@ -1302,6 +1304,7 @@ case 'drywall': {
   
   break;
 }
+
 
 
     // ========== SIDING - CALIBRATED ==========
