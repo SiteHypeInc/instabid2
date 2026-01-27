@@ -254,7 +254,7 @@ totalCost: valleyLF * getPrice('valley_lf', 6.00),
   }
 
   // === CALCULATE TOTALS ===
-  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
 
   // === LABOR HOURS ===
   // Base: 0.04 hrs/sqft
@@ -457,7 +457,7 @@ case 'siding': {
   
   if (removal) laborHours += squareFeet * 0.02;
 
-  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
 
   return {
     trade: 'siding',
@@ -746,7 +746,7 @@ case 'plumbing': {
     category: 'Labor'
   });
 
-  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
 
   return {
     trade: 'plumbing',
@@ -954,7 +954,7 @@ case 'painting': {
     category: 'Labor'
   });
   
-  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
   
   return {
     trade: 'painting',
@@ -1084,7 +1084,7 @@ case 'painting': {
       if (stories >= 2) laborHours *= 1.2;
       if (stories >= 3) laborHours *= 1.4;
 
-      const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+      const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
 
       return {
         trade: 'hvac',
@@ -1204,7 +1204,7 @@ case 'painting': {
       if (subfloorRepair) laborHours += squareFeet * 0.01;
       if (baseboard > 0) laborHours += baseboard / 20;
 
-      const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+      const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
 
       return {
         trade: 'flooring',
@@ -1779,7 +1779,7 @@ case 'drywall': {
     }
   }
   
-  const totalMaterialCost = materialList.reduce((sum, item) => sum + item.totalCost, 0);
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
   
   return {
     trade: 'drywall',
