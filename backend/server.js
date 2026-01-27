@@ -943,6 +943,7 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
     // ========== ELECTRICAL - CALIBRATED ==========
 
 case 'electrical': {
+  const contractor = null;
   const serviceType = data.serviceType || 'general';
   const amperage = data.amperage || '200';
   const squareFootage = parseFloat(data.squareFootage) || 0;
@@ -1302,6 +1303,7 @@ case 'drywall': {
   break;
 }
 
+
     // ========== SIDING - CALIBRATED ==========
     case 'siding':
       const sidingSqft = parseFloat(data.squareFeet || data.sidingArea) || 0;
@@ -1364,7 +1366,7 @@ case 'drywall': {
       materialCost = 750;
       equipmentCost = 125;
   }
-
+ 
   // ============================================
   // FINAL CALCULATIONS
   // ============================================
