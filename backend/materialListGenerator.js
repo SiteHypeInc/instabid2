@@ -291,6 +291,11 @@ case 'siding': {
     trimLinearFeet
   } = criteria;
 
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.siding?.[key] ?? defaultValue;
+  };
+
   // Normalize siding type from form
   if (sidingType === 'wood_cedar') sidingType = 'wood';
   if (sidingType === 'metal_aluminum') sidingType = 'metal';
