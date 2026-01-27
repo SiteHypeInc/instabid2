@@ -1218,6 +1218,7 @@ case 'painting': {
     // ============================================
 
   case 'electrical': {
+    let materials = [];
   // Helper to get contractor price or default
   const getPrice = (key, defaultValue) => {
     return pricingConfig.electrical?.[key] ?? defaultValue;
