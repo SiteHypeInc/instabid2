@@ -945,6 +945,8 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
 
 case 'electrical': {
   const contractor = null;
+  // Helper for electrical pricing (legacy 3-arg pattern)
+  const getPrice = (key, contractor, defaultValue) => defaultValue;
   const serviceType = data.serviceType || 'general';
   const amperage = data.amperage || '200';
   const squareFootage = parseFloat(data.squareFootage) || 0;
