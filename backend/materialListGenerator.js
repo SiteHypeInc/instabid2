@@ -493,7 +493,7 @@ case 'plumbing': {
 
   const materialList = [];
   let laborHours = 0;
-  const laborRate = 95; // default
+  const laborRate = hourlyRate;
 
   // Access multiplier
   const accessMultipliers = { 'basement': 1.0, 'crawlspace': 1.15, 'slab': 1.35 };
@@ -949,8 +949,8 @@ case 'painting': {
     item: `Labor (${pType}${parseInt(stories) > 1 ? ', ' + stories + ' stories' : ''})`,
     quantity: Math.round(laborHours * 10) / 10,
     unit: 'hours',
-    unitCost: 65,
-    totalCost: laborHours * 65,
+    unitCost: hourlyRate,
+    totalCost: laborHours * hourlyRate,
     category: 'Labor'
   });
   
@@ -1242,7 +1242,7 @@ case 'painting': {
   const evCharger = criteria.evCharger;
   const permit = criteria.permit;
 
-  const laborRate = getPrice('elec_labor_rate', 75);
+  const laborRate = hourlyRate;
   const wireLF = getPrice('elec_wire_lf', 1.00);
   const avgRunPerDevice = 25;
 
