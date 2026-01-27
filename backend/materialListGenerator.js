@@ -1218,7 +1218,7 @@ case 'painting': {
     // ============================================
 
   case 'electrical': {
-    let materials = [];
+    let materialList = [];
   // Helper to get contractor price or default
   const getPrice = (key, defaultValue) => {
     return pricingConfig.electrical?.[key] ?? defaultValue;
@@ -1272,7 +1272,7 @@ case 'painting': {
   if (serviceType === 'panel') {
     const panelHours = panelLabor[amperage];
     totalLaborHours += panelHours;
-    materials.push({
+    materialList.push({
       item: `${amperage}A Panel Upgrade`,
       quantity: 1,
       unit: 'each',
@@ -1280,7 +1280,7 @@ case 'painting': {
       totalCost: panelCosts[amperage],
       category: 'Panel'
     });
-    materials.push({
+    materialList.push({
       item: 'Breakers, Connectors & Misc',
       quantity: 1,
       unit: 'lot',
@@ -1297,7 +1297,7 @@ case 'painting': {
     const rewireHours = (squareFootage / 100) * 4;
     totalLaborHours += rewireHours + panelLabor[amperage];
 
-    materials.push({
+    materialList.push({
       item: `Full Rewire (${squareFootage} sqft)`,
       quantity: squareFootage,
       unit: 'sqft',
@@ -1305,7 +1305,7 @@ case 'painting': {
       totalCost: rewireTotal,
       category: 'Rewire'
     });
-    materials.push({
+    materialList.push({
       item: `${amperage}A Panel`,
       quantity: 1,
       unit: 'each',
@@ -1313,7 +1313,7 @@ case 'painting': {
       totalCost: panelCosts[amperage],
       category: 'Panel'
     });
-    materials.push({
+    materialList.push({
       item: 'Breakers, Connectors & Misc',
       quantity: 1,
       unit: 'lot',
@@ -1333,7 +1333,7 @@ case 'painting': {
       const fanWire = avgRunPerDevice * wireLF;
       const fanTotal = ceilingFanCount * (ceilingFanInstall + fanHardware + fanWire);
       totalLaborHours += ceilingFanCount * (ceilingFanInstall / laborRate);
-      materials.push({
+      materialList.push({
         item: 'Ceiling Fan Install (labor + hardware + wire)',
         quantity: ceilingFanCount,
         unit: 'each',
@@ -1349,7 +1349,7 @@ case 'painting': {
       const wirePerOutlet = avgRunPerDevice * wireLF;
       const outletTotal = outletCount * (outletPrice + wirePerOutlet);
       totalLaborHours += outletCount * 0.75;
-      materials.push({
+      materialList.push({
         item: 'Standard Outlets (w/ wire)',
         quantity: outletCount,
         unit: 'each',
@@ -1365,7 +1365,7 @@ case 'painting': {
       const wirePerGfci = avgRunPerDevice * wireLF;
       const gfciTotal = gfciCount * (gfciPrice + wirePerGfci);
       totalLaborHours += gfciCount * 1.0;
-      materials.push({
+      materialList.push({
         item: 'GFCI Outlets (w/ wire)',
         quantity: gfciCount,
         unit: 'each',
@@ -1381,7 +1381,7 @@ case 'painting': {
       const wirePerSwitch = avgRunPerDevice * wireLF;
       const switchTotal = switchCount * (switchPrice + wirePerSwitch);
       totalLaborHours += switchCount * 0.5;
-      materials.push({
+      materialList.push({
         item: 'Standard Switches (w/ wire)',
         quantity: switchCount,
         unit: 'each',
@@ -1397,7 +1397,7 @@ case 'painting': {
       const wirePerDimmer = avgRunPerDevice * wireLF;
       const dimmerTotal = dimmerCount * (dimmerPrice + wirePerDimmer);
       totalLaborHours += dimmerCount * 0.75;
-      materials.push({
+      materialList.push({
         item: 'Dimmer Switches (w/ wire)',
         quantity: dimmerCount,
         unit: 'each',
@@ -1413,7 +1413,7 @@ case 'painting': {
       const hardwareCost = 15;
       const fixtureTotal = fixtureCount * (lightInstall + hardwareCost);
       totalLaborHours += fixtureCount * (lightInstall / laborRate);
-      materials.push({
+      materialList.push({
         item: 'Light Fixture Install (labor + hardware)',
         quantity: fixtureCount,
         unit: 'each',
@@ -1428,7 +1428,7 @@ case 'painting': {
       const recessedPrice = getPrice('elec_recessed', 55);
       const recessedTotal = recessedCount * recessedPrice;
       totalLaborHours += recessedCount * 1.5;
-      materials.push({
+      materialList.push({
         item: 'Recessed Lights',
         quantity: recessedCount,
         unit: 'each',
@@ -1443,7 +1443,7 @@ case 'painting': {
       const circuit20Price = getPrice('elec_circuit_20a', 95);
       const circuit20Total = circuits20a * circuit20Price;
       totalLaborHours += circuits20a * 2.0;
-      materials.push({
+      materialList.push({
         item: '20A Dedicated Circuit',
         quantity: circuits20a,
         unit: 'each',
@@ -1458,7 +1458,7 @@ case 'painting': {
       const circuit30Price = getPrice('elec_circuit_30a', 130);
       const circuit30Total = circuits30a * circuit30Price;
       totalLaborHours += circuits30a * 2.5;
-      materials.push({
+      materialList.push({
         item: '30A Dedicated Circuit',
         quantity: circuits30a,
         unit: 'each',
@@ -1473,7 +1473,7 @@ case 'painting': {
       const circuit50Price = getPrice('elec_circuit_50a', 185);
       const circuit50Total = circuits50a * circuit50Price;
       totalLaborHours += circuits50a * 3.0;
-      materials.push({
+      materialList.push({
         item: '50A Dedicated Circuit',
         quantity: circuits50a,
         unit: 'each',
@@ -1489,7 +1489,7 @@ case 'painting': {
     const evPrice = getPrice('elec_ev_charger', 350);
     const evWireRun = 100;
     totalLaborHours += 4;
-    materials.push({
+    materialList.push({
       item: 'EV Charger Install + Wire Run',
       quantity: 1,
       unit: 'each',
@@ -1502,7 +1502,7 @@ case 'painting': {
   // Permit
   if (permit === 'yes' || permit !== 'no') {
     const permitPrice = getPrice('elec_permit', 200);
-    materials.push({
+    materialList.push({
       item: 'Electrical Permit',
       quantity: 1,
       unit: 'each',
@@ -1513,7 +1513,7 @@ case 'painting': {
   }
 
   // Equipment & Consumables
-  materials.push({
+  materialList.push({
     item: 'Equipment & Consumables',
     quantity: 1,
     unit: 'lot',
@@ -1528,7 +1528,7 @@ case 'painting': {
 
   // Add labor line
   const laborCost = totalLaborHours * laborRate;
-  materials.push({
+  materialList.push({
     item: `Labor (${homeAge} home, ${stories}-story)`,
     quantity: Math.round(totalLaborHours * 100) / 100,
     unit: 'hours',
