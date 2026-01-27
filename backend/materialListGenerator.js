@@ -1526,7 +1526,7 @@ case 'painting': {
   totalLaborHours *= complexityMultiplier;
   if (totalLaborHours < 2) totalLaborHours = 2;
 
-  // Add labor line
+   // Add labor line
   const laborCost = totalLaborHours * laborRate;
   materialList.push({
     item: `Labor (${homeAge} home, ${stories}-story)`,
@@ -1537,7 +1537,18 @@ case 'painting': {
     category: 'Labor'
   });
 
-  break;
+  // Calculate total material cost
+  const totalMaterialCost = materialList.reduce((sum, item) => {
+    return item.category !== 'Labor' ? sum + item.totalCost : sum;
+  }, 0);
+
+  return {
+    trade: 'electrical',
+    totalMaterialCost: totalMaterialCost,
+    laborHours: Math.round(totalLaborHours * 10) / 10,
+    materialList: materialList,
+    complexityMultiplier: complexityMultiplier
+  };
 }
 
     // ============================================
