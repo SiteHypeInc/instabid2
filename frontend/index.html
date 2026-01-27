@@ -1308,67 +1308,6 @@ document.getElementById('contractBtn').addEventListener('click', function() {
 });
 
 
-// ========== FIELD SPY v6 - FIXED FOR SELECTS ==========
-(function() {
-  console.log('🕵️ FIELD SPY v6 - Nuclear mode (fixed)...');
-  
-  function watchField(el) {
-    const id = el.id || el.name || 'unnamed';
-    const tagName = el.tagName.toLowerCase();
-    
-    // Only intercept value setter on inputs (not selects - they break)
-    if (tagName === 'input' || tagName === 'textarea') {
-      const proto = tagName === 'input' ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
-      
-      if (descriptor && descriptor.set) {
-        const originalSet = descriptor.set;
-        const originalGet = descriptor.get;
-        
-        Object.defineProperty(el, 'value', {
-          set: function(v) {
-            const oldVal = originalGet.call(this);
-            if (v !== oldVal) {
-              console.log(`🔥 VALUE SET [${id}]: "${oldVal}" → "${v}"`);
-              console.trace('↳ WHO DID THIS:');
-            }
-            return originalSet.call(this, v);
-          },
-          get: function() {
-            return originalGet.call(this);
-          }
-        });
-      }
-    }
-    
-    // Watch input events on everything
-    el.addEventListener('input', function(e) {
-      console.log(`⌨️ INPUT EVENT [${id}]: "${el.value}" | isTrusted: ${e.isTrusted}`);
-      if (!e.isTrusted) {
-        console.trace('↳ FAKE EVENT FROM:');
-      }
-    });
-  }
-  
-  // Watch existing fields
-  document.querySelectorAll('input, select, textarea').forEach(watchField);
-  
-  // Watch for dynamically added fields
-  new MutationObserver(function(mutations) {
-    mutations.forEach(function(m) {
-      m.addedNodes.forEach(function(node) {
-        if (node.nodeType === 1) {
-          if (node.matches && node.matches('input, select, textarea')) watchField(node);
-          if (node.querySelectorAll) node.querySelectorAll('input, select, textarea').forEach(watchField);
-        }
-      });
-    });
-  }).observe(document.body, { childList: true, subtree: true });
-  
-  console.log('🕵️ v6 active - watching inputs/textareas, events on all');
-})();
-// ========== END FIELD SPY v6 ==========
-
 </script>
 </body>
 </html>

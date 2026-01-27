@@ -3,7 +3,7 @@
 // Runs 5 estimates per trade across different states
 // ============================================
 
-const fetch = require('node-fetch');
+
 const API_BASE = 'https://roofbid-backend-production.up.railway.app';
 const API_KEY = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
 
