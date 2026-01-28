@@ -1062,7 +1062,8 @@ case 'painting': {
   const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
   
   // Calculate labor hours (for display) - estimate based on total labor cost / hourlyRate
-  const laborHours = Math.round((totalLaborCost / hourlyRate) * 10) / 10;
+  // No hours for painting - sqft pricing is the standard
+const laborHours = 0;
   
   return {
     trade: 'painting',
