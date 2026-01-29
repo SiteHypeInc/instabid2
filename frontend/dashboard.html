@@ -3112,10 +3112,12 @@ async function loadPricingConfig() {
 
     const data = await response.json();
 
-    if (data.success && data.pricing_config) {
+    
       // Populate form fields with saved values
-      Object.keys(data.pricing_config).forEach(trade => {
-        const tradeConfig = data.pricing_config[trade];
+    
+        if (data.success && data.pricing) {
+  Object.keys(data.pricing).forEach(trade => {
+    const tradeConfig = data.pricing[trade];
         Object.keys(tradeConfig).forEach(fieldId => {
           const input = document.getElementById(fieldId);
           if (input) {
