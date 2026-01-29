@@ -1066,10 +1066,11 @@ case 'painting': {
 const laborHours = 0;
   
   return {
-    trade: 'painting',
-    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-    laborHours: laborHours,
-    materialList
+  trade: 'painting',
+  totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+  laborHours: 0,
+  laborCost: Math.round(totalLaborCost * 100) / 100,
+  materialList
   };
 }
 

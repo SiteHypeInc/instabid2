@@ -2054,7 +2054,7 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
     // ✅ OVERRIDE - Use material list as single source of truth
     estimate.materialCost = materialListResult.totalMaterialCost;
     estimate.laborHours = materialListResult.laborHours;
-    estimate.laborCost = materialListResult.laborHours * hourlyRate;
+   estimate.laborCost = materialListResult.laborCost || (materialListResult.laborHours * hourlyRate);
     estimate.equipmentCost = 0;
 
     // Markup on MATERIALS ONLY (labor already includes overhead)
