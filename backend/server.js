@@ -305,35 +305,37 @@ const DEFAULT_PRICING = {
     skylight_labor_hrs: 2
   },
 
-  // ========== SIDING (21 keys) ==========
-  siding: {
-    // Material costs per sqft
-    siding_vinyl: 5.50,
-    siding_fiber_cement: 9.50,
-    siding_wood_cedar: 14.00,
-    siding_wood_pine: 10.00,
-    siding_metal_aluminum: 8.00,
-    siding_metal_steel: 9.00,
-    siding_stucco: 11.00,
-    siding_brick_veneer: 18.00,
-    siding_stone_veneer: 22.00,
-    // Labor per sqft
-    siding_labor_rate: 65,
-    siding_labor_vinyl: 3.50,
-    siding_labor_fiber: 5.50,
-    siding_labor_wood: 6.50,
-    siding_labor_metal: 4.50,
-    siding_labor_stucco: 7.50,
-    // Extras & trim
-    siding_housewrap_roll: 175,
-    siding_j_channel_12ft: 12,
-    siding_corner_post: 35,
-    siding_soffit_sqft: 8,
-    siding_fascia_lf: 6,
-    // Story multiplier
-    siding_story_2: 1.2,
-    siding_story_3: 1.4
-  },
+  // ========== SIDING (22 keys) ==========
+siding: {
+  // Material costs per sqft
+  siding_vinyl: 5.50,
+  siding_fiber_cement: 9.50,
+  siding_wood: 14.00,
+  siding_metal: 8.00,
+  siding_stucco: 11.00,
+  // Labor per sqft by type
+  siding_labor_vinyl: 3.50,
+  siding_labor_fiber: 5.50,
+  siding_labor_wood: 6.50,
+  siding_labor_metal: 4.50,
+  siding_labor_stucco: 7.50,
+  // Hourly rate
+  siding_labor_rate: 45,
+  // Extras & trim
+  siding_housewrap_roll: 175,
+  siding_j_channel: 12,
+  siding_corner_post: 35,
+  siding_window_trim: 55,
+  siding_door_trim: 75,
+  siding_soffit_sqft: 8,
+  siding_fascia_lf: 6,
+  siding_fastener_kit: 175,
+  siding_removal_sqft: 1.75,
+  // Story multipliers
+  siding_story_2: 1.25,
+  siding_story_3: 1.50
+},
+
 
   // ========== ELECTRICAL (16 keys) ==========
    electrical: {

@@ -1269,7 +1269,7 @@ body {
 </div>
 </div>
 
-  <!-- ============================================ -->
+<!-- ============================================ -->
 <!-- SIDING SECTION -->
 <!-- ============================================ -->
 <div class="config-section tab-pane" id="siding-section">
@@ -1278,120 +1278,113 @@ body {
   <h4>Material Costs (per sqft)</h4>
   <div class="input-grid">
     <div class="input-group">
-      <label for="mat_vinyl">Vinyl</label>
-      <input type="number" id="mat_vinyl" step="0.01" placeholder="5.50">
+      <label for="siding_vinyl">Vinyl</label>
+      <input type="number" id="siding_vinyl" step="0.01" placeholder="5.50">
     </div>
     <div class="input-group">
-      <label for="mat_fiber_cement">Fiber Cement (Hardie)</label>
-      <input type="number" id="mat_fiber_cement" step="0.01" placeholder="9.50">
+      <label for="siding_fiber_cement">Fiber Cement (Hardie)</label>
+      <input type="number" id="siding_fiber_cement" step="0.01" placeholder="9.50">
     </div>
     <div class="input-group">
-      <label for="mat_wood">Wood</label>
-      <input type="number" id="mat_wood" step="0.01" placeholder="14.00">
+      <label for="siding_wood">Wood</label>
+      <input type="number" id="siding_wood" step="0.01" placeholder="14.00">
     </div>
     <div class="input-group">
-      <label for="mat_metal_siding">Metal</label>
-      <input type="number" id="mat_metal_siding" step="0.01" placeholder="8.00">
+      <label for="siding_metal">Metal</label>
+      <input type="number" id="siding_metal" step="0.01" placeholder="8.00">
     </div>
     <div class="input-group">
-      <label for="mat_stucco">Stucco</label>
-      <input type="number" id="mat_stucco" step="0.01" placeholder="11.00">
-    </div>
-  </div>
-
-  <h4>Labor Rates (per sqft)</h4>
-  <div class="input-grid">
-    <div class="input-group">
-      <label for="labor_vinyl">Vinyl Labor</label>
-      <input type="number" id="labor_vinyl" step="0.01" placeholder="3.50">
-    </div>
-    <div class="input-group">
-      <label for="labor_fiber_cement">Fiber Cement Labor</label>
-      <input type="number" id="labor_fiber_cement" step="0.01" placeholder="5.50">
-    </div>
-    <div class="input-group">
-      <label for="labor_wood">Wood Labor</label>
-      <input type="number" id="labor_wood" step="0.01" placeholder="6.50">
-    </div>
-    <div class="input-group">
-      <label for="labor_metal_siding">Metal Labor</label>
-      <input type="number" id="labor_metal_siding" step="0.01" placeholder="4.50">
-    </div>
-    <div class="input-group">
-      <label for="labor_stucco">Stucco Labor</label>
-      <input type="number" id="labor_stucco" step="0.01" placeholder="7.50">
-    </div>
-    <div class="input-group">
-      <label for="labor_hourly">Hourly Rate ($)</label>
-      <input type="number" id="labor_hourly" step="1" placeholder="45">
+      <label for="siding_stucco">Stucco</label>
+      <input type="number" id="siding_stucco" step="0.01" placeholder="11.00">
     </div>
   </div>
 
-  <h4>Additional Materials</h4>
+  <h4>Labor Rates (per sqft by type)</h4>
   <div class="input-grid">
     <div class="input-group">
-      <label for="house_wrap_sqft">House Wrap (per sqft)</label>
-      <input type="number" id="house_wrap_sqft" step="0.01" placeholder="0.50">
+      <label for="siding_labor_vinyl">Vinyl Labor</label>
+      <input type="number" id="siding_labor_vinyl" step="0.01" placeholder="3.50">
     </div>
     <div class="input-group">
-      <label for="trim_lf">Trim & J-Channel (per LF)</label>
-      <input type="number" id="trim_lf" step="0.01" placeholder="5.50">
+      <label for="siding_labor_fiber">Fiber Cement Labor</label>
+      <input type="number" id="siding_labor_fiber" step="0.01" placeholder="5.50">
     </div>
     <div class="input-group">
-      <label for="window_trim_each">Window Trim (each)</label>
-      <input type="number" id="window_trim_each" step="0.01" placeholder="55.00">
+      <label for="siding_labor_wood">Wood Labor</label>
+      <input type="number" id="siding_labor_wood" step="0.01" placeholder="6.50">
     </div>
     <div class="input-group">
-      <label for="fastener_kit">Fasteners/Flashing Kit</label>
-      <input type="number" id="fastener_kit" step="0.01" placeholder="175.00">
+      <label for="siding_labor_metal">Metal Labor</label>
+      <input type="number" id="siding_labor_metal" step="0.01" placeholder="4.50">
     </div>
     <div class="input-group">
-      <label for="removal_sqft">Removal & Disposal (per sqft)</label>
-      <input type="number" id="removal_sqft" step="0.01" placeholder="1.75">
+      <label for="siding_labor_stucco">Stucco Labor</label>
+      <input type="number" id="siding_labor_stucco" step="0.01" placeholder="7.50">
+    </div>
+    <div class="input-group">
+      <label for="siding_labor_rate">Hourly Rate ($)</label>
+      <input type="number" id="siding_labor_rate" step="1" placeholder="45">
+    </div>
+  </div>
+
+  <h4>Trim & Accessories</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="siding_housewrap_roll">House Wrap (per roll)</label>
+      <input type="number" id="siding_housewrap_roll" step="1" placeholder="175">
+    </div>
+    <div class="input-group">
+      <label for="siding_j_channel">J-Channel (per 12ft piece)</label>
+      <input type="number" id="siding_j_channel" step="0.01" placeholder="12.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_corner_post">Corner Post (each)</label>
+      <input type="number" id="siding_corner_post" step="1" placeholder="35">
+    </div>
+    <div class="input-group">
+      <label for="siding_window_trim">Window Trim (each)</label>
+      <input type="number" id="siding_window_trim" step="0.01" placeholder="55.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_door_trim">Door Trim (each)</label>
+      <input type="number" id="siding_door_trim" step="0.01" placeholder="75.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_soffit_sqft">Soffit (per sqft)</label>
+      <input type="number" id="siding_soffit_sqft" step="0.01" placeholder="8.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_fascia_lf">Fascia (per linear ft)</label>
+      <input type="number" id="siding_fascia_lf" step="0.01" placeholder="6.00">
+    </div>
+    <div class="input-group">
+      <label for="siding_fastener_kit">Fasteners/Caulk Kit</label>
+      <input type="number" id="siding_fastener_kit" step="1" placeholder="175">
+    </div>
+    <div class="input-group">
+      <label for="siding_removal_sqft">Removal (per sqft)</label>
+      <input type="number" id="siding_removal_sqft" step="0.01" placeholder="1.75">
     </div>
   </div>
 
   <h4>Story Multipliers</h4>
   <div class="input-grid">
     <div class="input-group">
-      <label for="story_2">2 Story</label>
-      <input type="number" id="story_2" step="0.01" placeholder="1.25">
+      <label for="siding_story_2">2 Story</label>
+      <input type="number" id="siding_story_2" step="0.01" placeholder="1.25">
     </div>
     <div class="input-group">
-      <label for="story_3">3 Story</label>
-      <input type="number" id="story_3" step="0.01" placeholder="1.5">
+      <label for="siding_story_3">3 Story</label>
+      <input type="number" id="siding_story_3" step="0.01" placeholder="1.50">
     </div>
   </div>
-
-  <h4>Trim & Finishing</h4>
-<div class="input-grid">
-  <div class="input-group">
-    <label for="window_trim_each">Window Trim (each)</label>
-    <input type="number" id="window_trim_each" step="0.01" placeholder="55.00">
-  </div>
-  <div class="input-group">
-    <label for="door_trim_each">Door Trim (each)</label>
-    <input type="number" id="door_trim_each" step="0.01" placeholder="75.00">
-  </div>
-  <div class="input-group">
-    <label for="fastener_kit">Fasteners/Caulk Kit</label>
-    <input type="number" id="fastener_kit" step="0.01" placeholder="175.00">
-  </div>
-  <div class="input-group">
-    <label for="removal_sqft">Removal (per sqft)</label>
-    <input type="number" id="removal_sqft" step="0.01" placeholder="1.75">
-  </div>
-  <div class="input-group">
-    <label for="labor_hourly">Hourly Rate ($)</label>
-    <input type="number" id="labor_hourly" step="1" placeholder="45">
-  </div>
-</div>
 
   <div class="section-actions">
     <button class="btn-save" onclick="saveConfig('siding')">💾 Save Siding Config</button>
     <span id="siding-status" class="status-message"></span>
   </div>
 </div>
+
   <!-- ============================================ -->
   <!-- REGIONAL SECTION (16 fields) -->
   <!-- ============================================ -->
@@ -3014,7 +3007,7 @@ const TRADE_FIELDS = {
   flooring: ['floor_carpet', 'floor_vinyl', 'floor_laminate', 'floor_hardwood_eng', 'floor_hardwood_solid', 'floor_tile_ceramic', 'floor_tile_porcelain', 'floor_labor_carpet', 'floor_labor_vinyl', 'floor_labor_hardwood', 'floor_labor_tile', 'floor_subfloor', 'floor_removal', 'floor_underlay', 'floor_baseboard', 'floor_standard', 'floor_moderate', 'floor_complex'],
   painting: ['paint_exterior_mat', 'paint_exterior_labor', 'paint_interior_mat', 'paint_interior_labor', 'paint_ceiling_mat', 'paint_ceiling_labor', 'paint_trim_mat', 'paint_trim_labor', 'paint_door_mat', 'paint_door_labor', 'paint_window_mat', 'paint_window_labor', 'paint_power_wash_mat', 'paint_power_wash_labor', 'paint_patch_minor_mat', 'paint_patch_minor_labor', 'paint_patch_moderate_mat', 'paint_patch_moderate_labor', 'paint_patch_extensive_mat', 'paint_patch_extensive_labor', 'paint_primer_mat', 'paint_primer_labor', 'paint_lead_mat', 'paint_lead_labor'],
    drywall: ['drywall_labor_rate', 'drywall_hang_sqft', 'drywall_tape_sqft', 'drywall_sand_sqft', 'drywall_sheet_half', 'drywall_sheet_5_8', 'drywall_joint_compound', 'drywall_tape', 'drywall_screws', 'drywall_corner_bead', 'drywall_finish_level_3', 'drywall_finish_level_4', 'drywall_finish_level_5', 'drywall_texture_none', 'drywall_texture_orange_peel', 'drywall_texture_knockdown', 'drywall_texture_popcorn', 'drywall_ceiling_10ft', 'drywall_ceiling_12ft', 'drywall_repair_minor', 'drywall_repair_moderate', 'drywall_repair_extensive'],
-  siding: ['siding_vinyl', 'siding_fiber_cement', 'siding_wood', 'siding_metal', 'siding_stucco', 'siding_vinyl_labor', 'siding_fiber_labor', 'siding_wood_labor', 'siding_metal_labor', 'siding_stucco_labor', 'siding_1_story', 'siding_2_story', 'siding_3_story', 'siding_removal', 'siding_wrap', 'siding_trim', 'siding_window_trim'],
+  siding: ['siding_vinyl', 'siding_fiber_cement', 'siding_wood', 'siding_metal', 'siding_stucco', 'siding_labor_vinyl', 'siding_labor_fiber', 'siding_labor_wood', 'siding_labor_metal', 'siding_labor_stucco', 'siding_labor_rate', 'siding_housewrap_roll', 'siding_j_channel', 'siding_corner_post', 'siding_window_trim', 'siding_door_trim', 'siding_soffit_sqft', 'siding_fascia_lf', 'siding_fastener_kit', 'siding_removal_sqft', 'siding_story_2', 'siding_story_3'],
   regional: ['region_CA', 'region_NY', 'region_MA', 'region_HI', 'region_WA', 'region_OR', 'region_CO', 'region_IL', 'region_VA', 'region_TX', 'region_FL', 'region_GA', 'region_OH', 'region_TN', 'region_AL', 'region_default']
 };
 
