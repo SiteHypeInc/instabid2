@@ -396,31 +396,25 @@ const DEFAULT_PRICING = {
 
   // ========== DRYWALL (19 keys) ==========
   drywall: {
-    // Labor
     drywall_labor_rate: 55,
     drywall_hang_sqft: 0.75,
     drywall_tape_sqft: 0.65,
     drywall_sand_sqft: 0.35,
-    // Materials
-    drywall_sheet_half: 12,      // 1/2" 4x8 sheet
-    drywall_sheet_5_8: 18,       // 5/8" fire-rated
-    drywall_joint_compound: 18,  // 5 gal bucket
-    drywall_tape: 8,             // roll
-    drywall_screws: 12,          // box
-    drywall_corner_bead: 5,      // 8ft piece
-    // Finish level multipliers
-    drywall_finish_level_3: 1.0,   // standard
-    drywall_finish_level_4: 1.25,  // smooth
-    drywall_finish_level_5: 1.5,   // glass smooth
-    // Texture per sqft
-    drywall_texture_none: 0,
+    drywall_sheet_half: 12.00,
+    drywall_sheet_5_8: 18.00,
+    drywall_joint_compound: 18.00,
+    drywall_tape: 8.00,
+    drywall_screws: 12.00,
+    drywall_corner_bead: 5.00,
+    drywall_finish_level_3: 1.00,
+    drywall_finish_level_4: 1.25,
+    drywall_finish_level_5: 1.50,
+    drywall_texture_none: 0.00,
     drywall_texture_orange_peel: 0.80,
     drywall_texture_knockdown: 1.00,
     drywall_texture_popcorn: 0.65,
-    // Ceiling height multipliers
     drywall_ceiling_10ft: 1.15,
     drywall_ceiling_12ft: 1.30,
-    // Repair flat rates
     drywall_repair_minor: 175,
     drywall_repair_moderate: 400,
     drywall_repair_extensive: 900

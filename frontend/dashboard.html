@@ -1262,6 +1262,11 @@ body {
       <input type="number" id="drywall_repair_extensive" step="0.01" placeholder="900.00">
     </div>
   </div>
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('drywall')">💾 Save Drywall Config</button>
+    <span id="drywall-status" class="status-message"></span>
+  </div>
+</div>
 </div>
 
   <!-- ============================================ -->
@@ -3008,7 +3013,7 @@ const TRADE_FIELDS = {
 
   flooring: ['floor_carpet', 'floor_vinyl', 'floor_laminate', 'floor_hardwood_eng', 'floor_hardwood_solid', 'floor_tile_ceramic', 'floor_tile_porcelain', 'floor_labor_carpet', 'floor_labor_vinyl', 'floor_labor_hardwood', 'floor_labor_tile', 'floor_subfloor', 'floor_removal', 'floor_underlay', 'floor_baseboard', 'floor_standard', 'floor_moderate', 'floor_complex'],
   painting: ['paint_exterior_mat', 'paint_exterior_labor', 'paint_interior_mat', 'paint_interior_labor', 'paint_ceiling_mat', 'paint_ceiling_labor', 'paint_trim_mat', 'paint_trim_labor', 'paint_door_mat', 'paint_door_labor', 'paint_window_mat', 'paint_window_labor', 'paint_power_wash_mat', 'paint_power_wash_labor', 'paint_patch_minor_mat', 'paint_patch_minor_labor', 'paint_patch_moderate_mat', 'paint_patch_moderate_labor', 'paint_patch_extensive_mat', 'paint_patch_extensive_labor', 'paint_primer_mat', 'paint_primer_labor', 'paint_lead_mat', 'paint_lead_labor'],
-  drywall: ['drywall_sheet', 'drywall_compound', 'drywall_tape', 'drywall_screws', 'drywall_hang_rate', 'drywall_tape_rate', 'drywall_texture_rate', 'drywall_hourly', 'drywall_standard', 'drywall_high_ceiling', 'drywall_smooth', 'drywall_textured', 'drywall_repair_minor', 'drywall_repair_moderate', 'drywall_repair_extensive'],
+   drywall: ['drywall_labor_rate', 'drywall_hang_sqft', 'drywall_tape_sqft', 'drywall_sand_sqft', 'drywall_sheet_half', 'drywall_sheet_5_8', 'drywall_joint_compound', 'drywall_tape', 'drywall_screws', 'drywall_corner_bead', 'drywall_finish_level_3', 'drywall_finish_level_4', 'drywall_finish_level_5', 'drywall_texture_none', 'drywall_texture_orange_peel', 'drywall_texture_knockdown', 'drywall_texture_popcorn', 'drywall_ceiling_10ft', 'drywall_ceiling_12ft', 'drywall_repair_minor', 'drywall_repair_moderate', 'drywall_repair_extensive'],
   siding: ['siding_vinyl', 'siding_fiber_cement', 'siding_wood', 'siding_metal', 'siding_stucco', 'siding_vinyl_labor', 'siding_fiber_labor', 'siding_wood_labor', 'siding_metal_labor', 'siding_stucco_labor', 'siding_1_story', 'siding_2_story', 'siding_3_story', 'siding_removal', 'siding_wrap', 'siding_trim', 'siding_window_trim'],
   regional: ['region_CA', 'region_NY', 'region_MA', 'region_HI', 'region_WA', 'region_OR', 'region_CO', 'region_IL', 'region_VA', 'region_TX', 'region_FL', 'region_GA', 'region_OH', 'region_TN', 'region_AL', 'region_default']
 };
