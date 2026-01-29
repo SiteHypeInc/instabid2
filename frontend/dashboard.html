@@ -880,6 +880,11 @@ body {
       <input type="number" id="plumb_location_attic" value="1.25" step="0.05">
     </div>
   </div>
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('plumbing')">💾 Save Plumbing Config</button>
+    <span id="plumbing-status" class="status-message"></span>
+  </div>
+</div>
 </div>
 
   <!-- ============================================ -->
@@ -2999,7 +3004,8 @@ const TRADE_FIELDS = {
   roofing: ['pitch_3_12', 'pitch_4_12', 'pitch_5_12', 'pitch_6_12', 'pitch_7_12', 'pitch_8_12', 'pitch_9_12', 'pitch_10_12', 'pitch_11_12', 'pitch_12_12', 'mat_asphalt', 'mat_arch', 'mat_metal', 'mat_tile', 'mat_wood_shake', 'underlayment_roll', 'nails_box', 'starter_lf', 'ridge_lf', 'drip_edge_lf', 'ice_shield_lf', 'vent_unit', 'ridge_vent_lf', 'osb_sheet', 'disposal_asphalt_sqft', 'disposal_wood_sqft', 'disposal_metal_sqft', 'disposal_tile_sqft', 'chimney_flash', 'skylight_flash', 'valley_lf', 'labor_rate_sqft', 'chimney_labor_hrs', 'skylight_labor_hrs'],
   hvac: ['hvac_size_small', 'hvac_size_med', 'hvac_size_large', 'hvac_size_xlarge', 'hvac_furnace', 'hvac_ac', 'hvac_heatpump', 'hvac_minisplit', 'hvac_duct', 'hvac_thermostat', 'hvac_handler', 'hvac_standard', 'hvac_moderate', 'hvac_complex'],
   electrical: ['elec_wire_lf', 'elec_panel_100', 'elec_panel_200', 'elec_panel_400', 'elec_rewire_sqft', 'elec_ceiling_fan_install', 'elec_outlet', 'elec_outlet_gfci', 'elec_switch', 'elec_switch_dimmer', 'elec_light_install', 'elec_recessed', 'elec_circuit_20a', 'elec_circuit_30a', 'elec_circuit_50a', 'elec_ev_charger', 'elec_permit'],
-  plumbing: ['plumb_toilet', 'plumb_sink', 'plumb_shower', 'plumb_tub', 'plumb_dishwasher', 'plumb_heater_tank', 'plumb_heater_tankless', 'plumb_sump', 'plumb_softener', 'plumb_pipe_repair', 'plumb_pipe_replace', 'plumb_drain', 'plumb_sewer', 'plumb_labor_std', 'plumb_labor_emerg'],
+   plumbing: ['plumb_labor_rate', 'plumb_labor_emergency', 'plumb_service_call', 'plumb_toilet', 'plumb_sink_bath', 'plumb_sink_kitchen', 'plumb_faucet_bath', 'plumb_faucet_kitchen', 'plumb_shower_valve', 'plumb_tub', 'plumb_dishwasher', 'plumb_garbage_disposal', 'plumb_ice_maker', 'plumb_heater_tank_40', 'plumb_heater_tank_50', 'plumb_heater_tankless_gas', 'plumb_heater_tankless_elec', 'plumb_water_softener', 'plumb_sump_pump', 'plumb_repipe_pex_lf', 'plumb_repipe_copper_lf', 'plumb_main_line', 'plumb_gas_line_new', 'plumb_access_basement', 'plumb_access_crawlspace', 'plumb_access_slab', 'plumb_location_garage', 'plumb_location_basement', 'plumb_location_closet', 'plumb_location_attic'],
+
   flooring: ['floor_carpet', 'floor_vinyl', 'floor_laminate', 'floor_hardwood_eng', 'floor_hardwood_solid', 'floor_tile_ceramic', 'floor_tile_porcelain', 'floor_labor_carpet', 'floor_labor_vinyl', 'floor_labor_hardwood', 'floor_labor_tile', 'floor_subfloor', 'floor_removal', 'floor_underlay', 'floor_baseboard', 'floor_standard', 'floor_moderate', 'floor_complex'],
   painting: ['paint_exterior_mat', 'paint_exterior_labor', 'paint_interior_mat', 'paint_interior_labor', 'paint_ceiling_mat', 'paint_ceiling_labor', 'paint_trim_mat', 'paint_trim_labor', 'paint_door_mat', 'paint_door_labor', 'paint_window_mat', 'paint_window_labor', 'paint_power_wash_mat', 'paint_power_wash_labor', 'paint_patch_minor_mat', 'paint_patch_minor_labor', 'paint_patch_moderate_mat', 'paint_patch_moderate_labor', 'paint_patch_extensive_mat', 'paint_patch_extensive_labor', 'paint_primer_mat', 'paint_primer_labor', 'paint_lead_mat', 'paint_lead_labor'],
   drywall: ['drywall_sheet', 'drywall_compound', 'drywall_tape', 'drywall_screws', 'drywall_hang_rate', 'drywall_tape_rate', 'drywall_texture_rate', 'drywall_hourly', 'drywall_standard', 'drywall_high_ceiling', 'drywall_smooth', 'drywall_textured', 'drywall_repair_minor', 'drywall_repair_moderate', 'drywall_repair_extensive'],

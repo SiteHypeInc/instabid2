@@ -334,7 +334,7 @@ const DEFAULT_PRICING = {
     siding_story_2: 1.2,
     siding_story_3: 1.4
   },
-  
+
   // ========== ELECTRICAL (16 keys) ==========
    electrical: {
     elec_wire_lf: 1.00,
@@ -432,7 +432,7 @@ const DEFAULT_PRICING = {
     plumb_labor_rate: 95,
     plumb_labor_emergency: 175,
     plumb_service_call: 95,
-    // Fixture installs (labor + basic materials)
+    // Fixture installs
     plumb_toilet: 375,
     plumb_sink_bath: 350,
     plumb_sink_kitchen: 550,
@@ -443,7 +443,7 @@ const DEFAULT_PRICING = {
     plumb_dishwasher: 200,
     plumb_garbage_disposal: 325,
     plumb_ice_maker: 150,
-    // Water heaters (installed)
+    // Water heaters
     plumb_heater_tank_40: 1200,
     plumb_heater_tank_50: 1600,
     plumb_heater_tankless_gas: 3500,
@@ -451,17 +451,17 @@ const DEFAULT_PRICING = {
     // Water systems
     plumb_water_softener: 1800,
     plumb_sump_pump: 650,
-    // Repipe per linear foot
+    // Repipe
     plumb_repipe_pex_lf: 2.50,
     plumb_repipe_copper_lf: 4.50,
-    // Big jobs
+    // Major jobs
     plumb_main_line: 1200,
     plumb_gas_line_new: 500,
-    // Access type multipliers
+    // Access multipliers
     plumb_access_basement: 1.0,
     plumb_access_crawlspace: 1.15,
     plumb_access_slab: 1.35,
-    // Water heater location multipliers
+    // Location multipliers
     plumb_location_garage: 1.0,
     plumb_location_basement: 1.0,
     plumb_location_closet: 1.1,
