@@ -1487,125 +1487,143 @@ case 'hvac': {
   };
 }
 
-    // ============================================
-    // 6. FLOORING
-    // ============================================
-    case 'flooring': {
-      const {
-        squareFeet,
-        flooringType = 'carpet',
-        removal = false,
-        subfloorRepair = false,
-        underlayment = true,
-        baseboard = 0,
-        complexity = 'standard'
-      } = criteria;
+   // ============================================
+// 6. FLOORING
+// ============================================
+case 'flooring': {
+  const {
+    squareFeet,
+    flooringType = 'carpet',
+    removal = false,
+    subfloorRepair = false,
+    underlayment = true,
+    baseboard = 0,
+    complexity = 'standard'
+  } = criteria;
 
-      const wasteMultiplier = 1.10;
-      const adjustedSqft = squareFeet * wasteMultiplier;
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.flooring?.[key] ?? defaultValue;
+  };
 
-      const materialCosts = {
-        'carpet': 3.50, 'vinyl': 4.00, 'laminate': 4.50,
-        'hardwood_eng': 8.00, 'hardwood_solid': 12.00,
-        'tile_ceramic': 6.00, 'tile_porcelain': 8.50
-      };
+  const wasteMultiplier = 1.10;
+  const adjustedSqft = squareFeet * wasteMultiplier;
 
-      const laborRates = {
-        'carpet': 1.50, 'vinyl': 2.00, 'laminate': 2.00,
-        'hardwood_eng': 4.00, 'hardwood_solid': 4.00,
-        'tile_ceramic': 5.00, 'tile_porcelain': 5.00
-      };
+  const materialCosts = {
+    'carpet': getPrice('floor_carpet', 5.00),
+    'vinyl': getPrice('floor_vinyl', 3.50),
+    'laminate': getPrice('floor_laminate', 4.00),
+    'lvp': getPrice('floor_lvp', 4.50),
+    'hardwood_eng': getPrice('floor_hardwood_eng', 10.00),
+    'hardwood_solid': getPrice('floor_hardwood_solid', 14.00),
+    'tile_ceramic': getPrice('floor_tile_ceramic', 7.50),
+    'tile_porcelain': getPrice('floor_tile_porcelain', 10.00)
+  };
 
-      const materialList = [];
+  // Combined labor rates by category
+  const laborRates = {
+    'carpet': getPrice('floor_labor_carpet', 2.00),
+    'vinyl': getPrice('floor_labor_vinyl', 2.50),
+    'laminate': getPrice('floor_labor_vinyl', 2.50),
+    'lvp': getPrice('floor_labor_vinyl', 2.50),
+    'hardwood_eng': getPrice('floor_labor_hardwood', 5.00),
+    'hardwood_solid': getPrice('floor_labor_hardwood', 5.00),
+    'tile_ceramic': getPrice('floor_labor_tile', 6.50),
+    'tile_porcelain': getPrice('floor_labor_tile', 6.50)
+  };
 
-      // Flooring
-      const costPerSqft = materialCosts[flooringType] || 4.00;
-      materialList.push({
-        item: `${flooringType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Flooring`,
-        quantity: Math.ceil(adjustedSqft),
-        unit: 'sqft',
-        unitCost: costPerSqft,
-        totalCost: adjustedSqft * costPerSqft,
-        category: 'flooring_material'
-      });
+  const materialList = [];
 
-      // Underlayment
-      if (underlayment && flooringType !== 'carpet') {
-        materialList.push({
-          item: 'Underlayment',
-          quantity: squareFeet,
-          unit: 'sqft',
-          unitCost: 0.75,
-          totalCost: squareFeet * 0.75,
-          category: 'underlayment'
-        });
-      }
+  // Flooring material
+  const costPerSqft = materialCosts[flooringType] || getPrice('floor_vinyl', 3.50);
+  materialList.push({
+    item: `${flooringType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Flooring`,
+    quantity: Math.ceil(adjustedSqft),
+    unit: 'sqft',
+    unitCost: costPerSqft,
+    totalCost: adjustedSqft * costPerSqft,
+    category: 'flooring_material'
+  });
 
-      // Removal
-      if (removal) {
-        materialList.push({
-          item: 'Old Flooring Removal',
-          quantity: squareFeet,
-          unit: 'sqft',
-          unitCost: 1.50,
-          totalCost: squareFeet * 1.50,
-          category: 'removal'
-        });
-      }
+  // Underlayment
+  if (underlayment && flooringType !== 'carpet') {
+    const underlaymentCost = getPrice('floor_underlay', 0.50);
+    materialList.push({
+      item: 'Underlayment',
+      quantity: squareFeet,
+      unit: 'sqft',
+      unitCost: underlaymentCost,
+      totalCost: squareFeet * underlaymentCost,
+      category: 'underlayment'
+    });
+  }
 
-      // Subfloor repair
-      if (subfloorRepair) {
-        const repairSqft = Math.ceil(squareFeet * 0.3);
-        materialList.push({
-          item: 'Subfloor Repair',
-          quantity: repairSqft,
-          unit: 'sqft',
-          unitCost: 3.00,
-          totalCost: repairSqft * 3.00,
-          category: 'prep'
-        });
-      }
+  // Removal
+  if (removal) {
+    const removalCost = getPrice('floor_removal', 2.00);
+    materialList.push({
+      item: 'Old Flooring Removal',
+      quantity: squareFeet,
+      unit: 'sqft',
+      unitCost: removalCost,
+      totalCost: squareFeet * removalCost,
+      category: 'removal'
+    });
+  }
 
-      // Baseboard
-      if (baseboard > 0) {
-        materialList.push({
-          item: 'Baseboard Trim',
-          quantity: baseboard,
-          unit: 'linear feet',
-          unitCost: 4.00,
-          totalCost: baseboard * 4.00,
-          category: 'trim'
-        });
-      }
+  // Subfloor repair
+  if (subfloorRepair) {
+    const subfloorCost = getPrice('floor_subfloor', 4.00);
+    const repairSqft = Math.ceil(squareFeet * 0.3);
+    materialList.push({
+      item: 'Subfloor Repair',
+      quantity: repairSqft,
+      unit: 'sqft',
+      unitCost: subfloorCost,
+      totalCost: repairSqft * subfloorCost,
+      category: 'prep'
+    });
+  }
 
-      // Adhesive
-      materialList.push({
-        item: 'Adhesive/Fasteners',
-        quantity: 1,
-        unit: 'set',
-        unitCost: 75,
-        totalCost: 75,
-        category: 'adhesive'
-      });
+  // Baseboard
+  if (baseboard > 0) {
+    const baseboardCost = getPrice('floor_baseboard', 5.00);
+    materialList.push({
+      item: 'Baseboard Trim',
+      quantity: baseboard,
+      unit: 'linear feet',
+      unitCost: baseboardCost,
+      totalCost: baseboard * baseboardCost,
+      category: 'trim'
+    });
+  }
 
-      // Labor
-      const complexityMult = { 'standard': 1.0, 'moderate': 1.2, 'complex': 1.5 };
-      const laborRate = laborRates[flooringType] || 2.00;
-      let laborHours = (squareFeet * laborRate) / 45;
-      laborHours *= complexityMult[complexity] || 1.0;
-      if (removal) laborHours += squareFeet * 0.02;
-      if (subfloorRepair) laborHours += squareFeet * 0.01;
-      if (baseboard > 0) laborHours += baseboard / 20;
+  // Labor calculation
+  const complexityMult = {
+    'standard': getPrice('floor_standard', 1.0),
+    'moderate': getPrice('floor_moderate', 1.2),
+    'complex': getPrice('floor_complex', 1.4)
+  };
+  
+  const laborRate = laborRates[flooringType] || getPrice('floor_labor_vinyl', 2.50);
+  
+  // Labor hours based on sqft * labor rate per sqft / assumed hourly rate
+  let laborHours = (squareFeet * laborRate) / 45;
+  laborHours *= complexityMult[complexity] || 1.0;
+  if (removal) laborHours += squareFeet * 0.02;
+  if (subfloorRepair) laborHours += squareFeet * 0.01;
+  if (baseboard > 0) laborHours += baseboard / 20;
 
-      const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
 
-      return {
-        trade: 'flooring',
-        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-        laborHours: Math.round(laborHours * 100) / 100,
-        materialList
-      };
-    }
+  return {
+    trade: 'flooring',
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    laborHours: Math.round(laborHours * 100) / 100,
+    materialList
+  };
+}
+
        // ============================================
     // 7. ELECTRICAL
     // ============================================

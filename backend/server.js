@@ -500,23 +500,32 @@ hvac: {
   hvac_story_3: 1.4
 },
 
-  // ========== FLOORING (parked - defaults only) ==========
-  flooring: {
-    floor_labor_rate: 55,
-    floor_carpet_sqft: 5.00,
-    floor_vinyl_sqft: 3.50,
-    floor_lvp_sqft: 4.50,
-    floor_laminate_sqft: 4.00,
-    floor_hardwood_eng_sqft: 10.00,
-    floor_hardwood_solid_sqft: 14.00,
-    floor_tile_ceramic_sqft: 7.50,
-    floor_tile_porcelain_sqft: 10.00,
-    floor_removal_sqft: 2.00,
-    floor_subfloor_sqft: 4.00,
-    floor_underlayment_sqft: 0.50,
-    floor_baseboard_lf: 5.00,
-    floor_transition_piece: 25
-  }
+ // ========== FLOORING (18 keys) ==========
+flooring: {
+  // Material costs per sqft
+  floor_carpet: 5.00,
+  floor_vinyl: 3.50,
+  floor_laminate: 4.00,
+  floor_lvp: 4.50,
+  floor_hardwood_eng: 10.00,
+  floor_hardwood_solid: 14.00,
+  floor_tile_ceramic: 7.50,
+  floor_tile_porcelain: 10.00,
+  // Labor per sqft (combined by category)
+  floor_labor_carpet: 2.00,
+  floor_labor_vinyl: 2.50,
+  floor_labor_hardwood: 5.00,
+  floor_labor_tile: 6.50,
+  // Prep & extras
+  floor_subfloor: 4.00,
+  floor_removal: 2.00,
+  floor_underlay: 0.50,
+  floor_baseboard: 5.00,
+  // Complexity multipliers
+  floor_standard: 1.0,
+  floor_moderate: 1.2,
+  floor_complex: 1.4
+}
 };
 
 // ============================================
