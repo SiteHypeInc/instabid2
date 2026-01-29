@@ -980,112 +980,152 @@ body {
   </div>
 
   <!-- ============================================ -->
-  <!-- PAINTING SECTION (21 fields) -->
+  <!-- PAINTING SECTION -->
   <!-- ============================================ -->
   <div class="config-section tab-pane" id="painting-section">
     <h3>🎨 Painting Configuration</h3>
     
-    <h4>Interior (per sqft)</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="paint_int_walls_1">Walls - 1 Coat</label>
-        <input type="number" id="paint_int_walls_1" step="0.01" placeholder="2.00">
-      </div>
-      <div class="input-group">
-        <label for="paint_int_walls_2">Walls - 2 Coats</label>
-        <input type="number" id="paint_int_walls_2" step="0.01" placeholder="3.25">
-      </div>
-      <div class="input-group">
-        <label for="paint_int_ceiling">Ceiling</label>
-        <input type="number" id="paint_int_ceiling" step="0.01" placeholder="2.75">
-      </div>
-      <div class="input-group">
-        <label for="paint_int_trim">Trim (per LF)</label>
-        <input type="number" id="paint_int_trim" step="0.01" placeholder="2.50">
-      </div>
-      <div class="input-group">
-        <label for="paint_int_door">Door (each)</label>
-        <input type="number" id="paint_int_door" step="1" placeholder="95">
-      </div>
-      <div class="input-group">
-        <label for="paint_int_cabinet">Cabinet (per LF)</label>
-        <input type="number" id="paint_int_cabinet" step="1" placeholder="50">
-      </div>
-    </div>
-
     <h4>Exterior (per sqft)</h4>
     <div class="input-grid">
       <div class="input-group">
-        <label for="paint_ext_siding_1">Siding - 1 Coat</label>
-        <input type="number" id="paint_ext_siding_1" step="0.01" placeholder="2.75">
+        <label for="paint_exterior_mat">Materials</label>
+        <input type="number" id="paint_exterior_mat" step="0.01" placeholder="0.45">
       </div>
       <div class="input-group">
-        <label for="paint_ext_siding_2">Siding - 2 Coats</label>
-        <input type="number" id="paint_ext_siding_2" step="0.01" placeholder="4.50">
-      </div>
-      <div class="input-group">
-        <label for="paint_ext_trim">Exterior Trim (per LF)</label>
-        <input type="number" id="paint_ext_trim" step="0.01" placeholder="3.25">
-      </div>
-      <div class="input-group">
-        <label for="paint_ext_deck">Deck (per sqft)</label>
-        <input type="number" id="paint_ext_deck" step="0.01" placeholder="3.00">
-      </div>
-      <div class="input-group">
-        <label for="paint_ext_fence">Fence (per sqft)</label>
-        <input type="number" id="paint_ext_fence" step="0.01" placeholder="4.00">
+        <label for="paint_exterior_labor">Labor</label>
+        <input type="number" id="paint_exterior_labor" step="0.01" placeholder="2.50">
       </div>
     </div>
 
-    <h4>Prep & Specialty (per sqft)</h4>
+    <h4>Interior (per sqft)</h4>
     <div class="input-grid">
       <div class="input-group">
-        <label for="paint_prep">Surface Prep</label>
-        <input type="number" id="paint_prep" step="0.01" placeholder="1.25">
+        <label for="paint_interior_mat">Materials</label>
+        <input type="number" id="paint_interior_mat" step="0.01" placeholder="0.45">
       </div>
       <div class="input-group">
-        <label for="paint_primer">Primer Coat</label>
-        <input type="number" id="paint_primer" step="0.01" placeholder="1.00">
-      </div>
-      <div class="input-group">
-        <label for="paint_wallpaper">Wallpaper Removal</label>
-        <input type="number" id="paint_wallpaper" step="0.01" placeholder="2.00">
-      </div>
-      <div class="input-group">
-        <label for="paint_texture">Texture Application</label>
-        <input type="number" id="paint_texture" step="0.01" placeholder="4.00">
+        <label for="paint_interior_labor">Labor</label>
+        <input type="number" id="paint_interior_labor" step="0.01" placeholder="3.50">
       </div>
     </div>
 
-    <h4>Paint Costs (per gallon)</h4>
+    <h4>Ceilings (per sqft)</h4>
     <div class="input-grid">
       <div class="input-group">
-        <label for="paint_gallon_std">Standard Paint</label>
-        <input type="number" id="paint_gallon_std" step="1" placeholder="45">
+        <label for="paint_ceiling_mat">Materials</label>
+        <input type="number" id="paint_ceiling_mat" step="0.01" placeholder="0.35">
       </div>
       <div class="input-group">
-        <label for="paint_gallon_premium">Premium Paint</label>
-        <input type="number" id="paint_gallon_premium" step="1" placeholder="65">
-      </div>
-      <div class="input-group">
-        <label for="primer_gallon">Primer</label>
-        <input type="number" id="primer_gallon" step="1" placeholder="35">
+        <label for="paint_ceiling_labor">Labor</label>
+        <input type="number" id="paint_ceiling_labor" step="0.01" placeholder="1.25">
       </div>
     </div>
 
-    <h4>Complexity Multipliers</h4>
+    <h4>Trim (per linear ft)</h4>
     <div class="input-grid">
       <div class="input-group">
-        <label for="paint_standard">Standard</label>
-        <input type="number" id="paint_standard" step="0.01" placeholder="1.0">
+        <label for="paint_trim_mat">Materials</label>
+        <input type="number" id="paint_trim_mat" step="0.01" placeholder="0.50">
       </div>
       <div class="input-group">
-        <label for="paint_moderate">Moderate</label>
-        <input type="number" id="paint_moderate" step="0.01" placeholder="1.2">
+        <label for="paint_trim_labor">Labor</label>
+        <input type="number" id="paint_trim_labor" step="0.01" placeholder="2.00">
+      </div>
+    </div>
+
+    <h4>Doors (each)</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_door_mat">Materials</label>
+        <input type="number" id="paint_door_mat" step="1" placeholder="15">
       </div>
       <div class="input-group">
-        <label for="paint_complex">Complex</label>
-        <input type="number" id="paint_complex" step="0.01" placeholder="1.4">
+        <label for="paint_door_labor">Labor</label>
+        <input type="number" id="paint_door_labor" step="1" placeholder="60">
+      </div>
+    </div>
+
+    <h4>Windows (each)</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_window_mat">Materials</label>
+        <input type="number" id="paint_window_mat" step="1" placeholder="10">
+      </div>
+      <div class="input-group">
+        <label for="paint_window_labor">Labor</label>
+        <input type="number" id="paint_window_labor" step="1" placeholder="40">
+      </div>
+    </div>
+
+    <h4>Power Washing (per sqft)</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_power_wash_mat">Materials</label>
+        <input type="number" id="paint_power_wash_mat" step="0.01" placeholder="0.10">
+      </div>
+      <div class="input-group">
+        <label for="paint_power_wash_labor">Labor</label>
+        <input type="number" id="paint_power_wash_labor" step="0.01" placeholder="0.15">
+      </div>
+    </div>
+
+    <h4>Patching - Minor</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_patch_minor_mat">Materials</label>
+        <input type="number" id="paint_patch_minor_mat" step="1" placeholder="50">
+      </div>
+      <div class="input-group">
+        <label for="paint_patch_minor_labor">Labor</label>
+        <input type="number" id="paint_patch_minor_labor" step="1" placeholder="100">
+      </div>
+    </div>
+
+    <h4>Patching - Moderate</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_patch_moderate_mat">Materials</label>
+        <input type="number" id="paint_patch_moderate_mat" step="1" placeholder="100">
+      </div>
+      <div class="input-group">
+        <label for="paint_patch_moderate_labor">Labor</label>
+        <input type="number" id="paint_patch_moderate_labor" step="1" placeholder="250">
+      </div>
+    </div>
+
+    <h4>Patching - Extensive</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_patch_extensive_mat">Materials</label>
+        <input type="number" id="paint_patch_extensive_mat" step="1" placeholder="250">
+      </div>
+      <div class="input-group">
+        <label for="paint_patch_extensive_labor">Labor</label>
+        <input type="number" id="paint_patch_extensive_labor" step="1" placeholder="500">
+      </div>
+    </div>
+
+    <h4>Primer - Color Change (per sqft)</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_primer_mat">Materials</label>
+        <input type="number" id="paint_primer_mat" step="0.01" placeholder="0.20">
+      </div>
+      <div class="input-group">
+        <label for="paint_primer_labor">Labor</label>
+        <input type="number" id="paint_primer_labor" step="0.01" placeholder="0.30">
+      </div>
+    </div>
+
+    <h4>Lead Paint Abatement</h4>
+    <div class="input-grid">
+      <div class="input-group">
+        <label for="paint_lead_mat">Materials</label>
+        <input type="number" id="paint_lead_mat" step="1" placeholder="150">
+      </div>
+      <div class="input-group">
+        <label for="paint_lead_labor">Labor</label>
+        <input type="number" id="paint_lead_labor" step="1" placeholder="350">
       </div>
     </div>
 
@@ -2954,7 +2994,7 @@ const TRADE_FIELDS = {
   electrical: ['elec_panel_100', 'elec_panel_200', 'elec_subpanel', 'elec_outlet', 'elec_switch', 'elec_fixture', 'elec_fan', 'elec_gfci', 'elec_ev', 'elec_generator', 'elec_hottub', 'elec_labor_std', 'elec_labor_complex'],
   plumbing: ['plumb_toilet', 'plumb_sink', 'plumb_shower', 'plumb_tub', 'plumb_dishwasher', 'plumb_heater_tank', 'plumb_heater_tankless', 'plumb_sump', 'plumb_softener', 'plumb_pipe_repair', 'plumb_pipe_replace', 'plumb_drain', 'plumb_sewer', 'plumb_labor_std', 'plumb_labor_emerg'],
   flooring: ['floor_carpet', 'floor_vinyl', 'floor_laminate', 'floor_hardwood_eng', 'floor_hardwood_solid', 'floor_tile_ceramic', 'floor_tile_porcelain', 'floor_labor_carpet', 'floor_labor_vinyl', 'floor_labor_hardwood', 'floor_labor_tile', 'floor_subfloor', 'floor_removal', 'floor_underlay', 'floor_baseboard', 'floor_standard', 'floor_moderate', 'floor_complex'],
-  painting: ['paint_int_walls_1', 'paint_int_walls_2', 'paint_int_ceiling', 'paint_int_trim', 'paint_int_door', 'paint_int_cabinet', 'paint_ext_siding_1', 'paint_ext_siding_2', 'paint_ext_trim', 'paint_ext_deck', 'paint_ext_fence', 'paint_prep', 'paint_primer', 'paint_wallpaper', 'paint_texture', 'paint_standard', 'paint_moderate', 'paint_complex'],
+  painting: ['paint_exterior_mat', 'paint_exterior_labor', 'paint_interior_mat', 'paint_interior_labor', 'paint_ceiling_mat', 'paint_ceiling_labor', 'paint_trim_mat', 'paint_trim_labor', 'paint_door_mat', 'paint_door_labor', 'paint_window_mat', 'paint_window_labor', 'paint_power_wash_mat', 'paint_power_wash_labor', 'paint_patch_minor_mat', 'paint_patch_minor_labor', 'paint_patch_moderate_mat', 'paint_patch_moderate_labor', 'paint_patch_extensive_mat', 'paint_patch_extensive_labor', 'paint_primer_mat', 'paint_primer_labor', 'paint_lead_mat', 'paint_lead_labor'],
   drywall: ['drywall_sheet', 'drywall_compound', 'drywall_tape', 'drywall_screws', 'drywall_hang_rate', 'drywall_tape_rate', 'drywall_texture_rate', 'drywall_hourly', 'drywall_standard', 'drywall_high_ceiling', 'drywall_smooth', 'drywall_textured', 'drywall_repair_minor', 'drywall_repair_moderate', 'drywall_repair_extensive'],
   siding: ['siding_vinyl', 'siding_fiber_cement', 'siding_wood', 'siding_metal', 'siding_stucco', 'siding_vinyl_labor', 'siding_fiber_labor', 'siding_wood_labor', 'siding_metal_labor', 'siding_stucco_labor', 'siding_1_story', 'siding_2_story', 'siding_3_story', 'siding_removal', 'siding_wrap', 'siding_trim', 'siding_window_trim'],
   regional: ['region_CA', 'region_NY', 'region_MA', 'region_HI', 'region_WA', 'region_OR', 'region_CO', 'region_IL', 'region_VA', 'region_TX', 'region_FL', 'region_GA', 'region_OH', 'region_TN', 'region_AL', 'region_default']

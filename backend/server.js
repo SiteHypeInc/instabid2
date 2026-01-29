@@ -368,25 +368,41 @@ const DEFAULT_PRICING = {
   },
 
   // ========== PAINTING (13 keys) ==========
-  painting: {
-    // Labor
-    paint_labor_rate: 65,
-    // Per sqft rates
-    paint_interior_sqft: 4.50,
-    paint_exterior_sqft: 3.50,
-    paint_ceiling_sqft: 1.25,
-    // Per unit rates
-    paint_trim_lf: 1.50,
-    paint_door: 75,
-    paint_window: 50,
-    // Prep work
-    paint_power_wash_sqft: 0.25,
-    paint_patch_minor: 150,
-    paint_patch_moderate: 350,
-    paint_patch_extensive: 750,
-    // Specialty
-    paint_lead_abatement: 500,
-    paint_primer_coat: 0.50   // dramatic color change per sqft
+    painting: {
+    // Exterior (per sqft)
+    paint_exterior_mat: 0.45,
+    paint_exterior_labor: 2.50,
+    // Interior (per sqft)
+    paint_interior_mat: 0.45,
+    paint_interior_labor: 3.50,
+    // Ceilings (per sqft)
+    paint_ceiling_mat: 0.35,
+    paint_ceiling_labor: 1.25,
+    // Trim (per linear ft)
+    paint_trim_mat: 0.50,
+    paint_trim_labor: 2.00,
+    // Doors (each)
+    paint_door_mat: 15,
+    paint_door_labor: 60,
+    // Windows (each)
+    paint_window_mat: 10,
+    paint_window_labor: 40,
+    // Power wash (per sqft)
+    paint_power_wash_mat: 0.10,
+    paint_power_wash_labor: 0.15,
+    // Patching
+    paint_patch_minor_mat: 50,
+    paint_patch_minor_labor: 100,
+    paint_patch_moderate_mat: 100,
+    paint_patch_moderate_labor: 250,
+    paint_patch_extensive_mat: 250,
+    paint_patch_extensive_labor: 500,
+    // Primer (per sqft - color change)
+    paint_primer_mat: 0.20,
+    paint_primer_labor: 0.30,
+    // Lead abatement
+    paint_lead_mat: 150,
+    paint_lead_labor: 350
   },
 
   // ========== DRYWALL (19 keys) ==========

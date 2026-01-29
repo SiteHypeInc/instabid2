@@ -757,9 +757,14 @@ case 'plumbing': {
 }
 
 // ============================================
-// PAINTING - SQFT PRICING
+// PAINTING - SQFT PRICING WITH DASHBOARD KEYS
 // ============================================
 case 'painting': {
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.painting?.[key] ?? defaultValue;
+  };
+
   const {
     squareFeet = 0,
     paintType = 'exterior',
@@ -780,6 +785,32 @@ case 'painting': {
 
   const materialList = [];
   
+  // Pull rates from dashboard (contractor can override)
+  const extMatRate = getPrice('paint_exterior_mat', 0.45);
+  const extLaborRate = getPrice('paint_exterior_labor', 2.50);
+  const intMatRate = getPrice('paint_interior_mat', 0.45);
+  const intLaborRate = getPrice('paint_interior_labor', 3.50);
+  const ceilingMatRate = getPrice('paint_ceiling_mat', 0.35);
+  const ceilingLaborRate = getPrice('paint_ceiling_labor', 1.25);
+  const trimMatRate = getPrice('paint_trim_mat', 0.50);
+  const trimLaborRate = getPrice('paint_trim_labor', 2.00);
+  const doorMatRate = getPrice('paint_door_mat', 15);
+  const doorLaborRate = getPrice('paint_door_labor', 60);
+  const windowMatRate = getPrice('paint_window_mat', 10);
+  const windowLaborRate = getPrice('paint_window_labor', 40);
+  const powerWashMatRate = getPrice('paint_power_wash_mat', 0.10);
+  const powerWashLaborRate = getPrice('paint_power_wash_labor', 0.15);
+  const patchMinorMat = getPrice('paint_patch_minor_mat', 50);
+  const patchMinorLabor = getPrice('paint_patch_minor_labor', 100);
+  const patchModerateMat = getPrice('paint_patch_moderate_mat', 100);
+  const patchModerateLabor = getPrice('paint_patch_moderate_labor', 250);
+  const patchExtensiveMat = getPrice('paint_patch_extensive_mat', 250);
+  const patchExtensiveLabor = getPrice('paint_patch_extensive_labor', 500);
+  const primerMatRate = getPrice('paint_primer_mat', 0.20);
+  const primerLaborRate = getPrice('paint_primer_labor', 0.30);
+  const leadMatRate = getPrice('paint_lead_mat', 150);
+  const leadLaborRate = getPrice('paint_lead_labor', 350);
+  
   const coatMultiplier = { 1: 1.0, 2: 1.5, 3: 2.0 }[parseInt(coats)] || 1.5;
   const storyMultiplier = { 1: 1.0, 2: 1.15, 3: 1.35, 4: 1.5 }[parseInt(stories)] || 1.0;
   
@@ -790,12 +821,6 @@ case 'painting': {
   
   const pType = paintType.toLowerCase();
   const sqft = parseFloat(squareFeet) || 0;
-  
-  // Pricing per sqft
-  const extMatRate = 0.45;
-  const extLaborRate = 2.50;
-  const intMatRate = 0.45;
-  const intLaborRate = 3.50;
   
   let totalLaborCost = 0;
   
@@ -830,14 +855,14 @@ case 'painting': {
     // Ceilings
     if (includeCeilings === 'yes') {
       const ceilSqft = intSqft * 0.9;
-      const ceilMatCost = ceilSqft * 0.35 * coatMultiplier;
-      const ceilLaborCost = ceilSqft * 1.25 * coatMultiplier;
+      const ceilMatCost = ceilSqft * ceilingMatRate * coatMultiplier;
+      const ceilLaborCost = ceilSqft * ceilingLaborRate * coatMultiplier;
       
       materialList.push({
         item: `Ceiling Paint Materials`,
         quantity: Math.round(ceilSqft),
         unit: 'sqft',
-        unitCost: Math.round(0.35 * coatMultiplier * 100) / 100,
+        unitCost: Math.round(ceilingMatRate * coatMultiplier * 100) / 100,
         totalCost: Math.round(ceilMatCost * 100) / 100,
         category: 'Interior'
       });
@@ -846,7 +871,7 @@ case 'painting': {
         item: `Ceiling Labor`,
         quantity: Math.round(ceilSqft),
         unit: 'sqft',
-        unitCost: Math.round(1.25 * coatMultiplier * 100) / 100,
+        unitCost: Math.round(ceilingLaborRate * coatMultiplier * 100) / 100,
         totalCost: Math.round(ceilLaborCost * 100) / 100,
         category: 'Labor'
       });
@@ -884,14 +909,14 @@ case 'painting': {
     
     // Power washing
     if (powerWashing === 'yes') {
-      const pwMatCost = extSqft * 0.10;
-      const pwLaborCost = extSqft * 0.15;
+      const pwMatCost = extSqft * powerWashMatRate;
+      const pwLaborCost = extSqft * powerWashLaborRate;
       
       materialList.push({
         item: 'Power Washing Materials',
         quantity: extSqft,
         unit: 'sqft',
-        unitCost: 0.10,
+        unitCost: powerWashMatRate,
         totalCost: Math.round(pwMatCost * 100) / 100,
         category: 'Prep'
       });
@@ -900,7 +925,7 @@ case 'painting': {
         item: 'Power Washing Labor',
         quantity: extSqft,
         unit: 'sqft',
-        unitCost: 0.15,
+        unitCost: powerWashLaborRate,
         totalCost: Math.round(pwLaborCost * 100) / 100,
         category: 'Labor'
       });
@@ -909,41 +934,73 @@ case 'painting': {
   }
   
   // ===== PATCHING =====
-  const patchMatPricing = { 'minor': 50, 'moderate': 100, 'extensive': 250 };
-  const patchLaborPricing = { 'minor': 100, 'moderate': 250, 'extensive': 500 };
-  
-  if (patchingNeeded !== 'none' && patchMatPricing[patchingNeeded]) {
+  if (patchingNeeded === 'minor') {
     materialList.push({
-      item: `Wall Patching Materials (${patchingNeeded})`,
+      item: `Wall Patching Materials (minor)`,
       quantity: 1,
       unit: 'job',
-      unitCost: patchMatPricing[patchingNeeded],
-      totalCost: patchMatPricing[patchingNeeded],
+      unitCost: patchMinorMat,
+      totalCost: patchMinorMat,
       category: 'Prep'
     });
-    
     materialList.push({
-      item: `Wall Patching Labor (${patchingNeeded})`,
+      item: `Wall Patching Labor (minor)`,
       quantity: 1,
       unit: 'job',
-      unitCost: patchLaborPricing[patchingNeeded],
-      totalCost: patchLaborPricing[patchingNeeded],
+      unitCost: patchMinorLabor,
+      totalCost: patchMinorLabor,
       category: 'Labor'
     });
-    totalLaborCost += patchLaborPricing[patchingNeeded];
+    totalLaborCost += patchMinorLabor;
+  } else if (patchingNeeded === 'moderate') {
+    materialList.push({
+      item: `Wall Patching Materials (moderate)`,
+      quantity: 1,
+      unit: 'job',
+      unitCost: patchModerateMat,
+      totalCost: patchModerateMat,
+      category: 'Prep'
+    });
+    materialList.push({
+      item: `Wall Patching Labor (moderate)`,
+      quantity: 1,
+      unit: 'job',
+      unitCost: patchModerateLabor,
+      totalCost: patchModerateLabor,
+      category: 'Labor'
+    });
+    totalLaborCost += patchModerateLabor;
+  } else if (patchingNeeded === 'extensive') {
+    materialList.push({
+      item: `Wall Patching Materials (extensive)`,
+      quantity: 1,
+      unit: 'job',
+      unitCost: patchExtensiveMat,
+      totalCost: patchExtensiveMat,
+      category: 'Prep'
+    });
+    materialList.push({
+      item: `Wall Patching Labor (extensive)`,
+      quantity: 1,
+      unit: 'job',
+      unitCost: patchExtensiveLabor,
+      totalCost: patchExtensiveLabor,
+      category: 'Labor'
+    });
+    totalLaborCost += patchExtensiveLabor;
   }
   
   // ===== TRIM =====
   const trimLF = parseFloat(trimLinearFeet) || 0;
   if (trimLF > 0) {
-    const trimMatCost = trimLF * 0.50;
-    const trimLaborCost = trimLF * 2.00;
+    const trimMatCost = trimLF * trimMatRate;
+    const trimLaborCost = trimLF * trimLaborRate;
     
     materialList.push({
       item: 'Trim Materials',
       quantity: trimLF,
       unit: 'linear ft',
-      unitCost: 0.50,
+      unitCost: trimMatRate,
       totalCost: Math.round(trimMatCost * 100) / 100,
       category: 'Trim & Detail'
     });
@@ -952,7 +1009,7 @@ case 'painting': {
       item: 'Trim Labor',
       quantity: trimLF,
       unit: 'linear ft',
-      unitCost: 2.00,
+      unitCost: trimLaborRate,
       totalCost: Math.round(trimLaborCost * 100) / 100,
       category: 'Labor'
     });
@@ -962,14 +1019,14 @@ case 'painting': {
   // ===== DOORS =====
   const doors = parseInt(doorCount) || 0;
   if (doors > 0) {
-    const doorMatCost = doors * 15;
-    const doorLaborCost = doors * 60;
+    const doorMatCost = doors * doorMatRate;
+    const doorLaborCost = doors * doorLaborRate;
     
     materialList.push({
       item: 'Door Painting Materials',
       quantity: doors,
       unit: 'doors',
-      unitCost: 15,
+      unitCost: doorMatRate,
       totalCost: doorMatCost,
       category: 'Trim & Detail'
     });
@@ -978,7 +1035,7 @@ case 'painting': {
       item: 'Door Painting Labor',
       quantity: doors,
       unit: 'doors',
-      unitCost: 60,
+      unitCost: doorLaborRate,
       totalCost: doorLaborCost,
       category: 'Labor'
     });
@@ -988,14 +1045,14 @@ case 'painting': {
   // ===== WINDOWS =====
   const windows = parseInt(windowCount) || 0;
   if (windows > 0) {
-    const winMatCost = windows * 10;
-    const winLaborCost = windows * 40;
+    const winMatCost = windows * windowMatRate;
+    const winLaborCost = windows * windowLaborRate;
     
     materialList.push({
       item: 'Window Trim Materials',
       quantity: windows,
       unit: 'windows',
-      unitCost: 10,
+      unitCost: windowMatRate,
       totalCost: winMatCost,
       category: 'Trim & Detail'
     });
@@ -1004,7 +1061,7 @@ case 'painting': {
       item: 'Window Trim Labor',
       quantity: windows,
       unit: 'windows',
-      unitCost: 40,
+      unitCost: windowLaborRate,
       totalCost: winLaborCost,
       category: 'Labor'
     });
@@ -1013,14 +1070,14 @@ case 'painting': {
   
   // ===== PRIMER (dramatic color change) =====
   if (colorChangeDramatic === 'yes') {
-    const primerMatCost = sqft * 0.20;
-    const primerLaborCost = sqft * 0.30;
+    const primerMatCost = sqft * primerMatRate;
+    const primerLaborCost = sqft * primerLaborRate;
     
     materialList.push({
       item: 'Extra Primer Materials (Color Change)',
       quantity: sqft,
       unit: 'sqft',
-      unitCost: 0.20,
+      unitCost: primerMatRate,
       totalCost: Math.round(primerMatCost * 100) / 100,
       category: 'Prep'
     });
@@ -1029,7 +1086,7 @@ case 'painting': {
       item: 'Extra Primer Labor (Color Change)',
       quantity: sqft,
       unit: 'sqft',
-      unitCost: 0.30,
+      unitCost: primerLaborRate,
       totalCost: Math.round(primerLaborCost * 100) / 100,
       category: 'Labor'
     });
@@ -1042,8 +1099,8 @@ case 'painting': {
       item: 'Lead Paint Abatement Materials',
       quantity: 1,
       unit: 'job',
-      unitCost: 150,
-      totalCost: 150,
+      unitCost: leadMatRate,
+      totalCost: leadMatRate,
       category: 'Specialty'
     });
     
@@ -1051,28 +1108,28 @@ case 'painting': {
       item: 'Lead Paint Abatement Labor',
       quantity: 1,
       unit: 'job',
-      unitCost: 350,
-      totalCost: 350,
+      unitCost: leadLaborRate,
+      totalCost: leadLaborRate,
       category: 'Labor'
     });
-    totalLaborCost += 350;
+    totalLaborCost += leadLaborRate;
   }
   
   // Calculate totals (excluding Labor category from materials)
   const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
   
-  // Calculate labor hours (for display) - estimate based on total labor cost / hourlyRate
   // No hours for painting - sqft pricing is the standard
-const laborHours = 0;
+  const laborHours = 0;
   
   return {
-  trade: 'painting',
-  totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-  laborHours: 0,
-  laborCost: Math.round(totalLaborCost * 100) / 100,
-  materialList
+    trade: 'painting',
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    laborHours: 0,
+    laborCost: Math.round(totalLaborCost * 100) / 100,
+    materialList
   };
 }
+
 
     // ============================================
     // 5. HVAC
