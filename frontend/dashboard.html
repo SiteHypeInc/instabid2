@@ -625,96 +625,103 @@ body {
 
   <!-- ELECTRICAL CONFIG SECTION -->
 <div class="config-section tab-pane" id="electrical-section">
-  <h3>Electrical Pricing</h3>
-  
-  <h4>Labor</h4>
-  <div class="config-row">
-    <label>Labor Rate ($/hr)</label>
-    <input type="number" data-key="elec_labor_rate" step="0.01" placeholder="75.00">
-  </div>
+  <h3>⚡ Electrical Pricing</h3>
   
   <h4>Wire & Rewire</h4>
-  <div class="config-row">
-    <label>Wire per Linear Foot ($)</label>
-    <input type="number" data-key="elec_wire_lf" step="0.01" placeholder="1.00">
-  </div>
-  <div class="config-row">
-    <label>Full Rewire per Sqft ($)</label>
-    <input type="number" data-key="elec_rewire_sqft" step="0.01" placeholder="11.50">
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_wire_lf">Wire per Linear Foot ($)</label>
+      <input type="number" id="elec_wire_lf" step="0.01" placeholder="1.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_rewire_sqft">Full Rewire per Sqft ($)</label>
+      <input type="number" id="elec_rewire_sqft" step="0.01" placeholder="11.50">
+    </div>
   </div>
   
   <h4>Panel Upgrades</h4>
-  <div class="config-row">
-    <label>100A Panel ($)</label>
-    <input type="number" data-key="elec_panel_100" step="0.01" placeholder="450.00">
-  </div>
-  <div class="config-row">
-    <label>200A Panel ($)</label>
-    <input type="number" data-key="elec_panel_200" step="0.01" placeholder="550.00">
-  </div>
-  <div class="config-row">
-    <label>400A Panel ($)</label>
-    <input type="number" data-key="elec_panel_400" step="0.01" placeholder="1200.00">
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_panel_100">100A Panel ($)</label>
+      <input type="number" id="elec_panel_100" step="0.01" placeholder="450.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_panel_200">200A Panel ($)</label>
+      <input type="number" id="elec_panel_200" step="0.01" placeholder="550.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_panel_400">400A Panel ($)</label>
+      <input type="number" id="elec_panel_400" step="0.01" placeholder="1200.00">
+    </div>
   </div>
   
   <h4>Outlets & Switches</h4>
-  <div class="config-row">
-    <label>Standard Outlet ($)</label>
-    <input type="number" data-key="elec_outlet" step="0.01" placeholder="12.00">
-  </div>
-  <div class="config-row">
-    <label>GFCI Outlet ($)</label>
-    <input type="number" data-key="elec_outlet_gfci" step="0.01" placeholder="35.00">
-  </div>
-  <div class="config-row">
-    <label>Standard Switch ($)</label>
-    <input type="number" data-key="elec_switch" step="0.01" placeholder="10.00">
-  </div>
-  <div class="config-row">
-    <label>Dimmer Switch ($)</label>
-    <input type="number" data-key="elec_switch_dimmer" step="0.01" placeholder="50.00">
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_outlet">Standard Outlet ($)</label>
+      <input type="number" id="elec_outlet" step="0.01" placeholder="12.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_outlet_gfci">GFCI Outlet ($)</label>
+      <input type="number" id="elec_outlet_gfci" step="0.01" placeholder="35.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_switch">Standard Switch ($)</label>
+      <input type="number" id="elec_switch" step="0.01" placeholder="10.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_switch_dimmer">Dimmer Switch ($)</label>
+      <input type="number" id="elec_switch_dimmer" step="0.01" placeholder="50.00">
+    </div>
   </div>
   
-  <h4>Lighting Installation (Labor Only - Customer Provided)</h4>
-  <div class="config-row">
-    <label>Light Fixture Install ($)</label>
-    <input type="number" data-key="elec_light_install" step="0.01" placeholder="35.00">
-  </div>
-  <div class="config-row">
-    <label>Recessed Light Install ($)</label>
-    <input type="number" data-key="elec_recessed_install" step="0.01" placeholder="75.00">
-  </div>
-  <div class="config-row">
-    <label>Ceiling Fan Install ($)</label>
-    <input type="number" data-key="elec_ceiling_fan_install" step="0.01" placeholder="200.00">
-  </div>
-  <div class="config-row">
-    <label>Recessed Light (Material + Install) ($)</label>
-    <input type="number" data-key="elec_recessed" step="0.01" placeholder="55.00">
+  <h4>Lighting Installation</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_light_install">Light Fixture Install ($)</label>
+      <input type="number" id="elec_light_install" step="0.01" placeholder="35.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_recessed">Recessed Light ($)</label>
+      <input type="number" id="elec_recessed" step="0.01" placeholder="55.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_ceiling_fan_install">Ceiling Fan Install ($)</label>
+      <input type="number" id="elec_ceiling_fan_install" step="0.01" placeholder="200.00">
+    </div>
   </div>
   
   <h4>Dedicated Circuits</h4>
-  <div class="config-row">
-    <label>20A Circuit ($)</label>
-    <input type="number" data-key="elec_circuit_20a" step="0.01" placeholder="95.00">
-  </div>
-  <div class="config-row">
-    <label>30A Circuit ($)</label>
-    <input type="number" data-key="elec_circuit_30a" step="0.01" placeholder="130.00">
-  </div>
-  <div class="config-row">
-    <label>50A Circuit ($)</label>
-    <input type="number" data-key="elec_circuit_50a" step="0.01" placeholder="185.00">
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_circuit_20a">20A Circuit ($)</label>
+      <input type="number" id="elec_circuit_20a" step="0.01" placeholder="95.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_circuit_30a">30A Circuit ($)</label>
+      <input type="number" id="elec_circuit_30a" step="0.01" placeholder="130.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_circuit_50a">50A Circuit ($)</label>
+      <input type="number" id="elec_circuit_50a" step="0.01" placeholder="185.00">
+    </div>
   </div>
   
   <h4>Specialty</h4>
-  <div class="config-row">
-    <label>EV Charger Install ($)</label>
-    <input type="number" data-key="elec_ev_charger" step="0.01" placeholder="350.00">
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="elec_ev_charger">EV Charger Install ($)</label>
+      <input type="number" id="elec_ev_charger" step="0.01" placeholder="350.00">
+    </div>
+    <div class="input-group">
+      <label for="elec_permit">Permit ($)</label>
+      <input type="number" id="elec_permit" step="0.01" placeholder="200.00">
+    </div>
   </div>
-  <div class="config-row">
-    <label>Permit ($)</label>
-    <input type="number" data-key="elec_permit" step="0.01" placeholder="200.00">
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('electrical')">💾 Save Electrical Config</button>
+    <span id="electrical-status" class="status-message"></span>
   </div>
 </div>
 
@@ -2991,7 +2998,7 @@ function showTab(tabName) {
 const TRADE_FIELDS = {
   roofing: ['pitch_3_12', 'pitch_4_12', 'pitch_5_12', 'pitch_6_12', 'pitch_7_12', 'pitch_8_12', 'pitch_9_12', 'pitch_10_12', 'pitch_11_12', 'pitch_12_12', 'mat_asphalt', 'mat_arch', 'mat_metal', 'mat_tile', 'mat_wood_shake', 'underlayment_roll', 'nails_box', 'starter_lf', 'ridge_lf', 'drip_edge_lf', 'ice_shield_lf', 'vent_unit', 'ridge_vent_lf', 'osb_sheet', 'disposal_asphalt_sqft', 'disposal_wood_sqft', 'disposal_metal_sqft', 'disposal_tile_sqft', 'chimney_flash', 'skylight_flash', 'valley_lf', 'labor_rate_sqft', 'chimney_labor_hrs', 'skylight_labor_hrs'],
   hvac: ['hvac_size_small', 'hvac_size_med', 'hvac_size_large', 'hvac_size_xlarge', 'hvac_furnace', 'hvac_ac', 'hvac_heatpump', 'hvac_minisplit', 'hvac_duct', 'hvac_thermostat', 'hvac_handler', 'hvac_standard', 'hvac_moderate', 'hvac_complex'],
-  electrical: ['elec_panel_100', 'elec_panel_200', 'elec_subpanel', 'elec_outlet', 'elec_switch', 'elec_fixture', 'elec_fan', 'elec_gfci', 'elec_ev', 'elec_generator', 'elec_hottub', 'elec_labor_std', 'elec_labor_complex'],
+  electrical: ['elec_wire_lf', 'elec_panel_100', 'elec_panel_200', 'elec_panel_400', 'elec_rewire_sqft', 'elec_ceiling_fan_install', 'elec_outlet', 'elec_outlet_gfci', 'elec_switch', 'elec_switch_dimmer', 'elec_light_install', 'elec_recessed', 'elec_circuit_20a', 'elec_circuit_30a', 'elec_circuit_50a', 'elec_ev_charger', 'elec_permit'],
   plumbing: ['plumb_toilet', 'plumb_sink', 'plumb_shower', 'plumb_tub', 'plumb_dishwasher', 'plumb_heater_tank', 'plumb_heater_tankless', 'plumb_sump', 'plumb_softener', 'plumb_pipe_repair', 'plumb_pipe_replace', 'plumb_drain', 'plumb_sewer', 'plumb_labor_std', 'plumb_labor_emerg'],
   flooring: ['floor_carpet', 'floor_vinyl', 'floor_laminate', 'floor_hardwood_eng', 'floor_hardwood_solid', 'floor_tile_ceramic', 'floor_tile_porcelain', 'floor_labor_carpet', 'floor_labor_vinyl', 'floor_labor_hardwood', 'floor_labor_tile', 'floor_subfloor', 'floor_removal', 'floor_underlay', 'floor_baseboard', 'floor_standard', 'floor_moderate', 'floor_complex'],
   painting: ['paint_exterior_mat', 'paint_exterior_labor', 'paint_interior_mat', 'paint_interior_labor', 'paint_ceiling_mat', 'paint_ceiling_labor', 'paint_trim_mat', 'paint_trim_labor', 'paint_door_mat', 'paint_door_labor', 'paint_window_mat', 'paint_window_labor', 'paint_power_wash_mat', 'paint_power_wash_labor', 'paint_patch_minor_mat', 'paint_patch_minor_labor', 'paint_patch_moderate_mat', 'paint_patch_moderate_labor', 'paint_patch_extensive_mat', 'paint_patch_extensive_labor', 'paint_primer_mat', 'paint_primer_labor', 'paint_lead_mat', 'paint_lead_labor'],

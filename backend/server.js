@@ -334,36 +334,26 @@ const DEFAULT_PRICING = {
     siding_story_2: 1.2,
     siding_story_3: 1.4
   },
-
-  // ========== ELECTRICAL (20 keys) ==========
-  electrical: {
-    // Labor rates
-    elec_labor_rate: 95,
-    elec_labor_complex: 125,
-    // Panel & service
-    elec_panel_100: 2200,
-    elec_panel_200: 3500,
-    elec_panel_400: 5500,
-    elec_subpanel_60: 1200,
-    elec_subpanel_100: 1500,
-    // Fixtures & devices
-    elec_outlet_standard: 185,
-    elec_outlet_gfci: 225,
-    elec_outlet_240v: 350,
-    elec_switch_standard: 145,
-    elec_switch_dimmer: 185,
-    elec_switch_smart: 250,
-    elec_fixture_standard: 200,
-    elec_fixture_recessed: 175,
-    elec_ceiling_fan: 275,
-    // Specialty
-    elec_ev_charger_l2: 1800,
-    elec_generator_hookup: 2200,
-    elec_hot_tub: 1100,
-    // Wire per foot
-    elec_wire_14_2: 0.85,
-    elec_wire_12_2: 1.10,
-    elec_wire_10_2: 1.75
+  
+  // ========== ELECTRICAL (16 keys) ==========
+   electrical: {
+    elec_wire_lf: 1.00,
+    elec_panel_100: 450,
+    elec_panel_200: 550,
+    elec_panel_400: 1200,
+    elec_rewire_sqft: 11.50,
+    elec_ceiling_fan_install: 200,
+    elec_outlet: 12,
+    elec_outlet_gfci: 35,
+    elec_switch: 10,
+    elec_switch_dimmer: 50,
+    elec_light_install: 35,
+    elec_recessed: 55,
+    elec_circuit_20a: 95,
+    elec_circuit_30a: 130,
+    elec_circuit_50a: 185,
+    elec_ev_charger: 350,
+    elec_permit: 200
   },
 
   // ========== PAINTING (13 keys) ==========
