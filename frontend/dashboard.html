@@ -2501,6 +2501,71 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<!-- SECTION 4C: INTEGRATIONS -->
+<div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%); border: 1px solid #30363d;">
+  <h3 style="color: #00d4ff;">🔌 Integrations</h3>
+  
+  <!-- STRIPE -->
+  <div style="margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #30363d;">
+    <h4 style="color: #e6edf3; margin-bottom: 10px;">💳 Stripe (Collect Payments)</h4>
+    <p style="color: #8b949e; font-size: 13px; margin-bottom: 15px;">
+      Accept deposits and payments from customers. 
+      <a href="[https://dashboard.stripe.com/apikeys"](https://dashboard.stripe.com/apikeys") target="_blank" style="color: #60a5fa;">🔗 Get your keys from Stripe</a>
+    </p>
+    <div style="display: grid; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px;">
+        <label style="color: #8b949e; font-size: 13px;">Publishable Key</label>
+        <input type="text" id="profile_stripe_pk" placeholder="pk_live_..." style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-family: monospace; font-size: 13px;">
+      </div>
+      <div style="display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px;">
+        <label style="color: #8b949e; font-size: 13px;">Secret Key</label>
+        <input type="password" id="profile_stripe_sk" placeholder="sk_live_..." style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-family: monospace; font-size: 13px;">
+      </div>
+    </div>
+  </div>
+  
+  <!-- GOOGLE MAPS -->
+  <div style="margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #30363d;">
+    <h4 style="color: #e6edf3; margin-bottom: 10px;">📍 Google Maps API</h4>
+    <p style="color: #8b949e; font-size: 13px; margin-bottom: 15px;">
+      Show property locations on estimates. 
+      <a href="[https://console.cloud.google.com/apis/credentials"](https://console.cloud.google.com/apis/credentials") target="_blank" style="color: #60a5fa;">🔗 Get your API key from Google Cloud</a>
+    </p>
+    <div style="display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px;">
+      <label style="color: #8b949e; font-size: 13px;">API Key</label>
+      <input type="text" id="profile_google_maps_key" placeholder="AIza..." style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-family: monospace; font-size: 13px;">
+    </div>
+  </div>
+  
+  <!-- EMAIL/SMTP -->
+  <div>
+    <h4 style="color: #e6edf3; margin-bottom: 10px;">📧 Email Settings (SMTP)</h4>
+    <p style="color: #8b949e; font-size: 13px; margin-bottom: 15px;">
+      Send estimates and confirmations from YOUR email address.
+      <a href="#" onclick="showEmailHelp(); return false;" style="color: #60a5fa;">🔗 Setup guide</a>
+    </p>
+    <div style="display: grid; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 140px 1fr 80px; align-items: center; gap: 10px;">
+        <label style="color: #8b949e; font-size: 13px;">SMTP Host</label>
+        <input type="text" id="profile_smtp_host" placeholder="smtp.gmail.com" style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-size: 13px;">
+        <input type="text" id="profile_smtp_port" placeholder="587" style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-size: 13px; text-align: center;">
+      </div>
+      <div style="display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px;">
+        <label style="color: #8b949e; font-size: 13px;">Username</label>
+        <input type="text" id="profile_smtp_user" placeholder="you@yourdomain.com" style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-size: 13px;">
+      </div>
+      <div style="display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 10px;">
+        <label style="color: #8b949e; font-size: 13px;">Password</label>
+        <input type="password" id="profile_smtp_pass" placeholder="App password" style="padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-size: 13px;">
+      </div>
+      <div style="margin-top: 10px;">
+        <button onclick="sendTestEmail()" style="padding: 10px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📤 Send Test Email</button>
+        <span id="email-test-status" style="margin-left: 15px; color: #8b949e;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- SECTION 5: SUBSCRIPTION INFO (READ-ONLY) -->
   <div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: #f0f8ff;">
     <h3>💳 Subscription</h3>
@@ -2700,6 +2765,56 @@ document.getElementById('profile_embed_code').value = '<iframe src="' + baseUrl 
   }
 }
 
+// Email help popup
+function showEmailHelp() {
+  alert(`📧 Email Setup Guide:
+
+GMAIL:
+• Host: smtp.gmail.com
+• Port: 587
+• Username: your@gmail.com
+• Password: Use an App Password (not your regular password)
+  → Google Account → Security → 2FA → App Passwords
+
+OUTLOOK/OFFICE 365:
+• Host: smtp.office365.com
+• Port: 587
+• Username: your@outlook.com
+• Password: Your password
+
+OTHER PROVIDERS:
+• Check your email provider's SMTP settings
+• Most use port 587 with TLS`);
+}
+
+// Test email function
+async function sendTestEmail() {
+  const statusEl = document.getElementById('email-test-status');
+  statusEl.textContent = '⏳ Sending...';
+  statusEl.style.color = '#f59e0b';
+  
+  try {
+    const response = await authFetch(`${API_BASE}/api/contractor/test-email`, {
+      method: 'POST'
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      statusEl.textContent = '✅ Test email sent! Check your inbox.';
+      statusEl.style.color = '#22c55e';
+    } else {
+      statusEl.textContent = '❌ ' + (result.error || 'Failed to send');
+      statusEl.style.color = '#ef4444';
+    }
+  } catch (error) {
+    statusEl.textContent = '❌ Error: ' + error.message;
+    statusEl.style.color = '#ef4444';
+  }
+  
+  setTimeout(() => { statusEl.textContent = ''; }, 5000);
+}
+
 // Save company profile
 async function saveCompanyProfile() {
   const contractorId = localStorage.getItem('contractor_id');
@@ -2736,6 +2851,14 @@ async function saveCompanyProfile() {
       showLabor: document.getElementById('display_show_labor').checked,
       showMaterials: document.getElementById('display_show_materials').checked,
       showEquipment: document.getElementById('display_show_equipment').checked,
+      // Integrations (add these lines)
+stripe_publishable_key: document.getElementById('profile_stripe_pk').value || null,
+stripe_secret_key: document.getElementById('profile_stripe_sk').value !== '••••••••' ? document.getElementById('profile_stripe_sk').value : undefined,
+google_maps_api_key: document.getElementById('profile_google_maps_key').value || null,
+smtp_host: document.getElementById('profile_smtp_host').value || null,
+smtp_port: document.getElementById('profile_smtp_port').value || null,
+smtp_user: document.getElementById('profile_smtp_user').value || null,
+smtp_pass: document.getElementById('profile_smtp_pass').value !== '••••••••' ? document.getElementById('profile_smtp_pass').value : undefined,
       showTotal: true
     }
   };
@@ -2808,6 +2931,16 @@ function authFetch(url, options = {}) {
   
   return fetch(url, options);
 }
+
+// Integrations
+document.getElementById('profile_stripe_pk').value = contractor.stripe_publishable_key || '';
+document.getElementById('profile_stripe_sk').value = contractor.stripe_secret_key ? '••••••••' : '';
+document.getElementById('profile_google_maps_key').value = contractor.google_maps_api_key || '';
+document.getElementById('profile_smtp_host').value = contractor.smtp_host || '';
+document.getElementById('profile_smtp_port').value = contractor.smtp_port || '587';
+document.getElementById('profile_smtp_user').value = contractor.smtp_user || '';
+document.getElementById('profile_smtp_pass').value = contractor.smtp_pass ? '••••••••' : '';
+
 
 document.querySelectorAll('.main-tab').forEach(tab => {
   tab.addEventListener('click', function() {
