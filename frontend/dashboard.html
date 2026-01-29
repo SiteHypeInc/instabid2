@@ -539,89 +539,146 @@ body {
   </div>
 </div>
 
-  <!-- ============================================ -->
-  <!-- HVAC SECTION (14 fields) -->
-  <!-- ============================================ -->
-  <div class="config-section tab-pane" id="hvac-section">
-    <h3>❄️ HVAC Configuration</h3>
-    
-    <h4>Size Multipliers</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="hvac_size_small">Small (&lt;2 ton)</label>
-        <input type="number" id="hvac_size_small" step="0.01" placeholder="0.85">
-      </div>
-      <div class="input-group">
-        <label for="hvac_size_med">Medium (2-3 ton)</label>
-        <input type="number" id="hvac_size_med" step="0.01" placeholder="1.0">
-      </div>
-      <div class="input-group">
-        <label for="hvac_size_large">Large (3-4 ton)</label>
-        <input type="number" id="hvac_size_large" step="0.01" placeholder="1.25">
-      </div>
-      <div class="input-group">
-        <label for="hvac_size_xlarge">X-Large (5+ ton)</label>
-        <input type="number" id="hvac_size_xlarge" step="0.01" placeholder="1.5">
-      </div>
+ <!-- ============================================ -->
+<!-- HVAC SECTION -->
+<!-- ============================================ -->
+<div class="config-section tab-pane" id="hvac-section">
+  <h3>❄️ HVAC Configuration</h3>
+  
+  <h4>Furnace</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_furnace_standard">Standard Furnace</label>
+      <input type="number" id="hvac_furnace_standard" step="1" placeholder="3500">
     </div>
-
-    <h4>Equipment Costs</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="hvac_furnace">Furnace</label>
-        <input type="number" id="hvac_furnace" step="1" placeholder="4200">
-      </div>
-      <div class="input-group">
-        <label for="hvac_ac">AC Unit</label>
-        <input type="number" id="hvac_ac" step="1" placeholder="5500">
-      </div>
-      <div class="input-group">
-        <label for="hvac_heatpump">Heat Pump</label>
-        <input type="number" id="hvac_heatpump" step="1" placeholder="8000">
-      </div>
-      <div class="input-group">
-        <label for="hvac_minisplit">Mini Split</label>
-        <input type="number" id="hvac_minisplit" step="1" placeholder="3200">
-      </div>
-    </div>
-
-    <h4>Components</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="hvac_duct">Ductwork (per LF)</label>
-        <input type="number" id="hvac_duct" step="0.01" placeholder="18">
-      </div>
-      <div class="input-group">
-        <label for="hvac_thermostat">Thermostat</label>
-        <input type="number" id="hvac_thermostat" step="1" placeholder="250">
-      </div>
-      <div class="input-group">
-        <label for="hvac_handler">Air Handler</label>
-        <input type="number" id="hvac_handler" step="1" placeholder="1500">
-      </div>
-    </div>
-
-    <h4>Complexity Multipliers</h4>
-    <div class="input-grid">
-      <div class="input-group">
-        <label for="hvac_standard">Standard Install</label>
-        <input type="number" id="hvac_standard" step="0.01" placeholder="1.0">
-      </div>
-      <div class="input-group">
-        <label for="hvac_moderate">Moderate Complexity</label>
-        <input type="number" id="hvac_moderate" step="0.01" placeholder="1.25">
-      </div>
-      <div class="input-group">
-        <label for="hvac_complex">Complex Install</label>
-        <input type="number" id="hvac_complex" step="0.01" placeholder="1.5">
-      </div>
-    </div>
-
-    <div class="section-actions">
-      <button class="btn-save" onclick="saveConfig('hvac')">💾 Save HVAC Config</button>
-      <span id="hvac-status" class="status-message"></span>
+    <div class="input-group">
+      <label for="hvac_furnace_high">High-Efficiency Furnace</label>
+      <input type="number" id="hvac_furnace_high" step="1" placeholder="4500">
     </div>
   </div>
+
+  <h4>Air Conditioning</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_ac_standard">Standard AC Unit</label>
+      <input type="number" id="hvac_ac_standard" step="1" placeholder="4000">
+    </div>
+    <div class="input-group">
+      <label for="hvac_ac_high">High-Efficiency AC Unit</label>
+      <input type="number" id="hvac_ac_high" step="1" placeholder="5500">
+    </div>
+  </div>
+
+  <h4>Heat Pump</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_heatpump_standard">Standard Heat Pump</label>
+      <input type="number" id="hvac_heatpump_standard" step="1" placeholder="5500">
+    </div>
+    <div class="input-group">
+      <label for="hvac_heatpump_high">High-Efficiency Heat Pump</label>
+      <input type="number" id="hvac_heatpump_high" step="1" placeholder="7500">
+    </div>
+  </div>
+
+  <h4>Mini Split</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_minisplit">Mini Split (per zone)</label>
+      <input type="number" id="hvac_minisplit" step="1" placeholder="2500">
+    </div>
+  </div>
+
+  <h4>Ductwork</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_duct_new">New Ductwork (per LF)</label>
+      <input type="number" id="hvac_duct_new" step="0.01" placeholder="15">
+    </div>
+    <div class="input-group">
+      <label for="hvac_duct_repair">Ductwork Repair (per LF)</label>
+      <input type="number" id="hvac_duct_repair" step="0.01" placeholder="8">
+    </div>
+  </div>
+
+  <h4>Components</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_thermostat">Smart Thermostat</label>
+      <input type="number" id="hvac_thermostat" step="1" placeholder="350">
+    </div>
+    <div class="input-group">
+      <label for="hvac_refrigerant">Refrigerant Charge</label>
+      <input type="number" id="hvac_refrigerant" step="1" placeholder="250">
+    </div>
+    <div class="input-group">
+      <label for="hvac_filters">Filters & Supplies</label>
+      <input type="number" id="hvac_filters" step="1" placeholder="200">
+    </div>
+  </div>
+
+  <h4>Labor (base hours by system)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_labor_rate">Hourly Rate ($)</label>
+      <input type="number" id="hvac_labor_rate" step="1" placeholder="85">
+    </div>
+    <div class="input-group">
+      <label for="hvac_labor_furnace">Furnace Install (hrs)</label>
+      <input type="number" id="hvac_labor_furnace" step="0.5" placeholder="12">
+    </div>
+    <div class="input-group">
+      <label for="hvac_labor_ac">AC Install (hrs)</label>
+      <input type="number" id="hvac_labor_ac" step="0.5" placeholder="10">
+    </div>
+    <div class="input-group">
+      <label for="hvac_labor_heatpump">Heat Pump Install (hrs)</label>
+      <input type="number" id="hvac_labor_heatpump" step="0.5" placeholder="14">
+    </div>
+    <div class="input-group">
+      <label for="hvac_labor_minisplit">Mini Split Install (hrs/zone)</label>
+      <input type="number" id="hvac_labor_minisplit" step="0.5" placeholder="8">
+    </div>
+  </div>
+
+  <h4>Size Multipliers (by sqft)</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_size_small">Small (&lt;1500 sqft)</label>
+      <input type="number" id="hvac_size_small" step="0.01" placeholder="0.9">
+    </div>
+    <div class="input-group">
+      <label for="hvac_size_med">Medium (1500-2500 sqft)</label>
+      <input type="number" id="hvac_size_med" step="0.01" placeholder="1.0">
+    </div>
+    <div class="input-group">
+      <label for="hvac_size_large">Large (2500-4000 sqft)</label>
+      <input type="number" id="hvac_size_large" step="0.01" placeholder="1.2">
+    </div>
+    <div class="input-group">
+      <label for="hvac_size_xlarge">X-Large (4000+ sqft)</label>
+      <input type="number" id="hvac_size_xlarge" step="0.01" placeholder="1.4">
+    </div>
+  </div>
+
+  <h4>Story Multipliers</h4>
+  <div class="input-grid">
+    <div class="input-group">
+      <label for="hvac_story_2">2 Story</label>
+      <input type="number" id="hvac_story_2" step="0.01" placeholder="1.2">
+    </div>
+    <div class="input-group">
+      <label for="hvac_story_3">3 Story</label>
+      <input type="number" id="hvac_story_3" step="0.01" placeholder="1.4">
+    </div>
+  </div>
+
+  <div class="section-actions">
+    <button class="btn-save" onclick="saveConfig('hvac')">💾 Save HVAC Config</button>
+    <span id="hvac-status" class="status-message"></span>
+  </div>
+</div>
+
 
   <!-- ELECTRICAL CONFIG SECTION -->
 <div class="config-section tab-pane" id="electrical-section">
@@ -3000,7 +3057,7 @@ function showTab(tabName) {
 // Field IDs for each trade
 const TRADE_FIELDS = {
   roofing: ['pitch_3_12', 'pitch_4_12', 'pitch_5_12', 'pitch_6_12', 'pitch_7_12', 'pitch_8_12', 'pitch_9_12', 'pitch_10_12', 'pitch_11_12', 'pitch_12_12', 'mat_asphalt', 'mat_arch', 'mat_metal', 'mat_tile', 'mat_wood_shake', 'underlayment_roll', 'nails_box', 'starter_lf', 'ridge_lf', 'drip_edge_lf', 'ice_shield_lf', 'vent_unit', 'ridge_vent_lf', 'osb_sheet', 'disposal_asphalt_sqft', 'disposal_wood_sqft', 'disposal_metal_sqft', 'disposal_tile_sqft', 'chimney_flash', 'skylight_flash', 'valley_lf', 'labor_rate_sqft', 'chimney_labor_hrs', 'skylight_labor_hrs'],
-  hvac: ['hvac_size_small', 'hvac_size_med', 'hvac_size_large', 'hvac_size_xlarge', 'hvac_furnace', 'hvac_ac', 'hvac_heatpump', 'hvac_minisplit', 'hvac_duct', 'hvac_thermostat', 'hvac_handler', 'hvac_standard', 'hvac_moderate', 'hvac_complex'],
+  hvac: ['hvac_furnace_standard', 'hvac_furnace_high', 'hvac_ac_standard', 'hvac_ac_high', 'hvac_heatpump_standard', 'hvac_heatpump_high', 'hvac_minisplit', 'hvac_duct_new', 'hvac_duct_repair', 'hvac_thermostat', 'hvac_refrigerant', 'hvac_filters', 'hvac_labor_rate', 'hvac_labor_furnace', 'hvac_labor_ac', 'hvac_labor_heatpump', 'hvac_labor_minisplit', 'hvac_size_small', 'hvac_size_med', 'hvac_size_large', 'hvac_size_xlarge', 'hvac_story_2', 'hvac_story_3'],
   electrical: ['elec_wire_lf', 'elec_panel_100', 'elec_panel_200', 'elec_panel_400', 'elec_rewire_sqft', 'elec_ceiling_fan_install', 'elec_outlet', 'elec_outlet_gfci', 'elec_switch', 'elec_switch_dimmer', 'elec_light_install', 'elec_recessed', 'elec_circuit_20a', 'elec_circuit_30a', 'elec_circuit_50a', 'elec_ev_charger', 'elec_permit'],
    plumbing: ['plumb_labor_rate', 'plumb_labor_emergency', 'plumb_service_call', 'plumb_toilet', 'plumb_sink_bath', 'plumb_sink_kitchen', 'plumb_faucet_bath', 'plumb_faucet_kitchen', 'plumb_shower_valve', 'plumb_tub', 'plumb_dishwasher', 'plumb_garbage_disposal', 'plumb_ice_maker', 'plumb_heater_tank_40', 'plumb_heater_tank_50', 'plumb_heater_tankless_gas', 'plumb_heater_tankless_elec', 'plumb_water_softener', 'plumb_sump_pump', 'plumb_repipe_pex_lf', 'plumb_repipe_copper_lf', 'plumb_main_line', 'plumb_gas_line_new', 'plumb_access_basement', 'plumb_access_crawlspace', 'plumb_access_slab', 'plumb_location_garage', 'plumb_location_basement', 'plumb_location_closet', 'plumb_location_attic'],
 

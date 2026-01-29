@@ -1326,135 +1326,166 @@ case 'painting': {
 }
 
 
-    // ============================================
-    // 5. HVAC
-    // ============================================
-    case 'hvac': {
-      const {
-        squareFeet,
-        systemType = 'furnace',
-        efficiency = 'standard',
-        ductwork = 'existing',
-        stories = 1,
-        zoneCount = 1,
-        thermostats = 1
-      } = criteria;
+  // ============================================
+// 5. HVAC
+// ============================================
+case 'hvac': {
+  const {
+    squareFeet,
+    systemType = 'furnace',
+    efficiency = 'standard',
+    ductwork = 'existing',
+    stories = 1,
+    zoneCount = 1,
+    thermostats = 1
+  } = criteria;
 
-      // Size multiplier
-      let sizeMult = 1.0;
-      if (squareFeet < 1500) sizeMult = 0.9;
-      else if (squareFeet <= 2500) sizeMult = 1.0;
-      else if (squareFeet <= 4000) sizeMult = 1.2;
-      else sizeMult = 1.4;
+  // Helper to get contractor price or default
+  const getPrice = (key, defaultValue) => {
+    return pricingConfig.hvac?.[key] ?? defaultValue;
+  };
 
-      const materialList = [];
+  // Size multiplier based on sqft
+  let sizeMult = getPrice('hvac_size_med', 1.0);
+  if (squareFeet < 1500) sizeMult = getPrice('hvac_size_small', 0.9);
+  else if (squareFeet <= 2500) sizeMult = getPrice('hvac_size_med', 1.0);
+  else if (squareFeet <= 4000) sizeMult = getPrice('hvac_size_large', 1.2);
+  else sizeMult = getPrice('hvac_size_xlarge', 1.4);
 
-      // Equipment
-      const equipmentPrices = {
-        'furnace': { standard: 3500, high: 4500 },
-        'ac': { standard: 4000, high: 5500 },
-        'heatpump': { standard: 5500, high: 7500 },
-        'minisplit': { standard: 2500, high: 2500 }
-      };
+  const materialList = [];
 
-      const equipmentNames = {
-        'furnace': { standard: 'Standard Furnace', high: 'High-Efficiency Furnace' },
-        'ac': { standard: 'Central AC Unit', high: 'High-Efficiency AC Unit' },
-        'heatpump': { standard: 'Heat Pump', high: 'High-Efficiency Heat Pump' },
-        'minisplit': { standard: 'Mini-Split System', high: 'Mini-Split System' }
-      };
-
-      let equipmentCost = equipmentPrices[systemType]?.[efficiency] || 3500;
-      if (systemType === 'minisplit') equipmentCost *= zoneCount;
-      equipmentCost *= sizeMult;
-
-      const equipmentName = systemType === 'minisplit' 
-        ? `Mini-Split System (${zoneCount} zones)` 
-        : equipmentNames[systemType]?.[efficiency] || 'HVAC Unit';
-
-      materialList.push({
-        item: equipmentName,
-        quantity: 1,
-        unit: 'unit',
-        unitCost: equipmentCost,
-        totalCost: equipmentCost,
-        category: 'hvac_units'
-      });
-
-      // Ductwork
-      let ductworkFeet = 0;
-      if (ductwork === 'new') {
-        ductworkFeet = Math.ceil(squareFeet / 10);
-        materialList.push({
-          item: 'New Ductwork',
-          quantity: ductworkFeet,
-          unit: 'linear feet',
-          unitCost: 15,
-          totalCost: ductworkFeet * 15,
-          category: 'ductwork'
-        });
-      } else if (ductwork === 'repair') {
-        ductworkFeet = Math.ceil(squareFeet / 20);
-        materialList.push({
-          item: 'Ductwork Repair',
-          quantity: ductworkFeet,
-          unit: 'linear feet',
-          unitCost: 8,
-          totalCost: ductworkFeet * 8,
-          category: 'ductwork'
-        });
-      }
-
-      // Thermostats
-      materialList.push({
-        item: 'Smart Thermostat',
-        quantity: thermostats,
-        unit: 'units',
-        unitCost: 350,
-        totalCost: thermostats * 350,
-        category: 'thermostats'
-      });
-
-      // Refrigerant
-      if (systemType !== 'furnace') {
-        materialList.push({
-          item: 'Refrigerant',
-          quantity: 1,
-          unit: 'charge',
-          unitCost: 250,
-          totalCost: 250,
-          category: 'refrigerant'
-        });
-      }
-
-      // Filters & supplies
-      materialList.push({
-        item: 'Filters & Supplies',
-        quantity: 1,
-        unit: 'set',
-        unitCost: 200,
-        totalCost: 200,
-        category: 'filters'
-      });
-
-      // Labor
-      const baseLaborHours = { 'furnace': 12, 'ac': 10, 'heatpump': 14, 'minisplit': 8 };
-      let laborHours = baseLaborHours[systemType] || 10;
-      if (systemType === 'minisplit') laborHours *= zoneCount;
-      if (ductwork === 'new') laborHours += ductworkFeet / 20;
-      if (ductwork === 'repair') laborHours += ductworkFeet / 30;
-      if (stories >= 2) laborHours *= 1.2;
-      if (stories >= 3) laborHours *= 1.4;
-
-      const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
-
-      return {
-        trade: 'hvac',
-        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
-        laborHours: Math.round(laborHours * 100) / 100,
-        materialList
-      };
+  // Equipment pricing from dashboard
+  const equipmentPrices = {
+    'furnace': { 
+      standard: getPrice('hvac_furnace_standard', 3500), 
+      high: getPrice('hvac_furnace_high', 4500) 
+    },
+    'ac': { 
+      standard: getPrice('hvac_ac_standard', 4000), 
+      high: getPrice('hvac_ac_high', 5500) 
+    },
+    'heatpump': { 
+      standard: getPrice('hvac_heatpump_standard', 5500), 
+      high: getPrice('hvac_heatpump_high', 7500) 
+    },
+    'minisplit': { 
+      standard: getPrice('hvac_minisplit', 2500), 
+      high: getPrice('hvac_minisplit', 2500) 
     }
+  };
+
+  const equipmentNames = {
+    'furnace': { standard: 'Standard Furnace', high: 'High-Efficiency Furnace' },
+    'ac': { standard: 'Central AC Unit', high: 'High-Efficiency AC Unit' },
+    'heatpump': { standard: 'Heat Pump', high: 'High-Efficiency Heat Pump' },
+    'minisplit': { standard: 'Mini-Split System', high: 'Mini-Split System' }
+  };
+
+  let equipmentCost = equipmentPrices[systemType]?.[efficiency] || getPrice('hvac_furnace_standard', 3500);
+  if (systemType === 'minisplit') equipmentCost *= zoneCount;
+  equipmentCost *= sizeMult;
+
+  const equipmentName = systemType === 'minisplit' 
+    ? `Mini-Split System (${zoneCount} zones)` 
+    : equipmentNames[systemType]?.[efficiency] || 'HVAC Unit';
+
+  materialList.push({
+    item: equipmentName,
+    quantity: 1,
+    unit: 'unit',
+    unitCost: equipmentCost,
+    totalCost: equipmentCost,
+    category: 'hvac_units'
+  });
+
+  // Ductwork
+  let ductworkFeet = 0;
+  if (ductwork === 'new') {
+    const ductNewCost = getPrice('hvac_duct_new', 15);
+    ductworkFeet = Math.ceil(squareFeet / 10);
+    materialList.push({
+      item: 'New Ductwork',
+      quantity: ductworkFeet,
+      unit: 'linear feet',
+      unitCost: ductNewCost,
+      totalCost: ductworkFeet * ductNewCost,
+      category: 'ductwork'
+    });
+  } else if (ductwork === 'repair') {
+    const ductRepairCost = getPrice('hvac_duct_repair', 8);
+    ductworkFeet = Math.ceil(squareFeet / 20);
+    materialList.push({
+      item: 'Ductwork Repair',
+      quantity: ductworkFeet,
+      unit: 'linear feet',
+      unitCost: ductRepairCost,
+      totalCost: ductworkFeet * ductRepairCost,
+      category: 'ductwork'
+    });
+  }
+
+  // Thermostats
+  const thermostatCost = getPrice('hvac_thermostat', 350);
+  materialList.push({
+    item: 'Smart Thermostat',
+    quantity: thermostats,
+    unit: 'units',
+    unitCost: thermostatCost,
+    totalCost: thermostats * thermostatCost,
+    category: 'thermostats'
+  });
+
+  // Refrigerant
+  if (systemType !== 'furnace') {
+    const refrigerantCost = getPrice('hvac_refrigerant', 250);
+    materialList.push({
+      item: 'Refrigerant',
+      quantity: 1,
+      unit: 'charge',
+      unitCost: refrigerantCost,
+      totalCost: refrigerantCost,
+      category: 'refrigerant'
+    });
+  }
+
+  // Filters & supplies
+  const filtersCost = getPrice('hvac_filters', 200);
+  materialList.push({
+    item: 'Filters & Supplies',
+    quantity: 1,
+    unit: 'set',
+    unitCost: filtersCost,
+    totalCost: filtersCost,
+    category: 'filters'
+  });
+
+  // Labor
+  const baseLaborHours = {
+    'furnace': getPrice('hvac_labor_furnace', 12),
+    'ac': getPrice('hvac_labor_ac', 10),
+    'heatpump': getPrice('hvac_labor_heatpump', 14),
+    'minisplit': getPrice('hvac_labor_minisplit', 8)
+  };
+  
+  let laborHours = baseLaborHours[systemType] || 10;
+  if (systemType === 'minisplit') laborHours *= zoneCount;
+  if (ductwork === 'new') laborHours += ductworkFeet / 20;
+  if (ductwork === 'repair') laborHours += ductworkFeet / 30;
+  
+  const story2Mult = getPrice('hvac_story_2', 1.2);
+  const story3Mult = getPrice('hvac_story_3', 1.4);
+  if (stories >= 3) laborHours *= story3Mult;
+  else if (stories >= 2) laborHours *= story2Mult;
+
+  const totalMaterialCost = materialList.reduce((sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0);
+
+  return {
+    trade: 'hvac',
+    totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+    laborHours: Math.round(laborHours * 100) / 100,
+    materialList
+  };
+}
 
     // ============================================
     // 6. FLOORING

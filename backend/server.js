@@ -464,23 +464,41 @@ siding: {
     plumb_location_attic: 1.25
   },
 
-  // ========== HVAC (parked - defaults only) ==========
-  hvac: {
-    hvac_labor_rate: 85,
-    hvac_furnace_gas: 4200,
-    hvac_furnace_electric: 3200,
-    hvac_ac_unit: 5500,
-    hvac_heat_pump: 8000,
-    hvac_mini_split: 3200,
-    hvac_ductwork_lf: 18,
-    hvac_thermostat_standard: 150,
-    hvac_thermostat_smart: 250,
-    hvac_air_handler: 1500,
-    hvac_size_small: 0.85,
-    hvac_size_medium: 1.0,
-    hvac_size_large: 1.25,
-    hvac_size_xlarge: 1.5
-  },
+  // ========== HVAC (23 keys) ==========
+hvac: {
+  // Equipment - Furnace
+  hvac_furnace_standard: 3500,
+  hvac_furnace_high: 4500,
+  // Equipment - AC
+  hvac_ac_standard: 4000,
+  hvac_ac_high: 5500,
+  // Equipment - Heat Pump
+  hvac_heatpump_standard: 5500,
+  hvac_heatpump_high: 7500,
+  // Equipment - Mini Split
+  hvac_minisplit: 2500,
+  // Ductwork
+  hvac_duct_new: 15,
+  hvac_duct_repair: 8,
+  // Components
+  hvac_thermostat: 350,
+  hvac_refrigerant: 250,
+  hvac_filters: 200,
+  // Labor base hours by system type
+  hvac_labor_rate: 85,
+  hvac_labor_furnace: 12,
+  hvac_labor_ac: 10,
+  hvac_labor_heatpump: 14,
+  hvac_labor_minisplit: 8,
+  // Size multipliers
+  hvac_size_small: 0.9,
+  hvac_size_med: 1.0,
+  hvac_size_large: 1.2,
+  hvac_size_xlarge: 1.4,
+  // Story multipliers
+  hvac_story_2: 1.2,
+  hvac_story_3: 1.4
+},
 
   // ========== FLOORING (parked - defaults only) ==========
   flooring: {
