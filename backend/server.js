@@ -262,48 +262,47 @@ async function initDatabase() {
 // ============================================
 const DEFAULT_PRICING = {
   
-  // ========== ROOFING (32 keys) ==========
   roofing: {
-    // Pitch multipliers
-    roof_pitch_low: 1.0,        // 0-4:12
-    roof_pitch_medium: 1.15,    // 5-7:12
-    roof_pitch_high: 1.35,      // 8-10:12
-    roof_pitch_steep: 1.6,      // 11+:12
-    // Story multipliers
-    roof_story_1: 1.0,
-    roof_story_2: 1.25,
-    roof_story_3: 1.5,
-    // Material costs per sqft
-    roof_mat_asphalt_3tab: 4.50,
-    roof_mat_architectural: 5.75,
-    roof_mat_metal_standing: 9.50,
-    roof_mat_metal_corrugated: 7.50,
-    roof_mat_tile_clay: 12.00,
-    roof_mat_tile_concrete: 10.00,
-    roof_mat_slate: 18.00,
-    roof_mat_wood_shake: 14.00,
-    // Labor per square (100 sqft)
-    roof_labor_rate: 75,
-    roof_labor_per_square: 150,
-    // Fixed costs
-    roof_tearoff_layer: 125,    // per square per layer
-    roof_plywood_sheet: 32,
-    roof_dumpster: 650,
-    // Linear foot items
-    roof_drip_edge_lf: 2.75,
-    roof_ice_shield_lf: 4.50,
-    roof_starter_lf: 2.50,
-    roof_ridge_cap_lf: 14,
-    roof_valley_lf: 12,
-    // Extras
-    roof_underlayment_sqft: 0.45,
-    roof_chimney_flash: 450,
-    roof_skylight_flash: 400,
-    roof_vent_pipe: 45,
-    roof_ridge_vent_lf: 8,
-    roof_nails_box: 45,
-    // Permit
-    roof_permit: 350
+    // Pitch multipliers (per pitch ratio)
+    pitch_3_12: 1.0,
+    pitch_4_12: 1.0,
+    pitch_5_12: 1.05,
+    pitch_6_12: 1.1,
+    pitch_7_12: 1.15,
+    pitch_8_12: 1.2,
+    pitch_9_12: 1.3,
+    pitch_10_12: 1.4,
+    pitch_11_12: 1.5,
+    pitch_12_12: 1.6,
+    // Shingle costs
+    mat_asphalt: 40.00,      // per bundle (3-tab)
+    mat_arch: 44.96,         // per bundle (architectural)
+    mat_metal: 9.50,         // per sqft
+    mat_tile: 12.00,         // per sqft
+    mat_wood_shake: 14.00,   // per sqft
+    // Materials
+    underlayment_roll: 45.00,
+    nails_box: 85.00,
+    starter_lf: 2.50,
+    ridge_lf: 3.00,
+    drip_edge_lf: 2.75,
+    ice_shield_lf: 4.50,
+    vent_unit: 25.00,
+    ridge_vent_lf: 5.50,
+    osb_sheet: 28.00,
+    // Disposal (per sqft)
+    disposal_asphalt_sqft: 0.40,
+    disposal_wood_sqft: 0.40,
+    disposal_metal_sqft: 0.50,
+    disposal_tile_sqft: 0.75,
+    // Flashing
+    chimney_flash: 125.00,
+    skylight_flash: 85.00,
+    valley_lf: 6.00,
+    // Labor
+    labor_rate_sqft: 0.04,
+    chimney_labor_hrs: 3,
+    skylight_labor_hrs: 2
   },
 
   // ========== SIDING (21 keys) ==========
