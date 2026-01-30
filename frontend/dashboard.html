@@ -2785,7 +2785,7 @@ function generateEmbedCodes() {
 }
 
 // Copy specific embed code
-function copyEmbedCode(type) {
+function copyEmbedCode() {
   const textArea = document.getElementById('embed_code_iframe');
   
   if (!textArea) {
@@ -3294,12 +3294,12 @@ function copyShareLink() {
   alert('✅ Link copied to clipboard!');
 }
 
-function copyEmbedCode() {
+/*function copyEmbedCode() {
   const textarea = document.getElementById('profile_embed_code');
   textarea.select();
   document.execCommand('copy');
   alert('✅ Embed code copied to clipboard!');
-}
+}*/
 
 function copyApiKey() {
   const input = document.getElementById('profile_api_key');
