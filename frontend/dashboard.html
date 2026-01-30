@@ -3333,9 +3333,92 @@ async function loadPricingConfig() {
   }
 }
 
+// Check if first login - show welcome modal
+function checkFirstLogin() {
+  const hasSeenWelcome = localStorage.getItem('instabid_welcome_seen');
+  
+  if (!hasSeenWelcome) {
+    document.getElementById('welcomeModal').style.display = 'flex';
+  }
+}
+
+function closeWelcomeModal() {
+  document.getElementById('welcomeModal').style.display = 'none';
+  localStorage.setItem('instabid_welcome_seen', 'true');
+  
+  // Navigate to Company Profile tab
+  document.querySelector('[data-main="company-profile"]').click();
+}
+
+// Call on page load
+window.addEventListener('load', function() {
+  checkFirstLogin();
+});
+
 // Call on page load
 document.addEventListener('DOMContentLoaded', loadPricingConfig);
 </script>
-
+<!-- WELCOME MODAL -->
+<div id="welcomeModal" style="
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%);
+    border: 2px solid #30363d;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  ">
+    <div style="font-size: 64px; margin-bottom: 20px;">🎉</div>
+    <h2 style="color: #e6edf3; margin-bottom: 10px;">Welcome to InstaBid!</h2>
+    <p style="color: #8b949e; margin-bottom: 30px;">Let's get you live in 5 minutes.</p>
+    
+    <div style="text-align: left; margin-bottom: 30px;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #0d1117; border-radius: 8px; margin-bottom: 10px;">
+        <span style="background: #238636; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+        <span style="color: #e6edf3;">Add your company info & logo</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #0d1117; border-radius: 8px; margin-bottom: 10px;">
+        <span style="background: #238636; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
+        <span style="color: #e6edf3;">Set your pricing for each trade</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #0d1117; border-radius: 8px; margin-bottom: 10px;">
+        <span style="background: #238636; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
+        <span style="color: #e6edf3;">Copy your embed code</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #0d1117; border-radius: 8px;">
+        <span style="background: #238636; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</span>
+        <span style="color: #e6edf3;">Paste it on your website - done!</span>
+      </div>
+    </div>
+    
+    <button onclick="closeWelcomeModal()" style="
+      background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    ">🚀 Let's Go!</button>
+    
+    <p style="color: #6e7681; font-size: 12px; margin-top: 15px;">
+      Questions? Email support@instabid.com
+    </p>
+  </div>
+</div>
 </body>
 </html>
