@@ -2789,23 +2789,17 @@ function copyEmbedCode() {
   const textArea = document.getElementById('embed_code_iframe');
   
   if (!textArea) {
-    alert('Error: Embed code field not found');
+    alert('❌ Error: Embed code field not found');
     return;
   }
   
-  textArea.select();
-  document.execCommand('copy');
-  
-  // Visual feedback
-  const btn = event.target;
-  const originalText = btn.textContent;
-  btn.textContent = '✅ Copied!';
-  btn.style.background = '#00d4ff';
-  
-  setTimeout(() => {
-    btn.textContent = originalText;
-    btn.style.background = '#238636';
-  }, 2000);
+  // Modern clipboard API
+  navigator.clipboard.writeText(textArea.value).then(() => {
+    alert('✅ Embed code copied to clipboard!');
+  }).catch(err => {
+    console.error('Copy failed:', err);
+    alert('❌ Copy failed. Please select and copy manually.');
+  });
 }
 
 
