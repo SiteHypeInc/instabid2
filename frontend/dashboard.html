@@ -3001,6 +3001,7 @@ async function loadCompanyProfile() {
     console.error('Error loading profile:', error);
     alert('Failed to load company profile');
   }
+  setTimeout(generateEmbedCodes, 100);
 }
 
 // Email help popup
