@@ -1,3 +1,6 @@
+
+
+
 //========================================
 // INSTABID SERVER v3.0 - CALIBRATED PRICING
 // Last Updated: January 2025
@@ -7,6 +10,7 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
+const sgTransport = require('nodemailer-sendgrid-transport');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -164,53 +168,11 @@ pool.connect()
   });
 
 // ========== EMAIL SETUP ==========
-// Function to create transporter based on contractor SMTP settings
-async function getContractorTransporter(contractorId) {
-  try {
-    const result = await pool.query(
-      'SELECT smtp_host, smtp_port, smtp_user, smtp_pass, email, company_name FROM contractors WHERE id = $1',
-      [contractorId]
-    );
-    
-    if (result.rows.length === 0) {
-      throw new Error('Contractor not found');
-    }
-    
-    const contractor = result.rows[0];
-    
-    // Check if contractor has SMTP configured
-    if (!contractor.smtp_host || !contractor.smtp_user || !contractor.smtp_pass) {
-      throw new Error('Contractor SMTP not configured. Please set up email settings in your dashboard.');
-    }
-    
-    console.log(`📧 Creating email transporter for contractor ${contractorId} using ${contractor.smtp_host}`);
-    
-    // Create transporter with contractor's SMTP settings
-    const transporter = nodemailer.createTransport({
-      host: contractor.smtp_host,
-      port: parseInt(contractor.smtp_port) || 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: contractor.smtp_user,
-        pass: contractor.smtp_pass
-      }
-    });
-    
-    // Verify connection
-    await transporter.verify();
-    console.log(`✅ SMTP connection verified for contractor ${contractorId}`);
-    
-    return {
-      transporter,
-      fromEmail: contractor.smtp_user,
-      companyName: contractor.company_name
-    };
-    
-  } catch (error) {
-    console.error(`❌ Failed to create transporter for contractor ${contractorId}:`, error.message);
-    throw error;
+const transporter = nodemailer.createTransport(sgTransport({
+  auth: {
+    api_key: process.env.SENDGRID_API_KEY
   }
-}
+}));
 
 
 // Initialize database tables
@@ -1808,113 +1770,61 @@ async function generateContract(estimateData) {
 }
 
 // ========== EMAIL SENDING FUNCTION ==========
-async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contractorId) {
+async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer) {
   const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
 
-  try {
-    // Get contractor's email transporter
-    const { transporter, fromEmail, companyName } = await getContractorTransporter(contractorId);
-    
-    console.log(`📧 Sending emails from contractor ${contractorId} (${fromEmail})`);
-
-    // Email to customer
-    const customerMailOptions = {
-      from: `${companyName} <${fromEmail}>`,
-      to: estimateData.customerEmail,
-      subject: `Your ${tradeName} Estimate & Contract`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-            <h1 style="margin: 0;">Your Estimate is Ready!</h1>
-          </div>
-          <div style="padding: 20px; background: #f9fafb;">
-            <p>Hi ${estimateData.customerName},</p>
-            <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
-            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
-                Total Estimate: $${estimateData.totalCost.toLocaleString()}
-              </p>
-            </div>
-            <p><strong>Two documents are attached:</strong></p>
-            <ul>
-              <li>Detailed Estimate (PDF)</li>
-              <li>Service Contract (PDF)</li>
-            </ul>
-            
-            <!-- STRIPE PAYMENT BUTTON -->
-            <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
-              <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
-              <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
-              <a href="${process.env.BACKEND_URL || 'https://instabid-backend-production.up.railway.app'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
-                 style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
-                        text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                💳 Pay Deposit & Schedule Start Date
-              </a>
-            </div>
-            
-            <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
-          </div>
+  // Email to customer
+const customerMailOptions = {
+  from: process.env.FROM_EMAIL || 'instabidinc@gmail.com',
+  to: estimateData.customerEmail,
+  subject: `Your ${tradeName} Estimate & Contract`,
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
+        <h1 style="margin: 0;">Your Estimate is Ready!</h1>
+      </div>
+      <div style="padding: 20px; background: #f9fafb;">
+        <p>Hi ${estimateData.customerName},</p>
+        <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
+        <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
+            Total Estimate: $${estimateData.totalCost.toLocaleString()}
+          </p>
         </div>
-      `,
-      attachments: [
-        {
-          filename: `estimate-${estimateData.id}.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf'
-        },
-        {
-          filename: `contract-${estimateData.id}.pdf`,
-          content: contractBuffer,
-          contentType: 'application/pdf'
-        }
-      ]
-    };
-      
-    // Email to contractor (notification)
-    const contractorMailOptions = {
-      from: fromEmail,
-      to: fromEmail, // Send to themselves as notification
-      subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
-      html: `
-        <h2>🔔 New Estimate Request</h2>
-        <p><strong>Customer:</strong> ${estimateData.customerName}</p>
-        <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
-        <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
-        <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
-        <hr>
-        <p><strong>Service:</strong> ${tradeName}</p>
-        <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
-        <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
-        <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
-        <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
-      `,
-      attachments: [
-        {
-          filename: `estimate-${estimateData.id}.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf'
-        },
-        {
-          filename: `contract-${estimateData.id}.pdf`,
-          content: contractBuffer,
-          contentType: 'application/pdf'
-        }
-      ]
-    };
-
-    // Send both emails
-    await transporter.sendMail(customerMailOptions);
-    console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
-    
-    await transporter.sendMail(contractorMailOptions);
-    console.log(`✅ Contractor notification sent to ${fromEmail}`);
-    
-  } catch (error) {
-    console.error('❌ Email sending failed:', error.message);
-    throw error;
-  }
-}
-
+        <p><strong>Two documents are attached:</strong></p>
+        <ul>
+          <li>Detailed Estimate (PDF)</li>
+          <li>Service Contract (PDF)</li>
+        </ul>
+        
+        <!-- STRIPE PAYMENT BUTTON -->
+        <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
+          <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
+          <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
+          <a href="${process.env.BACKEND_URL || 'https://instabid-backend-production.up.railway.app'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
+             style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
+                    text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+            💳 Pay Deposit & Schedule Start Date
+          </a>
+        </div>
+        
+        <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
+      </div>
+    </div>
+  `,
+  attachments: [
+    {
+      filename: `estimate-${estimateData.id}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf'
+    },
+    {
+      filename: `contract-${estimateData.id}.pdf`,
+      content: contractBuffer,
+      contentType: 'application/pdf'
+    }
+  ]
+};
   
   // Email to contractor
   const contractorMailOptions = {
@@ -1953,7 +1863,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
   
   await transporter.sendMail(contractorMailOptions);
   console.log(`✅ Contractor email sent to ${process.env.CONTRACTOR_EMAIL}`);
-
+}
 
 // ========== MAIN ESTIMATE SUBMISSION ENDPOINT (PUBLIC - API key in widget) ==========
 app.post('/api/estimate', async (req, res) => {
@@ -2297,8 +2207,7 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
         ...estimate
       },
       pdfBuffer,
-      contractBuffer,
-      contractor.id  // Pass contractor ID for SMTP lookup
+      contractBuffer
     );
 
      // Get display settings (default to total only if not set)
