@@ -3095,11 +3095,13 @@ async function saveCompanyProfile() {
     stripe_publishable_key: document.getElementById('profile_stripe_pk').value || null,
     stripe_secret_key: document.getElementById('profile_stripe_sk').value !== '••••••••' ? document.getElementById('profile_stripe_sk').value : undefined,
     google_maps_api_key: document.getElementById('profile_google_maps_key').value || null,
-    smtp_host: document.getElementById('profile_smtp_host').value || null,
-    smtp_port: document.getElementById('profile_smtp_port').value || null,
-    smtp_user: document.getElementById('profile_smtp_user').value || null,
-    smtp_pass: document.getElementById('profile_smtp_pass').value !== '••••••••' ? document.getElementById('profile_smtp_pass').value : undefined
-  };
+google_maps_api_key: document.getElementById('profile_google_maps_key').value || null,
+smtp_host: document.getElementById('profile_smtp_host').value || null,
+smtp_port: document.getElementById('profile_smtp_port').value || null,
+smtp_user: document.getElementById('profile_smtp_user').value || null,
+smtp_pass: document.getElementById('profile_smtp_pass').value !== '••••••••' ? document.getElementById('profile_smtp_pass').value : undefined
+};
+  
   
   try {
     const response = await fetch(`${window.RAILWAY_API}/api/contractors/${contractorId}`, {
