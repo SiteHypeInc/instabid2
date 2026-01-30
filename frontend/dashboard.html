@@ -2584,12 +2584,12 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
   </div>
-
-  <!-- SECTION 6: API KEY & EMBED -->
+<!-- SECTION 6: API KEY & EMBED - UPGRADED VERSION -->
 <div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%); border: 1px solid #30363d;">
   <h3 style="color: #00d4ff;">🔗 Your Estimate Form</h3>
   
-  <div style="margin-bottom: 20px;">
+  <!-- SHARE LINK -->
+  <div style="margin-bottom: 25px;">
     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #e6edf3;">Share this link with customers:</label>
     <div style="display: flex; gap: 10px;">
       <input type="text" id="profile_share_link" readonly style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00d4ff; font-family: monospace; font-size: 13px;">
@@ -2597,14 +2597,95 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
   </div>
   
+  <!-- EMBED OPTIONS TABS -->
   <div style="margin-bottom: 20px;">
-    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #e6edf3;">Or embed on your website:</label>
-    <div style="display: flex; gap: 10px;">
-      <textarea id="profile_embed_code" readonly rows="3" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
-      <button onclick="copyEmbedCode()" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+    <label style="display: block; font-weight: 600; margin-bottom: 12px; color: #e6edf3;">Or embed on your website:</label>
+    
+    <!-- Tab Navigation -->
+    <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #30363d;">
+      <button class="embed-tab-btn active" onclick="switchEmbedTab('script')" data-tab="script" style="
+        padding: 10px 20px; 
+        background: none; 
+        border: none; 
+        border-bottom: 3px solid #00d4ff; 
+        color: #00d4ff; 
+        font-weight: 600; 
+        cursor: pointer;
+        transition: all 0.2s;
+      ">📜 Script Tag</button>
+      
+      <button class="embed-tab-btn" onclick="switchEmbedTab('iframe')" data-tab="iframe" style="
+        padding: 10px 20px; 
+        background: none; 
+        border: none; 
+        border-bottom: 3px solid transparent; 
+        color: #8b949e; 
+        font-weight: 600; 
+        cursor: pointer;
+        transition: all 0.2s;
+      ">🖼️ iframe</button>
+      
+      <button class="embed-tab-btn" onclick="switchEmbedTab('wordpress')" data-tab="wordpress" style="
+        padding: 10px 20px; 
+        background: none; 
+        border: none; 
+        border-bottom: 3px solid transparent; 
+        color: #8b949e; 
+        font-weight: 600; 
+        cursor: pointer;
+        transition: all 0.2s;
+      ">🔌 WordPress</button>
+    </div>
+    
+    <!-- Tab Contents -->
+    
+    <!-- SCRIPT TAB -->
+    <div class="embed-tab-content active" data-content="script">
+      <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">✨ Recommended - Works on most platforms</p>
+      <div style="display: flex; gap: 10px;">
+        <textarea id="embed_code_script" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
+        <button onclick="copyEmbedCode('script')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+      </div>
+    </div>
+    
+    <!-- IFRAME TAB -->
+    <div class="embed-tab-content" data-content="iframe" style="display: none;">
+      <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">📦 Fallback option if script doesn't work</p>
+      <div style="display: flex; gap: 10px;">
+        <textarea id="embed_code_iframe" readonly rows="4" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
+        <button onclick="copyEmbedCode('iframe')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+      </div>
+    </div>
+    
+    <!-- WORDPRESS TAB -->
+    <div class="embed-tab-content" data-content="wordpress" style="display: none;">
+      <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">🎯 For WordPress - Add to Custom HTML block</p>
+      <div style="display: flex; gap: 10px;">
+        <textarea id="embed_code_wordpress" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
+        <button onclick="copyEmbedCode('wordpress')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+      </div>
+      <div style="margin-top: 10px; padding: 10px; background: #1a1a2e; border-left: 3px solid #00d4ff; border-radius: 4px;">
+        <p style="color: #8b949e; font-size: 12px; margin: 0;">💡 <strong style="color: #e6edf3;">Tip:</strong> Use the Script Tab version - it's the same code and easier!</p>
+      </div>
     </div>
   </div>
   
+  <!-- TEST BUTTON -->
+  <div style="margin-bottom: 20px;">
+    <button onclick="testEmbed()" style="
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 15px;
+    ">🧪 Test Your Embed in New Window</button>
+  </div>
+  
+  <!-- API KEY -->
   <div style="border-top: 1px solid #30363d; padding-top: 15px;">
     <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #8b949e; font-size: 13px;">Your API Key:</label>
     <div style="display: flex; gap: 10px;">
@@ -2614,6 +2695,154 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<style>
+/* Embed Tab Hover Effects */
+.embed-tab-btn:hover {
+  background: rgba(0, 212, 255, 0.1) !important;
+}
+
+.embed-tab-btn.active {
+  border-bottom-color: #00d4ff !important;
+  color: #00d4ff !important;
+}
+
+.embed-tab-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+// ============================================
+// EMBED CODE GENERATOR - Updated Functions
+// ============================================
+
+// Switch between embed tabs
+function switchEmbedTab(tab) {
+  // Update tab buttons
+  document.querySelectorAll('.embed-tab-btn').forEach(btn => {
+    if (btn.dataset.tab === tab) {
+      btn.classList.add('active');
+      btn.style.borderBottomColor = '#00d4ff';
+      btn.style.color = '#00d4ff';
+    } else {
+      btn.classList.remove('active');
+      btn.style.borderBottomColor = 'transparent';
+      btn.style.color = '#8b949e';
+    }
+  });
+  
+  // Update tab content
+  document.querySelectorAll('.embed-tab-content').forEach(content => {
+    if (content.dataset.content === tab) {
+      content.style.display = 'block';
+      content.classList.add('active');
+    } else {
+      content.style.display = 'none';
+      content.classList.remove('active');
+    }
+  });
+}
+
+// Generate all embed codes (call this when profile loads)
+function generateEmbedCodes() {
+  const apiKey = document.getElementById('profile_api_key').value || 'YOUR_API_KEY';
+  const baseUrl = 'https://white-raven-264519.hostingersite.com';
+  
+  // Script Tag Code (escape script tag to avoid breaking HTML)
+  const scriptCode = '<div id="instabid-calculator"></div>\n<scr' + 'ipt src="' + baseUrl + '/embed.js" data-api-key="' + apiKey + '"></scr' + 'ipt>';
+  
+  document.getElementById('embed_code_script').value = scriptCode;
+  
+  // iframe Code
+  const iframeCode = `<iframe 
+  src="${baseUrl}/estimate/?key=${apiKey}&embed=true" 
+  style="width:100%; height:900px; border:none;"
+  frameborder="0"
+  scrolling="no">
+</iframe>`;
+  
+  document.getElementById('embed_code_iframe').value = iframeCode;
+  
+  // WordPress Code (same as script for simplicity)
+  document.getElementById('embed_code_wordpress').value = scriptCode;
+  
+  // Also update old embed code field if it exists (backwards compatibility)
+  const oldEmbedField = document.getElementById('profile_embed_code');
+  if (oldEmbedField) {
+    oldEmbedField.value = iframeCode;
+  }
+}
+
+// Copy specific embed code
+function copyEmbedCode(type) {
+  let textArea;
+  
+  if (type === 'script') {
+    textArea = document.getElementById('embed_code_script');
+  } else if (type === 'iframe') {
+    textArea = document.getElementById('embed_code_iframe');
+  } else if (type === 'wordpress') {
+    textArea = document.getElementById('embed_code_wordpress');
+  } else {
+    // Fallback to old field
+    textArea = document.getElementById('profile_embed_code');
+  }
+  
+  if (textArea) {
+    textArea.select();
+    document.execCommand('copy');
+    
+    // Visual feedback
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    btn.style.background = '#00d4ff';
+    
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '#238636';
+    }, 2000);
+  }
+}
+
+// Test embed in new window
+function testEmbed() {
+  const apiKey = document.getElementById('profile_api_key').value;
+  const testUrl = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}&embed=true`;
+  window.open(testUrl, '_blank', 'width=1200,height=900');
+}
+
+// Auto-generate codes when API key is populated
+const apiKeyObserver = new MutationObserver(() => {
+  const apiKey = document.getElementById('profile_api_key').value;
+  if (apiKey && apiKey !== 'YOUR_API_KEY') {
+    generateEmbedCodes();
+  }
+});
+
+// Watch for API key field updates
+const apiKeyField = document.getElementById('profile_api_key');
+if (apiKeyField) {
+  apiKeyObserver.observe(apiKeyField, { 
+    attributes: true, 
+    attributeFilter: ['value'] 
+  });
+  
+  // Also trigger on value change
+  apiKeyField.addEventListener('change', generateEmbedCodes);
+  
+  // Generate on load if key already exists
+  if (apiKeyField.value) {
+    generateEmbedCodes();
+  }
+}
+</script>
+ 
   <!-- SAVE BUTTON -->
   <button class="btn-save" onclick="saveCompanyProfile()">💾 Save Company Profile</button>
   <div class="status-message" id="profile-status"></div>
