@@ -2752,12 +2752,21 @@ async function loadCompanyProfile() {
     document.getElementById('profile_renewal_date').textContent = contractor.renewal_date ? new Date(contractor.renewal_date).toLocaleDateString() : '—';
     
     // API Key & Embed Code
-const apiKey = contractor.api_key || '';
-const baseUrl = 'https://white-raven-264519.hostingersite.com/estimate/';
+    const apiKey = contractor.api_key || '';
+    const baseUrl = 'https://white-raven-264519.hostingersite.com/estimate/';
 
-document.getElementById('profile_api_key').value = apiKey;
-document.getElementById('profile_share_link').value = baseUrl + '?key=' + apiKey;
-document.getElementById('profile_embed_code').value = '<iframe src="' + baseUrl + '?key=' + apiKey + '&embed=true" style="width:100%; height:800px; border:none;"></iframe>';
+    document.getElementById('profile_api_key').value = apiKey;
+    document.getElementById('profile_share_link').value = baseUrl + '?key=' + apiKey;
+    document.getElementById('profile_embed_code').value = '<iframe src="' + baseUrl + '?key=' + apiKey + '&embed=true" style="width:100%; height:800px; border:none;"></iframe>';
+
+    // Integrations
+    document.getElementById('profile_stripe_pk').value = contractor.stripe_publishable_key || '';
+    document.getElementById('profile_stripe_sk').value = contractor.stripe_secret_key ? '••••••••' : '';
+    document.getElementById('profile_google_maps_key').value = contractor.google_maps_api_key || '';
+    document.getElementById('profile_smtp_host').value = contractor.smtp_host || '';
+    document.getElementById('profile_smtp_port').value = contractor.smtp_port || '587';
+    document.getElementById('profile_smtp_user').value = contractor.smtp_user || '';
+    document.getElementById('profile_smtp_pass').value = contractor.smtp_pass ? '••••••••' : '';
     
   } catch (error) {
     console.error('Error loading profile:', error);
@@ -2851,16 +2860,15 @@ async function saveCompanyProfile() {
       showLabor: document.getElementById('display_show_labor').checked,
       showMaterials: document.getElementById('display_show_materials').checked,
       showEquipment: document.getElementById('display_show_equipment').checked,
-      // Integrations (add these lines)
-stripe_publishable_key: document.getElementById('profile_stripe_pk').value || null,
-stripe_secret_key: document.getElementById('profile_stripe_sk').value !== '••••••••' ? document.getElementById('profile_stripe_sk').value : undefined,
-google_maps_api_key: document.getElementById('profile_google_maps_key').value || null,
-smtp_host: document.getElementById('profile_smtp_host').value || null,
-smtp_port: document.getElementById('profile_smtp_port').value || null,
-smtp_user: document.getElementById('profile_smtp_user').value || null,
-smtp_pass: document.getElementById('profile_smtp_pass').value !== '••••••••' ? document.getElementById('profile_smtp_pass').value : undefined,
       showTotal: true
-    }
+    },
+    stripe_publishable_key: document.getElementById('profile_stripe_pk').value || null,
+    stripe_secret_key: document.getElementById('profile_stripe_sk').value !== '••••••••' ? document.getElementById('profile_stripe_sk').value : undefined,
+    google_maps_api_key: document.getElementById('profile_google_maps_key').value || null,
+    smtp_host: document.getElementById('profile_smtp_host').value || null,
+    smtp_port: document.getElementById('profile_smtp_port').value || null,
+    smtp_user: document.getElementById('profile_smtp_user').value || null,
+    smtp_pass: document.getElementById('profile_smtp_pass').value !== '••••••••' ? document.getElementById('profile_smtp_pass').value : undefined
   };
   
   try {
@@ -2932,16 +2940,6 @@ function authFetch(url, options = {}) {
   return fetch(url, options);
 }
 
-// Integrations
-document.getElementById('profile_stripe_pk').value = contractor.stripe_publishable_key || '';
-document.getElementById('profile_stripe_sk').value = contractor.stripe_secret_key ? '••••••••' : '';
-document.getElementById('profile_google_maps_key').value = contractor.google_maps_api_key || '';
-document.getElementById('profile_smtp_host').value = contractor.smtp_host || '';
-document.getElementById('profile_smtp_port').value = contractor.smtp_port || '587';
-document.getElementById('profile_smtp_user').value = contractor.smtp_user || '';
-document.getElementById('profile_smtp_pass').value = contractor.smtp_pass ? '••••••••' : '';
-
-
 document.querySelectorAll('.main-tab').forEach(tab => {
   tab.addEventListener('click', function() {
     document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
@@ -2982,43 +2980,6 @@ function loadConfig(section) {
     })
     .catch(err => console.error('Load error:', err));
 }
-
-/*function saveConfig(section) {
-  const inputs = document.querySelectorAll(`#${section} input`);
-  const config = {};
-  
-  inputs.forEach(input => {
-    const value = parseFloat(input.value);
-    if (!isNaN(value)) {
-      config[input.id] = value;
-    }
-  });
-  
-  const statusDiv = document.getElementById(`${section}-status`);
-  statusDiv.textContent = '⏳ Saving...';
-  statusDiv.className = 'status-message';
-  statusDiv.style.display = 'block';
-  
-  authFetch(`${API_BASE}/api/config/${section}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ config })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      statusDiv.textContent = '✅ Configuration saved successfully!';
-      statusDiv.className = 'status-message success';
-      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
-    } else {
-      throw new Error(data.error || 'Save failed');
-    }
-  })
-  .catch(err => {
-    statusDiv.textContent = '❌ Error: ' + err.message;
-    statusDiv.className = 'status-message error';
-  });
-}*/
 
 function getContractorId() {
   return localStorage.getItem('contractor_id') || '1';
