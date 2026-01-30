@@ -2603,7 +2603,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     <!-- Tab Navigation -->
     <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #30363d;">
-      <button class="embed-tab-btn active" onclick="switchEmbedTab('script')" data-tab="script" style="
+      <!--<button class="embed-tab-btn active" onclick="switchEmbedTab('script')" data-tab="script" style="
         padding: 10px 20px; 
         background: none; 
         border: none; 
@@ -2612,7 +2612,7 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: 600; 
         cursor: pointer;
         transition: all 0.2s;
-      ">📜 Script Tag</button>
+      ">📜 Script Tag</button>-->
       
       <button class="embed-tab-btn" onclick="switchEmbedTab('iframe')" data-tab="iframe" style="
         padding: 10px 20px; 
@@ -2625,7 +2625,7 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: all 0.2s;
       ">🖼️ iframe</button>
       
-      <button class="embed-tab-btn" onclick="switchEmbedTab('wordpress')" data-tab="wordpress" style="
+      <!--<button class="embed-tab-btn" onclick="switchEmbedTab('wordpress')" data-tab="wordpress" style="
         padding: 10px 20px; 
         background: none; 
         border: none; 
@@ -2634,22 +2634,22 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: 600; 
         cursor: pointer;
         transition: all 0.2s;
-      ">🔌 WordPress</button>
+      ">🔌 WordPress</button>-->
     </div>
     
     <!-- Tab Contents -->
     
     <!-- SCRIPT TAB -->
-    <div class="embed-tab-content active" data-content="script">
+    <!--<div class="embed-tab-content" data-content="script">
       <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">✨ Recommended - Works on most platforms</p>
       <div style="display: flex; gap: 10px;">
         <textarea id="embed_code_script" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
         <button onclick="copyEmbedCode('script')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
       </div>
-    </div>
+    </div>-->
     
     <!-- IFRAME TAB -->
-    <div class="embed-tab-content" data-content="iframe" style="display: none;">
+    <div class="embed-tab-content active" data-content="iframe" style="display: none;">
       <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">📦 Fallback option if script doesn't work</p>
       <div style="display: flex; gap: 10px;">
         <textarea id="embed_code_iframe" readonly rows="4" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
@@ -2658,7 +2658,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     
     <!-- WORDPRESS TAB -->
-    <div class="embed-tab-content" data-content="wordpress" style="display: none;">
+   <!-- <div class="embed-tab-content" data-content="wordpress" style="display: none;">
       <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">🎯 For WordPress - Add to Custom HTML block</p>
       <div style="display: flex; gap: 10px;">
         <textarea id="embed_code_wordpress" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
@@ -2668,7 +2668,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <p style="color: #8b949e; font-size: 12px; margin: 0;">💡 <strong style="color: #e6edf3;">Tip:</strong> Use the Script Tab version - it's the same code and easier!</p>
       </div>
     </div>
-  </div>
+  </div>-->
   
   <!-- TEST BUTTON -->
   <div style="margin-bottom: 20px;">
