@@ -2260,8 +2260,10 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
 });
 
 // GET all estimates
-app.get('/api/estimates', async (req, res) => {
+app.get('/api/estimates', requireAuth, async (req, res) => {
   try {
+    const contractorId = req.contractor.contractor_id;
+    
     const result = await pool.query(`
       SELECT 
         id,
@@ -2282,9 +2284,11 @@ app.get('/api/estimates', async (req, res) => {
         total_with_tax as "totalWithTax",
         created_at as "createdAt"
       FROM estimates 
+      WHERE contractor_id = $1
       ORDER BY created_at DESC
-    `);
+    `, [contractorId]);
     
+    console.log(`📊 Loaded ${result.rows.length} estimates for contractor ${contractorId}`);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching estimates:', error);
@@ -2293,9 +2297,10 @@ app.get('/api/estimates', async (req, res) => {
 });
 
 // GET single estimate by ID
-app.get('/api/estimates/:id', async (req, res) => {
+app.get('/api/estimates/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    const contractorId = req.contractor.contractor_id;
     
     const result = await pool.query(`
       SELECT 
@@ -2321,8 +2326,8 @@ app.get('/api/estimates/:id', async (req, res) => {
         material_list,
         created_at as "createdAt"
       FROM estimates 
-      WHERE id = $1
-    `, [id]);
+      WHERE id = $1 AND contractor_id = $2
+    `, [id, contractorId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Estimate not found' });
@@ -2337,13 +2342,14 @@ app.get('/api/estimates/:id', async (req, res) => {
 });
 
 // GET material list for an estimate
-app.get('/api/estimates/:id/material-list', async (req, res) => {
+app.get('/api/estimates/:id/material-list', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    const contractorId = req.contractor.contractor_id;
     
     const result = await pool.query(
-      'SELECT id, trade, material_list, created_at FROM estimates WHERE id = $1',
-      [id]
+      'SELECT id, trade, material_list, created_at FROM estimates WHERE id = $1 AND contractor_id = $2',
+      [id, contractorId]
     );
     
     if (result.rows.length === 0) {
