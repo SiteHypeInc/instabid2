@@ -2786,40 +2786,33 @@ function generateEmbedCodes() {
 
 // Copy specific embed code
 function copyEmbedCode(type) {
-  let textArea;
+  const textArea = document.getElementById('embed_code_iframe');
   
-  if (type === 'script') {
-    textArea = document.getElementById('embed_code_script');
-  } else if (type === 'iframe') {
-    textArea = document.getElementById('embed_code_iframe');
-  } else if (type === 'wordpress') {
-    textArea = document.getElementById('embed_code_wordpress');
-  } else {
-    // Fallback to old field
-    textArea = document.getElementById('profile_embed_code');
+  if (!textArea) {
+    alert('Error: Embed code field not found');
+    return;
   }
   
-  if (textArea) {
-    textArea.select();
-    document.execCommand('copy');
-    
-    // Visual feedback
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = '✅ Copied!';
-    btn.style.background = '#00d4ff';
-    
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.style.background = '#238636';
-    }, 2000);
-  }
+  textArea.select();
+  document.execCommand('copy');
+  
+  // Visual feedback
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = '✅ Copied!';
+  btn.style.background = '#00d4ff';
+  
+  setTimeout(() => {
+    btn.textContent = originalText;
+    btn.style.background = '#238636';
+  }, 2000);
 }
+
 
 // Test embed in new window
 function testEmbed() {
   const apiKey = document.getElementById('profile_api_key').value;
-  const testUrl = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}&embed=true`;
+  const testUrl = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}`;
   window.open(testUrl, '_blank', 'width=1200,height=900');
 }
 
