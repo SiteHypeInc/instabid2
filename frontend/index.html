@@ -4,22 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InstaBid - Multi-Trade Estimator</title>
-<script>
-(function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const isEmbedMode = urlParams.get('embed') === 'true';
-  
-  if (isEmbedMode) {
-    const style = document.createElement('style');
-    style.textContent = `
-      .header { display: none !important; }
-      body { background: transparent !important; margin: 0 !important; }
-      .container { max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
-    `;
-    document.head.appendChild(style);
-  }
-})();
-</script>
+
 <style>
 .container {
   max-width: 1400px;
