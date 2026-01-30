@@ -392,6 +392,42 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
 
 <script>
+// ============================================
+// EMBED MODE DETECTION & STYLING
+// ============================================
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEmbedMode = urlParams.get('embed') === 'true';
+  
+  if (isEmbedMode) {
+    // Apply embed styles immediately
+    const style = document.createElement('style');
+    style.textContent = `
+      body {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .header {
+        display: none !important;
+      }
+      .container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+      .main-content {
+        padding: 20px !important;
+      }
+    `;
+    document.head.appendChild(style);
+    console.log('🎯 Embed mode activated');
+  }
+})();
+</script>
+
+<script>
 var TRADE_FORM_SCHEMA = {
   roofing: [
     { name: 'name', label: 'Full Name', type: 'text', required: true, placeholder: 'John Smith' },
