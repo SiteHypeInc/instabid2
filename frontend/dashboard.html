@@ -2614,7 +2614,7 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: all 0.2s;
       ">📜 Script Tag</button>
       
-      <button class="embed-tab-btn" onclick="switchEmbedTab('iframe')" data-tab="iframe" style="
+     <!-- <button class="embed-tab-btn" onclick="switchEmbedTab('iframe')" data-tab="iframe" style="
         padding: 10px 20px; 
         background: none; 
         border: none; 
@@ -2623,7 +2623,7 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: 600; 
         cursor: pointer;
         transition: all 0.2s;
-      ">🖼️ iframe</button>
+      ">🖼️ iframe</button> -->
       
       <!-- <button class="embed-tab-btn" onclick="switchEmbedTab('wordpress')" data-tab="wordpress" style="
         padding: 10px 20px; 
@@ -2649,13 +2649,13 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     
    <!-- IFRAME TAB -->
-<div class="embed-tab-content active" data-content="iframe">
+<!-- <div class="embed-tab-content active" data-content="iframe">
   <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">📦 Copy this code and paste it on your website</p>
   <div style="display: flex; gap: 10px;">
     <textarea id="embed_code_iframe" readonly rows="4" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
     <button onclick="copyEmbedCode('iframe')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
   </div>
-</div>
+</div> -->
     
     <!-- WORDPRESS TAB -->
    <!-- <div class="embed-tab-content" data-content="wordpress" style="display: none;">
@@ -2748,7 +2748,7 @@ function switchEmbedTab(tab) {
   });
 }
 
-// Generate all embed codes (call this when profile loads)
+// Generate embed codes (call this when profile loads)
 function generateEmbedCodes() {
   const apiKey = document.getElementById('profile_api_key').value || 'YOUR_API_KEY';
   const baseUrl = 'https://white-raven-264519.hostingersite.com';
@@ -2760,22 +2760,19 @@ function generateEmbedCodes() {
     scriptField.value = scriptCode;
   }
   
-  // iframe Code
-  const iframeCode = `<iframe 
-  src="${baseUrl}/estimate/?key=${apiKey}" 
-  style="width:100%; height:1600px; border:none;"
-  frameborder="0"
-  scrolling="no">
-</iframe>`;
-  
-  document.getElementById('embed_code_iframe').value = iframeCode;
+  // Shareable URL
+  const urlField = document.getElementById('embed_code_url');
+  if (urlField) {
+    urlField.value = baseUrl + '/estimate/?key=' + apiKey;
+  }
+}
   
   // Also update old embed code field if it exists (backwards compatibility)
   const oldEmbedField = document.getElementById('profile_embed_code');
   if (oldEmbedField) {
     oldEmbedField.value = iframeCode;
   }
-}
+
 
 // Copy specific embed code
 function copyEmbedCode(type) {
