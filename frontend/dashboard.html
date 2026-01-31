@@ -2603,7 +2603,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     <!-- Tab Navigation -->
     <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #30363d;">
-      <!--<button class="embed-tab-btn active" onclick="switchEmbedTab('script')" data-tab="script" style="
+      <button class="embed-tab-btn active" onclick="switchEmbedTab('script')" data-tab="script" style="
         padding: 10px 20px; 
         background: none; 
         border: none; 
@@ -2612,7 +2612,7 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: 600; 
         cursor: pointer;
         transition: all 0.2s;
-      ">📜 Script Tag</button>-->
+      ">📜 Script Tag</button>
       
       <button class="embed-tab-btn" onclick="switchEmbedTab('iframe')" data-tab="iframe" style="
         padding: 10px 20px; 
@@ -2639,14 +2639,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     <!-- Tab Contents -->
     
-    <!-- SCRIPT TAB -->
-    <!--<div class="embed-tab-content" data-content="script">
+   <!----> SCRIPT TAB -->
+    <div class="embed-tab-content" data-content="script">
       <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">✨ Recommended - Works on most platforms</p>
       <div style="display: flex; gap: 10px;">
         <textarea id="embed_code_script" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
         <button onclick="copyEmbedCode('script')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
       </div>
-    </div>-->
+    </div>
     
    <!-- IFRAME TAB -->
 <div class="embed-tab-content active" data-content="iframe">
@@ -2753,29 +2753,22 @@ function generateEmbedCodes() {
   const apiKey = document.getElementById('profile_api_key').value || 'YOUR_API_KEY';
   const baseUrl = 'https://white-raven-264519.hostingersite.com';
   
-  // Script Tag Code (only if field exists)
-  /*const scriptField = document.getElementById('embed_code_script');
+  // Script Tag Code
+  const scriptField = document.getElementById('embed_code_script');
   if (scriptField) {
     const scriptCode = '<div id="instabid-calculator"></div>\n<scr' + 'ipt src="' + baseUrl + '/embed.js" data-api-key="' + apiKey + '"></scr' + 'ipt>';
     scriptField.value = scriptCode;
-  }*/
+  }
   
-  // iframe Code - THIS ONE WE ALWAYS NEED
+  // iframe Code
   const iframeCode = `<iframe 
   src="${baseUrl}/estimate/?key=${apiKey}" 
-  style="width:100%; height:900px; border:none;"
+  style="width:100%; height:1600px; border:none;"
   frameborder="0"
   scrolling="no">
 </iframe>`;
   
   document.getElementById('embed_code_iframe').value = iframeCode;
-  
-  // WordPress Code (only if field exists)
- /* const wpField = document.getElementById('embed_code_wordpress');
-  if (wpField) {
-    const scriptCode = '<div id="instabid-calculator"></div>\n<scr' + 'ipt src="' + baseUrl + '/embed.js" data-api-key="' + apiKey + '"></scr' + 'ipt>';
-    wpField.value = scriptCode;
-  }*/
   
   // Also update old embed code field if it exists (backwards compatibility)
   const oldEmbedField = document.getElementById('profile_embed_code');
@@ -2785,8 +2778,14 @@ function generateEmbedCodes() {
 }
 
 // Copy specific embed code
-function copyEmbedCode() {
-  const textArea = document.getElementById('embed_code_iframe');
+function copyEmbedCode(type) {
+  let textArea;
+  
+  if (type === 'script') {
+    textArea = document.getElementById('embed_code_script');
+  } else {
+    textArea = document.getElementById('embed_code_iframe');
+  }
   
   if (!textArea) {
     alert('❌ Error: Embed code field not found');
@@ -2801,7 +2800,6 @@ function copyEmbedCode() {
     alert('❌ Copy failed. Please select and copy manually.');
   });
 }
-
 
 // Test embed in new window
 function testEmbed() {
