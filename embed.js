@@ -23,6 +23,8 @@
   iframe.style.height = '1600px';
   iframe.style.border = 'none';
   iframe.style.overflow = 'hidden';
+  iframe.style.overflow = 'visible';
+  iframe.style.setProperty('overflow', 'visible', 'important');
   iframe.setAttribute('scrolling', 'no');
   
   // Listen for height messages from iframe
