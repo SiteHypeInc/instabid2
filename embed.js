@@ -29,7 +29,7 @@
   const iframe = document.createElement('iframe');
   iframe.src = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}`;
   iframe.style.width = '100%';
-  iframe.style.height = '900px';
+  iframe.style.height = '1600px';
   iframe.style.border = 'none';
   iframe.style.overflow = 'hidden';
   iframe.setAttribute('scrolling', 'no');
