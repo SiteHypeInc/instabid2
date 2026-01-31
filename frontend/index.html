@@ -1344,7 +1344,39 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   });
 });
 
+</script>
 
+<script>
+// Send height updates to parent window
+function sendHeightToParent() {
+  const height = Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.offsetHeight
+  );
+  
+  window.parent.postMessage({
+    type: 'instabid-resize',
+    height: height + 50  // Add 50px padding
+  }, '*');
+  
+  console.log('📏 Sent height to parent:', height);
+}
+
+// Send on load
+window.addEventListener('load', function() {
+  setTimeout(sendHeightToParent, 500);
+});
+
+// Send when content changes
+const observer = new MutationObserver(sendHeightToParent);
+observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+// Send when trade selector changes
+document.addEventListener('change', function() {
+  setTimeout(sendHeightToParent, 300);
+});
 </script>
 </body>
 </html>
