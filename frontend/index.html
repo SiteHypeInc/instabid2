@@ -1347,21 +1347,30 @@ document.getElementById('contractBtn').addEventListener('click', function() {
 </script>
 
 <script>
-// Send height updates to parent window
+let resizeTimer;
+let lastHeight = 0;
+
 function sendHeightToParent() {
   const height = Math.max(
     document.body.scrollHeight,
-    document.documentElement.scrollHeight,
-    document.body.offsetHeight,
-    document.documentElement.offsetHeight
+    document.documentElement.scrollHeight
   );
   
-  window.parent.postMessage({
-    type: 'instabid-resize',
-    height: height + 50  // Add 50px padding
-  }, '*');
-  
-  console.log('📏 Sent height to parent:', height);
+  // Only send if height actually changed
+  if (Math.abs(height - lastHeight) > 10) {
+    lastHeight = height;
+    window.parent.postMessage({
+      type: 'instabid-resize',
+      height: height + 50
+    }, '*');
+    console.log('📏 Sent height:', height);
+  }
+}
+
+// Debounced version
+function debouncedSendHeight() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(sendHeightToParent, 200);
 }
 
 // Send on load
@@ -1369,14 +1378,16 @@ window.addEventListener('load', function() {
   setTimeout(sendHeightToParent, 500);
 });
 
-// Send when content changes
-const observer = new MutationObserver(sendHeightToParent);
-observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-
-// Send when trade selector changes
-document.addEventListener('change', function() {
-  setTimeout(sendHeightToParent, 300);
+// Watch for changes (debounced)
+const observer = new MutationObserver(debouncedSendHeight);
+observer.observe(document.body, { 
+  childList: true, 
+  subtree: true 
+  // Removed 'attributes' to prevent loop
 });
+
+// Send when form changes
+document.addEventListener('change', debouncedSendHeight);
 </script>
 </body>
 </html>
