@@ -1,6 +1,3 @@
-
-
-
 //========================================
 // INSTABID SERVER v3.0 - CALIBRATED PRICING
 // Last Updated: January 2025
@@ -10,11 +7,17 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
-const sgTransport = require('nodemailer-sendgrid-transport');
+const mailgun = require('mailgun-js');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { generateMaterialList } = require('./materialListGenerator');
+
+// Initialize Mailgun
+const mg = mailgun({
+  apiKey: process.env.MAILGUN_API_KEY,
+  domain: process.env.MAILGUN_DOMAIN || 'sandbox-yourdomain.mailgun.org'
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -168,11 +171,135 @@ pool.connect()
   });
 
 // ========== EMAIL SETUP ==========
-const transporter = nodemailer.createTransport(sgTransport({
-  auth: {
-    api_key: process.env.SENDGRID_API_KEY
+async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contractorId) {
+  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+
+  try {
+    // Get contractor info
+    const result = await pool.query(
+      'SELECT email, company_name FROM contractors WHERE id = $1',
+      [contractorId]
+    );
+    
+    if (result.rows.length === 0) {
+      throw new Error('Contractor not found');
+    }
+    
+    const contractor = result.rows[0];
+    const fromEmail = contractor.email;
+    const companyName = contractor.company_name || 'InstaBid';
+    
+    console.log(`📧 Sending emails for contractor ${contractorId} (${fromEmail})`);
+
+    // Email to customer
+    const customerEmailData = {
+      from: `${companyName} <${fromEmail}>`,
+      to: estimateData.customerEmail,
+      subject: `Your ${tradeName} Estimate & Contract`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Your Estimate is Ready!</h1>
+          </div>
+          <div style="padding: 20px; background: #f9fafb;">
+            <p>Hi ${estimateData.customerName},</p>
+            <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
+            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
+                Total Estimate: $${estimateData.totalCost.toLocaleString()}
+              </p>
+            </div>
+            <p><strong>Two documents are attached:</strong></p>
+            <ul>
+              <li>Detailed Estimate (PDF)</li>
+              <li>Service Contract (PDF)</li>
+            </ul>
+            
+            <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
+              <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
+              <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
+              <a href="${process.env.BACKEND_URL || 'https://instabid-backend-production.up.railway.app'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
+                 style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
+                        text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                💳 Pay Deposit & Schedule Start Date
+              </a>
+            </div>
+            
+            <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
+          </div>
+        </div>
+      `,
+      attachment: [
+        new mg.Attachment({
+          data: pdfBuffer,
+          filename: `estimate-${estimateData.id}.pdf`,
+          contentType: 'application/pdf'
+        }),
+        new mg.Attachment({
+          data: contractBuffer,
+          filename: `contract-${estimateData.id}.pdf`,
+          contentType: 'application/pdf'
+        })
+      ]
+    };
+      
+    // Email to contractor (notification)
+    const contractorEmailData = {
+      from: `${companyName} <${fromEmail}>`,
+      to: fromEmail,
+      subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
+      html: `
+        <h2>🔔 New Estimate Request</h2>
+        <p><strong>Customer:</strong> ${estimateData.customerName}</p>
+        <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
+        <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
+        <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
+        <hr>
+        <p><strong>Service:</strong> ${tradeName}</p>
+        <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
+        <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
+        <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
+        <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
+      `,
+      attachment: [
+        new mg.Attachment({
+          data: pdfBuffer,
+          filename: `estimate-${estimateData.id}.pdf`,
+          contentType: 'application/pdf'
+        }),
+        new mg.Attachment({
+          data: contractBuffer,
+          filename: `contract-${estimateData.id}.pdf`,
+          contentType: 'application/pdf'
+        })
+      ]
+    };
+
+    // Send both emails via Mailgun
+    await new Promise((resolve, reject) => {
+      mg.messages().send(customerEmailData, (error, body) => {
+        if (error) reject(error);
+        else resolve(body);
+      });
+    });
+    console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
+    
+    await new Promise((resolve, reject) => {
+      mg.messages().send(contractorEmailData, (error, body) => {
+        if (error) reject(error);
+        else resolve(body);
+      });
+    });
+    console.log(`✅ Contractor notification sent to ${fromEmail}`);
+    
+  } catch (error) {
+    console.error('❌ Email sending failed:', error.message);
+    if (error.message) {
+      console.error('Mailgun error:', error.message);
+    }
+    throw error;
   }
-}));
+}
 
 
 // Initialize database tables
@@ -1769,102 +1896,6 @@ async function generateContract(estimateData) {
   });
 }
 
-// ========== EMAIL SENDING FUNCTION ==========
-async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contractorTransporter, contractor) {
-  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-
-  // Email to customer
-  const customerMailOptions = {
-    from: contractor.smtp_user,
-    to: estimateData.customerEmail,
-    subject: `Your ${tradeName} Estimate & Contract`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0;">Your Estimate is Ready!</h1>
-        </div>
-        <div style="padding: 20px; background: #f9fafb;">
-          <p>Hi ${estimateData.customerName},</p>
-          <p>Thank you for requesting an estimate for your ${tradeName} project.</p>
-          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <p style="font-size: 24px; font-weight: bold; color: #1e40af; margin: 0;">
-              Total Estimate: $${estimateData.totalCost.toLocaleString()}
-            </p>
-          </div>
-          <p><strong>Two documents are attached:</strong></p>
-          <ul>
-            <li>Detailed Estimate (PDF)</li>
-            <li>Service Contract (PDF)</li>
-          </ul>
-          
-          <!-- STRIPE PAYMENT BUTTON -->
-          <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
-            <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
-            <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
-            <a href="${process.env.BACKEND_URL || '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
-               style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
-                      text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-              💳 Pay Deposit & Schedule Start Date
-            </a>
-          </div>
-          
-          <p style="margin-top: 30px; color: #666; font-size: 12px;">This estimate is valid for 30 days.</p>
-        </div>
-      </div>
-    `,
-    attachments: [
-      {
-        filename: `estimate-${estimateData.id}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      },
-      {
-        filename: `contract-${estimateData.id}.pdf`,
-        content: contractBuffer,
-        contentType: 'application/pdf'
-      }
-    ]
-  };
-  
-  // Email to contractor
-  const contractorMailOptions = {
-    from: contractor.smtp_user,
-    to: contractor.email,
-    subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
-    html: `
-      <h2>🔔 New Estimate Request</h2>
-      <p><strong>Customer:</strong> ${estimateData.customerName}</p>
-      <p><strong>Email:</strong> ${estimateData.customerEmail}</p>
-      <p><strong>Phone:</strong> ${estimateData.customerPhone || 'Not provided'}</p>
-      <p><strong>Address:</strong> ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}</p>
-      <hr>
-      <p><strong>Service:</strong> ${tradeName}</p>
-      <p><strong>Labor:</strong> ${estimateData.laborHours}hrs @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}</p>
-      <p><strong>Materials:</strong> $${estimateData.materialCost.toLocaleString()}</p>
-      <p><strong>Equipment:</strong> $${estimateData.equipmentCost.toLocaleString()}</p>
-      <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
-    `,
-    attachments: [
-      {
-        filename: `estimate-${estimateData.id}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      },
-      {
-        filename: `contract-${estimateData.id}.pdf`,
-        content: contractBuffer,
-        contentType: 'application/pdf'
-      }
-    ]
-  };
-
-  await contractorTransporter.sendMail(customerMailOptions);
-  console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
-  
-  await contractorTransporter.sendMail(contractorMailOptions);
-  console.log(`✅ Contractor email sent to ${contractor.email}`);
-}
-
 // ========== MAIN ESTIMATE SUBMISSION ENDPOINT (PUBLIC - API key in widget) ==========
 app.post('/api/estimate', async (req, res) => {
   console.log('🔵 RAW REQUEST BODY:', JSON.stringify(req.body, null, 2));
@@ -1897,10 +1928,10 @@ app.post('/api/estimate', async (req, res) => {
       });
     }
 
-    const contractorResult = await pool.query(
-      'SELECT id, company_name, email, subscription_status, estimate_display, tax_rate, pricing_config, smtp_host, smtp_port, smtp_user, smtp_pass FROM contractors WHERE api_key = $1',
-      [api_key]
-    );
+   const contractorResult = await pool.query(
+  'SELECT id, company_name, email, subscription_status, estimate_display, tax_rate, pricing_config FROM contractors WHERE api_key = $1',
+  [api_key]
+);
 
     if (contractorResult.rows.length === 0) {
       return res.status(503).json({
@@ -1921,27 +1952,6 @@ app.post('/api/estimate', async (req, res) => {
         user_message: 'This estimate tool is currently unavailable. Please contact us directly for a quote.'
       });
     }
-
-    // Check if contractor has SMTP configured
-    if (!contractor.smtp_host || !contractor.smtp_user || !contractor.smtp_pass) {
-      console.log(`⚠️ Email blocked - Contractor ${contractor.id} missing SMTP configuration`);
-      return res.status(503).json({
-        success: false,
-        error: 'Email not configured',
-        user_message: 'Email service is not configured. Your estimate was saved but could not be emailed. Please contact the contractor directly.'
-      });
-    }
-
-    // Create contractor-specific SMTP transporter
-    const contractorTransporter = nodemailer.createTransport({
-      host: contractor.smtp_host,
-      port: parseInt(contractor.smtp_port) || 587,
-      secure: parseInt(contractor.smtp_port) === 465,
-      auth: {
-        user: contractor.smtp_user,
-        pass: contractor.smtp_pass
-      }
-    });
 
     const finalZipCode = zipCode || zip || '';
     const finalCity = city || 'Unknown';
@@ -2229,8 +2239,7 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
       },
       pdfBuffer,
       contractBuffer,
-      contractorTransporter, 
-      contractor
+      contractor.id  // Pass contractor ID for SMTP lookup
     );
 
      // Get display settings (default to total only if not set)
@@ -3678,9 +3687,7 @@ app.put('/api/contractors/:id', verifySession, async (req, res) => {
   const {
     company_name, phone, email, address, city, state, zip,
     license_number, primary_color, secondary_color, accent_color,
-    tax_rate, default_markup, logo_url, labor_rate_override,
-    estimate_display, stripe_publishable_key, stripe_secret_key,
-    google_maps_api_key, smtp_host, smtp_port, smtp_user, smtp_pass
+    tax_rate, default_markup, logo_url
   } = req.body;
   
   try {
@@ -3700,24 +3707,13 @@ app.put('/api/contractors/:id', verifySession, async (req, res) => {
         tax_rate = $12,
         default_markup = $13,
         logo_url = $14,
-        labor_rate_override = $15,
-        estimate_display = COALESCE($16, estimate_display),
-        stripe_publishable_key = COALESCE($17, stripe_publishable_key),
-        stripe_secret_key = COALESCE($18, stripe_secret_key),
-        google_maps_api_key = COALESCE($19, google_maps_api_key),
-        smtp_host = COALESCE($20, smtp_host),
-        smtp_port = COALESCE($21, smtp_port),
-        smtp_user = COALESCE($22, smtp_user),
-        smtp_pass = COALESCE($23, smtp_pass),
         updated_at = NOW()
-      WHERE id = $24
+      WHERE id = $15
       RETURNING *
     `, [
       company_name, phone, email, address, city, state, zip,
       license_number, primary_color, secondary_color, accent_color,
-      tax_rate, default_markup, logo_url, labor_rate_override,
-      estimate_display, stripe_publishable_key, stripe_secret_key,
-      google_maps_api_key, smtp_host, smtp_port, smtp_user, smtp_pass, id
+      tax_rate, default_markup, logo_url, id
     ]);
     
     console.log('✅ Contractor profile updated:', result.rows[0].email);
