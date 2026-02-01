@@ -18,7 +18,7 @@
   }
   
   const iframe = document.createElement('iframe');
-  iframe.src = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}&embed=true`;
+  iframe.src = `https://instabid.pro/estimate/?key=${apiKey}&embed=true`;
   iframe.style.width = '100%';
   iframe.style.height = '800px';
   iframe.style.border = 'none';
