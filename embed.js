@@ -18,14 +18,13 @@
   }
   
   const iframe = document.createElement('iframe');
-  iframe.src = `https://instabid.pro/estimate/?key=${apiKey}&embed=true`;
+  iframe.src = `https://instabid.pro/calculator/?key=${apiKey}&embed=true`;
   iframe.style.width = '100%';
-  iframe.style.height = '800px';
+  iframe.style.height = '2500px';
   iframe.style.border = 'none';
-  iframe.style.overflow = 'hidden';
-  iframe.setAttribute('scrolling', 'no');
-  
-  // Listen for height messages from iframe
+  iframe.style.setProperty('overflow', 'visible', 'important');
+  iframe.setAttribute('scrolling', 'yes');
+
   window.addEventListener('message', function(e) {
     if (e.data.type === 'instabid-resize') {
       iframe.style.height = e.data.height + 'px';
