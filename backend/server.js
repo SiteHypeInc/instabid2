@@ -172,6 +172,7 @@ pool.connect()
 // ========== EMAIL SETUP ==========
 async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contractorId) {
   const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+  const domain = process.env.MAILGUN_DOMAIN;
 
   try {
     // Get contractor info
@@ -191,10 +192,10 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
     console.log(`📧 Sending emails for contractor ${contractorId} (${fromEmail})`);
 
     // Email to customer
-    const customerEmailData = {
+    await mg.messages.create(domain, {
       from: `${companyName} <estimates@instabid.pro>`,
       'h:Reply-To': fromEmail,
-      to: estimateData.customerEmail,
+      to: [estimateData.customerEmail],
       subject: `Your ${tradeName} Estimate & Contract`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -218,7 +219,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
             <div style="margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 8px; text-align: center;">
               <h3 style="color: #0369a1; margin-bottom: 10px;">Ready to get started?</h3>
               <p style="margin-bottom: 20px; color: #666;">Secure your start date with a 30% deposit ($${(estimateData.totalCost * 0.30).toLocaleString()})</p>
-              <a href="${process.env.BACKEND_URL || 'https://instabid-backend-production.up.railway.app'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
+              <a href="${process.env.BACKEND_URL || '[https://instabid-backend-production.up.railway.app](https://instabid-backend-production.up.railway.app)'}/api/create-checkout-session-email?estimateId=${estimateData.id}" 
                  style="display: inline-block; background: #6366f1; color: white; padding: 15px 40px; 
                         text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                 💳 Pay Deposit & Schedule Start Date
@@ -230,23 +231,16 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
         </div>
       `,
       attachment: [
-        new mg.Attachment({
-          data: pdfBuffer,
-          filename: `estimate-${estimateData.id}.pdf`,
-          contentType: 'application/pdf'
-        }),
-        new mg.Attachment({
-          data: contractBuffer,
-          filename: `contract-${estimateData.id}.pdf`,
-          contentType: 'application/pdf'
-        })
+        { data: pdfBuffer, filename: `estimate-${estimateData.id}.pdf` },
+        { data: contractBuffer, filename: `contract-${estimateData.id}.pdf` }
       ]
-    };
-      
+    });
+    console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
+    
     // Email to contractor (notification)
-    const contractorEmailData = {
+    await mg.messages.create(domain, {
       from: `InstaBid Notifications <notifications@instabid.pro>`,
-      to: fromEmail,
+      to: [fromEmail],
       subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
       html: `
         <h2>🔔 New Estimate Request</h2>
@@ -262,41 +256,14 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
         <p style="font-size: 18px; font-weight: bold; color: #2563eb;"><strong>TOTAL:</strong> $${estimateData.totalCost.toLocaleString()}</p>
       `,
       attachment: [
-        new mg.Attachment({
-          data: pdfBuffer,
-          filename: `estimate-${estimateData.id}.pdf`,
-          contentType: 'application/pdf'
-        }),
-        new mg.Attachment({
-          data: contractBuffer,
-          filename: `contract-${estimateData.id}.pdf`,
-          contentType: 'application/pdf'
-        })
+        { data: pdfBuffer, filename: `estimate-${estimateData.id}.pdf` },
+        { data: contractBuffer, filename: `contract-${estimateData.id}.pdf` }
       ]
-    };
-
-    // Send both emails via Mailgun
-    await new Promise((resolve, reject) => {
-      mg.messages().send(customerEmailData, (error, body) => {
-        if (error) reject(error);
-        else resolve(body);
-      });
-    });
-    console.log(`✅ Customer email sent to ${estimateData.customerEmail}`);
-    
-    await new Promise((resolve, reject) => {
-      mg.messages().send(contractorEmailData, (error, body) => {
-        if (error) reject(error);
-        else resolve(body);
-      });
     });
     console.log(`✅ Contractor notification sent to ${fromEmail}`);
     
   } catch (error) {
     console.error('❌ Email sending failed:', error.message);
-    if (error.message) {
-      console.error('Mailgun error:', error.message);
-    }
     throw error;
   }
 }
