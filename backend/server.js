@@ -16,8 +16,9 @@ const { generateMaterialList } = require('./materialListGenerator');
 // Initialize Mailgun
 const mg = mailgun({
   apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN || 'sandbox-yourdomain.mailgun.org',
-  host: 'api.mailgun.net'
+  domain: process.env.MAILGUN_DOMAIN || 'instabid.pro',
+  host: 'api.mailgun.net'  // or 'api.eu.mailgun.net' for EU
+  
 });
 
 const app = express();
@@ -26,7 +27,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware - CORS with credentials support
 app.use((req, res, next) => {
   const allowedOrigins = [
-    'https://white-raven-264519.hostingersite.com',
+    'https://instabid.pro',
     'http://localhost:3000'
   ];
   
@@ -3772,7 +3773,7 @@ app.get('/api/run-full-scraper', requireAuth, async (req, res) => {
 // OPTIONS preflight for import-snapshots
 app.options('/api/import-snapshots', (req, res) => {
   const allowedOrigins = [
-    'https://white-raven-264519.hostingersite.com',
+    'https://instabid.pro',
     'http://localhost:3000'
   ];
   

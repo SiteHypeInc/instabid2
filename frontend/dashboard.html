@@ -26,7 +26,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #66eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 30px;
   border-radius: 12px 12px 0 0;
@@ -1794,7 +1794,7 @@ function showTab(tabName) {
 }
 
 // ESTIMATE TRACKER FUNCTIONALITY
-/*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
+
 let currentEstimate = null;
 
 // ✅ AUTH HELPER - ADDS AUTHORIZATION HEADER TO ALL FETCH CALLS
@@ -2584,252 +2584,290 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </div>
   </div>
-<!-- SECTION 6: API KEY & EMBED - UPGRADED VERSION -->
-<div class="config-card" style="max-width: 800px; margin-bottom: 30px; background: linear-gradient(135deg, #1a1a2e 0%, #0d1117 100%); border: 1px solid #30363d;">
-  <h3 style="color: #00d4ff;">🔗 Your Estimate Form</h3>
+<!-- ============================================ -->
+<!-- EMBED CODE SECTION - Add to dashboard.html -->
+<!-- Replace your existing embed section with this -->
+<!-- ============================================ -->
+
+<div id="embed-settings" class="sub-content">
+  <h2 class="section-title">🔗 Embed InstaBid on Your Website</h2>
   
-  <!-- SHARE LINK -->
-  <div style="margin-bottom: 25px;">
-    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #e6edf3;">Share this link with customers:</label>
-    <div style="display: flex; gap: 10px;">
-      <input type="text" id="profile_share_link" readonly style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00d4ff; font-family: monospace; font-size: 13px;">
-      <button onclick="copyShareLink()" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+  <!-- API KEY DISPLAY -->
+  <div class="config-card">
+    <h3>🔑 Your API Key</h3>
+    <p style="color: #666; margin-bottom: 15px;">This key links estimates to your account. Keep it handy!</p>
+    
+    <div style="background: #f0f0f0; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; word-break: break-all; font-size: 14px; border: 2px solid #ddd;">
+      <span id="api-key-display">Loading...</span>
     </div>
+    
+    <button onclick="copyApiKey()" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+      📋 Copy API Key
+    </button>
   </div>
   
-  <!-- EMBED OPTIONS TABS -->
-  <div style="margin-bottom: 20px;">
-    <label style="display: block; font-weight: 600; margin-bottom: 12px; color: #e6edf3;">Or embed on your website:</label>
-    
-    <!-- Tab Navigation -->
-    <div style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #30363d;">
-      <button class="embed-tab-btn active" onclick="switchEmbedTab('script')" data-tab="script" style="
-        padding: 10px 20px; 
-        background: none; 
-        border: none; 
-        border-bottom: 3px solid #00d4ff; 
-        color: #00d4ff; 
-        font-weight: 600; 
-        cursor: pointer;
-        transition: all 0.2s;
-      ">📜 Script Tag</button>
-      
-     <!-- <button class="embed-tab-btn" onclick="switchEmbedTab('iframe')" data-tab="iframe" style="
-        padding: 10px 20px; 
-        background: none; 
-        border: none; 
-        border-bottom: 3px solid transparent; 
-        color: #8b949e; 
-        font-weight: 600; 
-        cursor: pointer;
-        transition: all 0.2s;
-      ">🖼️ iframe</button> -->
-      
-      <!-- <button class="embed-tab-btn" onclick="switchEmbedTab('wordpress')" data-tab="wordpress" style="
-        padding: 10px 20px; 
-        background: none; 
-        border: none; 
-        border-bottom: 3px solid transparent; 
-        color: #8b949e; 
-        font-weight: 600; 
-        cursor: pointer;
-        transition: all 0.2s;
-      ">🔌 WordPress</button> -->
+  <!-- INTEGRATION METHODS -->
+  <div style="margin-top: 30px;">
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd;">
+      <button class="embed-tab active" onclick="showEmbedTab('script')" style="padding: 12px 24px; background: none; border: none; border-bottom: 3px solid #667eea; font-weight: 600; cursor: pointer; color: #667eea;">
+        Script Tag (Recommended)
+      </button>
+      <button class="embed-tab" onclick="showEmbedTab('iframe')" style="padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; cursor: pointer; color: #666;">
+        iframe
+      </button>
+      <button class="embed-tab" onclick="showEmbedTab('wordpress')" style="padding: 12px 24px; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; cursor: pointer; color: #666;">
+        WordPress Shortcode
+      </button>
     </div>
     
-    <!-- Tab Contents -->
-    
-   <!-- SCRIPT TAB -->
-    <div class="embed-tab-content" data-content="script">
-      <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">✨ Recommended - Works on most platforms</p>
-      <div style="display: flex; gap: 10px;">
-        <textarea id="embed_code_script" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
-        <button onclick="copyEmbedCode('script')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
+    <!-- SCRIPT TAG METHOD -->
+    <div id="embed-tab-script" class="embed-tab-content active">
+      <div class="config-card">
+        <h3>✨ Script Tag Method (Best for Most Sites)</h3>
+        <p style="color: #666; line-height: 1.6;">
+          This is the easiest method and works on most websites including WordPress, Wix, Squarespace, and custom sites.
+        </p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; margin-top: 15px; border: 2px solid #ddd;">
+          <pre id="embed-code-script" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">Loading...</pre>
+        </div>
+        
+        <button onclick="copyEmbedCode('script')" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+          📋 Copy Code
+        </button>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 4px;">
+          <p style="margin: 0; color: #0d47a1; font-weight: 600;">📝 Installation Steps:</p>
+          <ol style="margin: 10px 0 0 20px; color: #0d47a1; line-height: 1.8;">
+            <li>Copy the code above</li>
+            <li>Paste it into your website where you want the calculator to appear</li>
+            <li><strong>WordPress:</strong> Use a "Custom HTML" block</li>
+            <li><strong>Wix/Squarespace:</strong> Use an "Embed Code" element</li>
+            <li>Save and publish!</li>
+          </ol>
+        </div>
       </div>
     </div>
     
-   <!-- IFRAME TAB -->
-<!-- <div class="embed-tab-content active" data-content="iframe">
-  <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">📦 Copy this code and paste it on your website</p>
-  <div style="display: flex; gap: 10px;">
-    <textarea id="embed_code_iframe" readonly rows="4" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
-    <button onclick="copyEmbedCode('iframe')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
-  </div>
-</div> -->
+    <!-- IFRAME METHOD -->
+    <div id="embed-tab-iframe" class="embed-tab-content" style="display: none;">
+      <div class="config-card">
+        <h3>🖼️ iframe Method (Fallback Option)</h3>
+        <p style="color: #666; line-height: 1.6;">
+          Use this if the script tag method doesn't work on your platform.
+        </p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; margin-top: 15px; border: 2px solid #ddd;">
+          <pre id="embed-code-iframe" style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">Loading...</pre>
+        </div>
+        
+        <button onclick="copyEmbedCode('iframe')" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+          📋 Copy Code
+        </button>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+          <p style="margin: 0; color: #856404; font-weight: 600;">⚠️ Note:</p>
+          <p style="margin: 10px 0 0 0; color: #856404;">
+            Some platforms may block iframes for security. If this doesn't work, try the Script Tag method instead.
+          </p>
+        </div>
+      </div>
+    </div>
     
-    <!-- WORDPRESS TAB -->
-   <!-- <div class="embed-tab-content" data-content="wordpress" style="display: none;">
-      <p style="color: #8b949e; font-size: 13px; margin-bottom: 10px;">🎯 For WordPress - Add to Custom HTML block</p>
-      <div style="display: flex; gap: 10px;">
-        <textarea id="embed_code_wordpress" readonly rows="2" style="flex: 1; padding: 12px; background: #0d1117; border: 2px solid #30363d; border-radius: 6px; color: #00ff88; font-family: monospace; font-size: 12px; resize: none;"></textarea>
-        <button onclick="copyEmbedCode('wordpress')" style="padding: 12px 20px; background: #238636; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">📋 Copy</button>
-      </div>
-      <div style="margin-top: 10px; padding: 10px; background: #1a1a2e; border-left: 3px solid #00d4ff; border-radius: 4px;">
-        <p style="color: #8b949e; font-size: 12px; margin: 0;">💡 <strong style="color: #e6edf3;">Tip:</strong> Use the Script Tab version - it's the same code and easier!</p>
+    <!-- WORDPRESS SHORTCODE METHOD -->
+    <div id="embed-tab-wordpress" class="embed-tab-content" style="display: none;">
+      <div class="config-card">
+        <h3>🔌 WordPress Shortcode (Advanced)</h3>
+        <p style="color: #666; line-height: 1.6;">
+          For WordPress users who want a reusable shortcode. Requires adding code to your theme's functions.php file.
+        </p>
+        
+        <p style="margin-top: 20px; font-weight: 600;">Step 1: Add this to your theme's functions.php:</p>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto; margin-top: 10px; border: 2px solid #ddd;">
+          <pre id="wordpress-functions" style="margin: 0;">Loading...</pre>
+        </div>
+        
+        <button onclick="copyEmbedCode('wordpress-functions')" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+          📋 Copy functions.php Code
+        </button>
+        
+        <p style="margin-top: 30px; font-weight: 600;">Step 2: Use this shortcode in any page/post:</p>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 13px; margin-top: 10px; border: 2px solid #ddd;">
+          <pre id="wordpress-shortcode" style="margin: 0;">Loading...</pre>
+        </div>
+        
+        <button onclick="copyEmbedCode('wordpress-shortcode')" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+          📋 Copy Shortcode
+        </button>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-left: 4px solid #2196F3; border-radius: 4px;">
+          <p style="margin: 0; color: #0d47a1; font-weight: 600;">💡 Pro Tip:</p>
+          <p style="margin: 10px 0 0 0; color: #0d47a1;">
+            Not comfortable editing functions.php? Use the <strong>Script Tag</strong> method instead - it's easier and doesn't require coding!
+          </p>
+        </div>
       </div>
     </div>
-  </div> -->
-  
-  <!-- TEST BUTTON -->
-  <div style="margin-bottom: 20px;">
-    <button onclick="testEmbed()" style="
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 15px;
-    ">🧪 Test Your Embed in New Window</button>
   </div>
   
-  <!-- API KEY -->
-  <div style="border-top: 1px solid #30363d; padding-top: 15px;">
-    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #8b949e; font-size: 13px;">Your API Key:</label>
-    <div style="display: flex; gap: 10px;">
-      <input type="text" id="profile_api_key" readonly style="flex: 1; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #8b949e; font-family: monospace; font-size: 12px;">
-      <button onclick="copyApiKey()" style="padding: 10px 16px; background: #30363d; color: #e6edf3; border: none; border-radius: 6px; cursor: pointer;">📋</button>
-    </div>
+  <!-- TESTING SECTION -->
+  <div class="config-card" style="margin-top: 30px;">
+    <h3>🧪 Test Your Embed</h3>
+    <p style="color: #666; margin-bottom: 15px;">
+      Before adding to your live site, test it here to make sure everything works:
+    </p>
+    
+    <button onclick="openTestPage()" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px;">
+      🚀 Open Test Page
+    </button>
+    
+    <p style="margin-top: 15px; font-size: 13px; color: #999;">
+      This will open your calculator in a new tab. If it works here, it'll work on your website!
+    </p>
+  </div>
+  
+  <!-- HELP SECTION -->
+  <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 8px;">
+    <h3 style="margin-bottom: 10px;">❓ Need Help Installing?</h3>
+    <p style="color: #333; line-height: 1.6;">
+      We're here to help! Email us at <strong>support@instabid.com</strong> with:
+    </p>
+    <ul style="color: #333; line-height: 1.8; margin-top: 10px;">
+      <li>Your website platform (WordPress, Wix, etc.)</li>
+      <li>A screenshot of where you want the calculator</li>
+      <li>Any error messages you're seeing</li>
+    </ul>
+    <p style="color: #333; margin-top: 15px;">
+      We'll walk you through it step-by-step! 🤝
+    </p>
   </div>
 </div>
 
+<script>
+// ============================================
+// EMBED CODE GENERATOR FUNCTIONS
+// ============================================
+
+function loadEmbedSettings() {
+  const contractor = JSON.parse(localStorage.getItem('ib_contractor') || '{}');
+  const apiKey = contractor.api_key || 'YOUR_API_KEY';
+  
+  // Display API key
+  document.getElementById('api-key-display').textContent = apiKey;
+  
+  // Generate Script Tag embed code
+  const scriptEmbed = `<div id="instabid-calculator"></div>
+<script src="https://instabid.pro/embed.js" data-api-key="${apiKey}"><\/script>`;
+  
+  document.getElementById('embed-code-script').textContent = scriptEmbed;
+  
+  // Generate iframe embed code
+  const iframeEmbed = `<iframe 
+  src="https://instabid.pro/estimate/?key=${apiKey}" 
+  style="width:100%; height:900px; border:none;"
+  frameborder="0"
+  scrolling="no">
+</iframe>`;
+  
+  document.getElementById('embed-code-iframe').textContent = iframeEmbed;
+  
+  // Generate WordPress functions.php code
+  const wpFunctions = `function instabid_calculator_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'api_key' => '${apiKey}',
+        'height' => '900px'
+    ), $atts);
+    
+    $embed_url = 'https://instabid.pro/estimate/?key=' . esc_attr($atts['api_key']) . '';
+    
+    return '<iframe 
+        src="' . esc_url($embed_url) . '" 
+        style="width:100%; height:' . esc_attr($atts['height']) . '; border:none;" 
+        frameborder="0"
+        scrolling="no">
+    </iframe>';
+}
+add_shortcode('instabid', 'instabid_calculator_shortcode');`;
+  
+  document.getElementById('wordpress-functions').textContent = wpFunctions;
+  
+  // Generate WordPress shortcode usage
+  const wpShortcode = `[instabid]
+
+Or with custom height:
+[instabid height="1200px"]`;
+  
+  document.getElementById('wordpress-shortcode').textContent = wpShortcode;
+}
+
+function copyApiKey() {
+  const apiKey = document.getElementById('api-key-display').textContent;
+  navigator.clipboard.writeText(apiKey).then(() => {
+    alert('✅ API Key copied to clipboard!');
+  });
+}
+
+function copyEmbedCode(type) {
+  let code;
+  
+  if (type === 'script') {
+    code = document.getElementById('embed-code-script').textContent;
+  } else if (type === 'iframe') {
+    code = document.getElementById('embed-code-iframe').textContent;
+  } else if (type === 'wordpress-functions') {
+    code = document.getElementById('wordpress-functions').textContent;
+  } else if (type === 'wordpress-shortcode') {
+    code = document.getElementById('wordpress-shortcode').textContent;
+  }
+  
+  navigator.clipboard.writeText(code).then(() => {
+    alert('✅ Code copied to clipboard!');
+  });
+}
+
+function showEmbedTab(tab) {
+  // Update tab buttons
+  document.querySelectorAll('.embed-tab').forEach(btn => {
+    btn.style.borderBottomColor = 'transparent';
+    btn.style.color = '#666';
+  });
+  
+  event.target.style.borderBottomColor = '#667eea';
+  event.target.style.color = '#667eea';
+  
+  // Update tab content
+  document.querySelectorAll('.embed-tab-content').forEach(content => {
+    content.style.display = 'none';
+  });
+  
+  document.getElementById('embed-tab-' + tab).style.display = 'block';
+}
+
+function openTestPage() {
+  const contractor = JSON.parse(localStorage.getItem('ib_contractor') || '{}');
+  const apiKey = contractor.api_key || '';
+  const testUrl = `https://instabid.pro/estimate/?key=${apiKey}`;
+  window.open(testUrl, '_blank');
+}
+
+// Load on page load
+window.addEventListener('DOMContentLoaded', loadEmbedSettings);
+</script>
+
 <style>
-/* Embed Tab Hover Effects */
-.embed-tab-btn:hover {
-  background: rgba(0, 212, 255, 0.1) !important;
-}
-
-.embed-tab-btn.active {
-  border-bottom-color: #00d4ff !important;
-  color: #00d4ff !important;
-}
-
 .embed-tab-content {
   animation: fadeIn 0.3s ease-in;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.embed-tab:hover {
+  background: #f5f5f5;
 }
 </style>
-
-<script>
-// ============================================
-// EMBED CODE GENERATOR - Updated Functions
-// ============================================
-
-// Switch between embed tabs
-function switchEmbedTab(tab) {
-  // Update tab buttons
-  document.querySelectorAll('.embed-tab-btn').forEach(btn => {
-    if (btn.dataset.tab === tab) {
-      btn.classList.add('active');
-      btn.style.borderBottomColor = '#00d4ff';
-      btn.style.color = '#00d4ff';
-    } else {
-      btn.classList.remove('active');
-      btn.style.borderBottomColor = 'transparent';
-      btn.style.color = '#8b949e';
-    }
-  });
-  
-  // Update tab content
-  document.querySelectorAll('.embed-tab-content').forEach(content => {
-    if (content.dataset.content === tab) {
-      content.style.display = 'block';
-      content.classList.add('active');
-    } else {
-      content.style.display = 'none';
-      content.classList.remove('active');
-    }
-  });
-}
-
-// Generate embed codes (call this when profile loads)
-function generateEmbedCodes() {
-  const apiKey = document.getElementById('profile_api_key').value || 'YOUR_API_KEY';
-  const baseUrl = 'https://white-raven-264519.hostingersite.com';
-  
-  // Script Tag Code
-  const scriptField = document.getElementById('embed_code_script');
-  if (scriptField) {
-    const scriptCode = '<div id="instabid-calculator"></div>\n<scr' + 'ipt src="' + baseUrl + '/embed.js" data-api-key="' + apiKey + '"></scr' + 'ipt>';
-    scriptField.value = scriptCode;
-  }
-  
-  // Shareable URL
-  const urlField = document.getElementById('embed_code_url');
-  if (urlField) {
-    urlField.value = baseUrl + '/estimate/?key=' + apiKey;
-  }
-}
-  
-  // Also update old embed code field if it exists (backwards compatibility)
-  const oldEmbedField = document.getElementById('profile_embed_code');
-  if (oldEmbedField) {
-    oldEmbedField.value = iframeCode;
-  }
-
-
-// Copy specific embed code
-function copyEmbedCode(type) {
-  let textArea;
-  
-  if (type === 'script') {
-    textArea = document.getElementById('embed_code_script');
-  } else {
-    textArea = document.getElementById('embed_code_iframe');
-  }
-  
-  if (!textArea) {
-    alert('❌ Error: Embed code field not found');
-    return;
-  }
-  
-  // Modern clipboard API
-  navigator.clipboard.writeText(textArea.value).then(() => {
-    alert('✅ Embed code copied to clipboard!');
-  }).catch(err => {
-    console.error('Copy failed:', err);
-    alert('❌ Copy failed. Please select and copy manually.');
-  });
-}
-
-// Test embed in new window
-function testEmbed() {
-  const apiKey = document.getElementById('profile_api_key').value;
-  const testUrl = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}`;
-  window.open(testUrl, '_blank', 'width=1200,height=900');
-}
-
-// Auto-generate codes when API key is populated
-const apiKeyObserver = new MutationObserver(() => {
-  const apiKey = document.getElementById('profile_api_key').value;
-  if (apiKey && apiKey !== 'YOUR_API_KEY') {
-    generateEmbedCodes();
-  }
-});
-
-// Watch for API key field updates
-const apiKeyField = document.getElementById('profile_api_key');
-if (apiKeyField) {
-  apiKeyObserver.observe(apiKeyField, { 
-    attributes: true, 
-    attributeFilter: ['value'] 
-  });
-  
-  // Also trigger on value change
-  apiKeyField.addEventListener('change', generateEmbedCodes);
-  
-  // Generate on load if key already exists
-  if (apiKeyField.value) {
-    generateEmbedCodes();
-  }
-}
-</script>
  
   <!-- SAVE BUTTON -->
   <button class="btn-save" onclick="saveCompanyProfile()">💾 Save Company Profile</button>
@@ -2838,7 +2876,7 @@ if (apiKeyField) {
 
 <script>
 // COMPANY PROFILE FUNCTIONALITY
-/*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
+
 
 // Color picker sync
 ['primary', 'secondary', 'accent'].forEach(color => {
@@ -2970,7 +3008,7 @@ async function loadCompanyProfile() {
     
     // API Key & Embed Code
     const apiKey = contractor.api_key || '';
-    const baseUrl = 'https://white-raven-264519.hostingersite.com/estimate/';
+    const baseUrl = 'https://instabid.pro/estimate/';
 
     document.getElementById('profile_api_key').value = apiKey;
     document.getElementById('profile_share_link').value = baseUrl + '?key=' + apiKey;
