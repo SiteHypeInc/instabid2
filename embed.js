@@ -17,21 +17,21 @@
     scriptTag.parentNode.insertBefore(container, scriptTag);
   }
   
-const iframe = document.createElement('iframe');
-iframe.src = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}`;
-iframe.style.width = '100%';
-iframe.style.height = '2500px';  // Start tall
-iframe.style.border = 'none';
-iframe.style.setProperty('overflow', 'visible', 'important');
-iframe.setAttribute('scrolling', 'yes');  // Changed to 'yes'
-
-// Listen for height messages from iframe
-window.addEventListener('message', function(e) {
-  if (e.data.type === 'instabid-resize') {
-    iframe.style.height = e.data.height + 'px';
-    console.log('✅ InstaBid: Resized to', e.data.height + 'px');
-  }
-});
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://white-raven-264519.hostingersite.com/estimate/?key=${apiKey}&embed=true`;
+  iframe.style.width = '100%';
+  iframe.style.height = '800px';
+  iframe.style.border = 'none';
+  iframe.style.overflow = 'hidden';
+  iframe.setAttribute('scrolling', 'no');
+  
+  // Listen for height messages from iframe
+  window.addEventListener('message', function(e) {
+    if (e.data.type === 'instabid-resize') {
+      iframe.style.height = e.data.height + 'px';
+      console.log('✅ InstaBid: Resized to', e.data.height + 'px');
+    }
+  });
   
   container.appendChild(iframe);
   console.log('✅ InstaBid: Loaded');

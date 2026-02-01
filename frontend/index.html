@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InstaBid - Multi-Trade Estimator</title>
-
+<!-- Hostinger Upload -->
 <style>
 .container {
   max-width: 1400px;
@@ -329,6 +329,47 @@
   }
 }
 </style>
+<script>
+// ============================================
+// EMBED MODE DETECTION & STYLING
+// ============================================
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEmbedMode = urlParams.get('embed') === 'true';
+  console.log('🔍 Checking embed mode:', isEmbedMode, window.location.search);
+  if (isEmbedMode) {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Hide header, nav, footer */
+      header, .header, nav, .nav, .navbar,
+      footer, .footer, .site-footer {
+        display: none !important;
+      }
+      
+      /* Clean up body */
+      body {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+      }
+      
+      /* Clean up container */
+      .container, .main-container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.classList.add('embed-mode');
+    console.log('🎯 Embed mode activated');
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -397,41 +438,8 @@
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5u7bMfb76Il4K9x6oP-k2wccwB1mbSP0&libraries=places"></script>
 
-<script>
-// ============================================
-// EMBED MODE DETECTION & STYLING
-// ============================================
-(function() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const isEmbedMode = urlParams.get('embed') === 'true';
-  
-  if (isEmbedMode) {
-    // Apply embed styles immediately
-    const style = document.createElement('style');
-    style.textContent = `
-      body {
-        background: transparent !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      .header {
-        display: none !important;
-      }
-      .container {
-        max-width: 100% !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-      }
-      .main-content {
-        padding: 20px !important;
-      }
-    `;
-    document.head.appendChild(style);
-    console.log('🎯 Embed mode activated');
-  }
-})();
-</script>
+
+
 
 <script>
 var TRADE_FORM_SCHEMA = {
@@ -1354,48 +1362,58 @@ document.getElementById('contractBtn').addEventListener('click', function() {
   
 
 <script>
-  // iframe embed resize script//
+// ============================================
+// IFRAME HEIGHT COMMUNICATION
+// ============================================
 let resizeTimer;
 let lastHeight = 0;
 
 function sendHeightToParent() {
-  const height = Math.max(
-    document.body.scrollHeight,
-    document.documentElement.scrollHeight
-  );
+  // Find the actual content bottom
+  const form = document.querySelector('.estimate-form') || 
+               document.querySelector('form') || 
+               document.querySelector('.container');
   
-  // Only send if height actually changed
+  let height = document.body.scrollHeight;
+  
+  if (form) {
+    const rect = form.getBoundingClientRect();
+    height = rect.bottom + window.scrollY + 30;
+  }
+  
   if (Math.abs(height - lastHeight) > 10) {
     lastHeight = height;
     window.parent.postMessage({
       type: 'instabid-resize',
-      height: height + 50
+      height: Math.ceil(height)
     }, '*');
-    console.log('📏 Sent height:', height);
+    console.log('📏 Sent height:', Math.ceil(height));
   }
 }
 
-// Debounced version
 function debouncedSendHeight() {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(sendHeightToParent, 200);
+  resizeTimer = setTimeout(sendHeightToParent, 150);
 }
 
 // Send on load
 window.addEventListener('load', function() {
-  setTimeout(sendHeightToParent, 500);
+  setTimeout(sendHeightToParent, 300);
 });
 
-// Watch for changes (debounced)
+// Watch for DOM changes
 const observer = new MutationObserver(debouncedSendHeight);
 observer.observe(document.body, { 
   childList: true, 
   subtree: true 
-  // Removed 'attributes' to prevent loop
 });
 
-// Send when form changes
+// Catch form interactions
 document.addEventListener('change', debouncedSendHeight);
+document.addEventListener('click', function() {
+  setTimeout(debouncedSendHeight, 100);
+  setTimeout(debouncedSendHeight, 400);
+});
 </script>
 </body>
 </html>
