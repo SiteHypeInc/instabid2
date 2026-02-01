@@ -3678,7 +3678,9 @@ app.put('/api/contractors/:id', verifySession, async (req, res) => {
   const {
     company_name, phone, email, address, city, state, zip,
     license_number, primary_color, secondary_color, accent_color,
-    tax_rate, default_markup, logo_url
+    tax_rate, default_markup, logo_url, labor_rate_override,
+    estimate_display, stripe_publishable_key, stripe_secret_key,
+    google_maps_api_key, smtp_host, smtp_port, smtp_user, smtp_pass
   } = req.body;
   
   try {
@@ -3698,13 +3700,24 @@ app.put('/api/contractors/:id', verifySession, async (req, res) => {
         tax_rate = $12,
         default_markup = $13,
         logo_url = $14,
+        labor_rate_override = $15,
+        estimate_display = COALESCE($16, estimate_display),
+        stripe_publishable_key = COALESCE($17, stripe_publishable_key),
+        stripe_secret_key = COALESCE($18, stripe_secret_key),
+        google_maps_api_key = COALESCE($19, google_maps_api_key),
+        smtp_host = COALESCE($20, smtp_host),
+        smtp_port = COALESCE($21, smtp_port),
+        smtp_user = COALESCE($22, smtp_user),
+        smtp_pass = COALESCE($23, smtp_pass),
         updated_at = NOW()
-      WHERE id = $15
+      WHERE id = $24
       RETURNING *
     `, [
       company_name, phone, email, address, city, state, zip,
       license_number, primary_color, secondary_color, accent_color,
-      tax_rate, default_markup, logo_url, id
+      tax_rate, default_markup, logo_url, labor_rate_override,
+      estimate_display, stripe_publishable_key, stripe_secret_key,
+      google_maps_api_key, smtp_host, smtp_port, smtp_user, smtp_pass, id
     ]);
     
     console.log('✅ Contractor profile updated:', result.rows[0].email);
