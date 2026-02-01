@@ -16,7 +16,8 @@ const { generateMaterialList } = require('./materialListGenerator');
 // Initialize Mailgun
 const mg = mailgun({
   apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN || 'sandbox-yourdomain.mailgun.org'
+  domain: process.env.MAILGUN_DOMAIN || 'sandbox-yourdomain.mailgun.org',
+  host: 'api.mailgun.net'
 });
 
 const app = express();
