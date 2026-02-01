@@ -16,9 +16,8 @@ const { generateMaterialList } = require('./materialListGenerator');
 // Initialize Mailgun
 const mg = mailgun({
   apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN || 'instabid.pro',
+  domain: process.env.MAILGUN_DOMAIN || 'sandbox-yourdomain.mailgun.org',
   host: 'api.mailgun.net'  // or 'api.eu.mailgun.net' for EU
-  
 });
 
 const app = express();
@@ -195,7 +194,8 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
 
     // Email to customer
     const customerEmailData = {
-      from: `${companyName} <${fromEmail}>`,
+      from: `${companyName} <estimates@instabid.pro>`,
+      'h:Reply-To': fromEmail,
       to: estimateData.customerEmail,
       subject: `Your ${tradeName} Estimate & Contract`,
       html: `
@@ -247,7 +247,7 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
       
     // Email to contractor (notification)
     const contractorEmailData = {
-      from: `${companyName} <${fromEmail}>`,
+      from: `InstaBid Notifications <notifications@instabid.pro>`,
       to: fromEmail,
       subject: `New ${tradeName} Lead - ${estimateData.customerName} ($${estimateData.totalCost.toLocaleString()})`,
       html: `
