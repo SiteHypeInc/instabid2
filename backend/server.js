@@ -7,19 +7,17 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
-const mailgun = require('mailgun-js');
+const FormData = require('form-data');
+const Mailgun = require('mailgun.js');
+const mailgun = new Mailgun(FormData);
+const mg = mailgun.client({
+  username: 'api',
+  key: process.env.MAILGUN_API_KEY
+});
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { generateMaterialList } = require('./materialListGenerator');
-
-// Initialize Mailgun
-const mg = mailgun({
-  apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN || 'sandbox-yourdomain.mailgun.org',
-  host: 'api.mailgun.net'  // or 'api.eu.mailgun.net' for EU
-});
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
