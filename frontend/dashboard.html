@@ -286,6 +286,10 @@ body {
   border: 1px solid #30363d !important;
   border-radius: 8px;
 }
+
+.main-content:not(.active) .tab-navigation {
+  display: none;
+}
 </style>
 
 </head>
@@ -338,12 +342,12 @@ body {
     ">🚪 Logout</button>
   </div>
 
-  <div class="main-tabs">
-    <button class="main-tab active" data-main="price-adjustments">💰 Price Adjustments</button>
-    <button class="main-tab" data-main="estimate-tracker">📊 Estimate Tracker</button>
-    <button class="main-tab" data-main="company-profile">🏢 Company Profile</button>
-    <button class="main-tab" data-main="contracts">📄 Contract Templates</button>
-  </div>
+<div class="main-tabs">
+  <button class="main-tab active" id="company-profile">🏢 Company Profile</button>
+  <button class="main-tab" data-main="price-adjustments">💰 Price Adjustments</button>
+  <button class="main-tab" data-main="estimate-tracker">📊 Estimate Tracker</button>
+  <button class="main-tab" data-main="contracts">📄 Contract Templates</button>
+</div>
 
   <div class="content">
     
