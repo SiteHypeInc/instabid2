@@ -2261,6 +2261,29 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
   }
 });
 
+// PUBLIC endpoint - get contractor branding by API key (for embedded form)
+app.get('/api/contractor/branding/:apiKey', async (req, res) => {
+  const { apiKey } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT company_name, logo_url, primary_color, secondary_color, accent_color 
+       FROM contractors WHERE api_key = $1`,
+      [apiKey]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Contractor not found' });
+    }
+    
+    res.json({ success: true, branding: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Error fetching branding:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch branding' });
+  }
+});
+
+
 // GET all estimates
 app.get('/api/estimates', requireAuth, async (req, res) => {
   try {

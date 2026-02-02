@@ -2748,30 +2748,23 @@ function switchEmbedTab(tab) {
   });
 }
 
-// Generate embed codes (call this when profile loads)
 function generateEmbedCodes() {
   const apiKey = document.getElementById('profile_api_key').value || 'YOUR_API_KEY';
-  const baseUrl = 'instabid.pro';
+  const baseUrl = '[https://instabid.pro](https://instabid.pro)';
   
   // Script Tag Code
   const scriptField = document.getElementById('embed_code_script');
   if (scriptField) {
-    const scriptCode = '<div id="instabid-calculator"></div>\n<scr' + 'ipt src="' + baseUrl + '/embed.js" data-api-key="' + apiKey + '"></scr' + 'ipt>';
-    scriptField.value = scriptCode;
+    scriptField.value = `<div id="instabid-calculator"></div>
+<script src="${baseUrl}/embed.js?v=3" data-api-key="${apiKey}"><\/script>`;
   }
   
   // Shareable URL
   const urlField = document.getElementById('embed_code_url');
   if (urlField) {
-    urlField.value = baseUrl + '/estimate/?key=' + apiKey;
+    urlField.value = `${baseUrl}/estimate/?key=${apiKey}`;
   }
 }
-  
-  // Also update old embed code field if it exists (backwards compatibility)
-  const oldEmbedField = document.getElementById('profile_embed_code');
-  if (oldEmbedField) {
-    oldEmbedField.value = iframeCode;
-  }
 
 
 // Copy specific embed code

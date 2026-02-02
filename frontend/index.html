@@ -369,6 +369,45 @@
     console.log('🎯 Embed mode activated');
   }
 })();
+
+// Fetch contractor branding on load
+//////////////////////////////////////
+(function loadBranding() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const apiKey = urlParams.get('key');
+  
+  if (!apiKey) {
+    console.log('⚠️ No API key - using default styling');
+    return;
+  }
+  
+  fetch(`https://roofbid-backend-production.up.railway.app/api/contractor/branding/${apiKey}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.branding) {
+        const b = data.branding;
+        console.log('🎨 Branding loaded:', b);
+        
+        // Apply CSS variables
+        document.documentElement.style.setProperty('--primary-color', b.primary_color || '#2563eb');
+        document.documentElement.style.setProperty('--secondary-color', b.secondary_color || '#1e40af');
+        document.documentElement.style.setProperty('--accent-color', b.accent_color || '#f59e0b');
+        
+        // Set logo if exists
+        if (b.logo_url) {
+          const logoEl = document.getElementById('contractor-logo');
+          if (logoEl) logoEl.src = b.logo_url;
+        }
+        
+        // Set company name if exists
+        if (b.company_name) {
+          const nameEl = document.getElementById('company-name');
+          if (nameEl) nameEl.textContent = b.company_name;
+        }
+      }
+    })
+    .catch(err => console.error('❌ Branding fetch failed:', err));
+})();
 </script>
 </head>
 <body>
