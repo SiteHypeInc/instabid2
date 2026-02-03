@@ -2977,15 +2977,16 @@ async function loadCompanyProfile() {
     document.getElementById('profile_api_key').value = apiKey;
     document.getElementById('profile_share_link').value = baseUrl + '?key=' + apiKey;
 
-    // Integrations
-    document.getElementById('profile_stripe_pk').value = contractor.stripe_publishable_key || '';
-    document.getElementById('profile_stripe_sk').value = contractor.stripe_secret_key ? '••••••••' : '';
-    document.getElementById('profile_google_maps_key').value = contractor.google_maps_api_key || '';
-   /* document.getElementById('profile_smtp_host').value = contractor.smtp_host || '';
-    document.getElementById('profile_smtp_port').value = contractor.smtp_port || '587';
-    document.getElementById('profile_smtp_user').value = contractor.smtp_user || '';
-    document.getElementById('profile_smtp_pass').value = contractor.smtp_pass ? '••••••••' : ''; */
-    
+   // Integrations
+if (document.getElementById('profile_stripe_pk')) {
+  document.getElementById('profile_stripe_pk').value = contractor.stripe_publishable_key || '';
+}
+if (document.getElementById('profile_stripe_sk')) {
+  document.getElementById('profile_stripe_sk').value = contractor.stripe_secret_key ? '••••••••' : '';
+}
+if (document.getElementById('profile_google_maps_key')) {
+  document.getElementById('profile_google_maps_key').value = contractor.google_maps_api_key || '';
+}
   } catch (error) {
     console.error('Error loading profile:', error);
     alert('Failed to load company profile');
