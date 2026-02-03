@@ -2267,7 +2267,7 @@ app.get('/api/contractor/branding/:apiKey', async (req, res) => {
   
   try {
     const result = await pool.query(
-      `SELECT company_name, logo_url, primary_color, secondary_color, accent_color 
+      `SELECT company_name, logo_url, primary_color, secondary_color, accent_color, website_url 
        FROM contractors WHERE api_key = $1`,
       [apiKey]
     );
@@ -3126,12 +3126,16 @@ app.get('/api/verify-payment', async (req, res) => {
 });
 
 // Get estimate details by ID (PUBLIC - customer-facing)
+// Get estimate details by ID (PUBLIC - customer-facing)
 app.get('/api/estimate/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
     const result = await pool.query(
-      'SELECT * FROM estimates WHERE id = $1',
+      `SELECT e.*, c.api_key as contractor_api_key 
+       FROM estimates e 
+       LEFT JOIN contractors c ON e.contractor_id = c.id 
+       WHERE e.id = $1`,
       [id]
     );
 
