@@ -2435,6 +2435,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <input type="color" id="profile_secondary_color" value="#2196F3" style="width: 100%; height: 60px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
         <input type="text" id="profile_secondary_hex" value="#2196F3" readonly style="width: 100%; margin-top: 8px; padding: 6px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">
       </div>
+      <div class="form-group">
+      <label>Field Label Color</label>
+      <input type="color" id="labelColor" name="label_color" value="#000000">
+      </div>
       <div style="text-align: center;">
         <label style="display: block; font-weight: 600; margin-bottom: 10px;">Accent Color</label>
         <input type="color" id="profile_accent_color" value="#FF9800" style="width: 100%; height: 60px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
@@ -2754,7 +2758,7 @@ function switchEmbedTab(tab) {
 
 function generateEmbedCodes() {
   const apiKey = document.getElementById('profile_api_key').value || 'YOUR_API_KEY';
-  const baseUrl = '[https://instabid.pro](https://instabid.pro)';
+  const baseUrl = 'https://instabid.pro';
   
   // Script Tag Code
   const scriptField = document.getElementById('embed_code_script');
@@ -2798,7 +2802,7 @@ function copyEmbedCode(type) {
 // Test embed in new window
 function testEmbed() {
   const apiKey = document.getElementById('profile_api_key').value;
-  const testUrl = `instabid.pro/estimate/?key=${apiKey}`;
+  const testUrl = `https://instabid.pro/estimate/?key=${apiKey}`;
   window.open(testUrl, '_blank', 'width=1200,height=900');
 }
 
@@ -2838,13 +2842,15 @@ if (apiKeyField) {
 /*const window.RAILWAY_API = 'https://roofbid-backend-production.up.railway.app';*/
 
 // Color picker sync
-['primary', 'secondary', 'accent'].forEach(color => {
+['primary', 'secondary', 'accent', 'label'].forEach(color => {
   const picker = document.getElementById(`profile_${color}_color`);
   const hex = document.getElementById(`profile_${color}_hex`);
   
-  picker.addEventListener('input', (e) => {
-    hex.value = e.target.value.toUpperCase();
-  });
+  if (picker && hex) {
+    picker.addEventListener('input', (e) => {
+      hex.value = e.target.value.toUpperCase();
+    });
+  }
 });
 
 // Logo upload handler
@@ -2938,6 +2944,10 @@ async function loadCompanyProfile() {
     if (contractor.accent_color) {
       document.getElementById('profile_accent_color').value = contractor.accent_color;
       document.getElementById('profile_accent_hex').value = contractor.accent_color;
+    }
+    if (contractor.label_color) {
+    document.getElementById('profile_label_color').value = contractor.label_color;
+    document.getElementById('profile_label_hex').value = contractor.label_color;
     }
     
     // Business settings
@@ -3066,6 +3076,7 @@ async function saveCompanyProfile() {
     primary_color: document.getElementById('profile_primary_color').value,
     secondary_color: document.getElementById('profile_secondary_color').value,
     accent_color: document.getElementById('profile_accent_color').value,
+    label_color: document.getElementById('profile_label_color').value,
     tax_rate: parseFloat(document.getElementById('profile_tax_rate').value) || null,
     default_markup: parseFloat(document.getElementById('profile_default_markup').value) || null,
     logo_url: document.getElementById('logoImg').src || null,
