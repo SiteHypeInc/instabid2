@@ -290,6 +290,7 @@ function init() {
     })
     .then(function(estimate) {
       contractorApiKey = estimate.contractor_api_key;
+      loadAvailability(estimate.contractor_id);
       document.getElementById('estimateInfo').innerHTML = 
         '<div class="info-row">' +
         '<span class="info-label">Project Type:</span>' +
@@ -315,8 +316,8 @@ function init() {
     });
 }
 
-function loadAvailability() {
-  return fetch(BACKEND_URL + '/api/availability?contractor_id=1')
+function loadAvailability(contractorId) {
+  return fetch(BACKEND_URL + '/api/availability?contractor_id=' + contractorId)
     .then(function(response) {
       return response.json();
     })
