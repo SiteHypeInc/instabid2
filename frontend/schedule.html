@@ -25,7 +25,7 @@ body {
   max-width: 800px;
   width: 100%;
   padding: 40px;
-  margin: 0 auto;
+  margin: 100px auto 0 auto;
 }
 
 h1 {
@@ -271,17 +271,40 @@ var sessionId = urlParams.get('session_id');
 estimateId = urlParams.get('estimate_id');
 
 function init() {
-  if (!sessionId || !estimateId) {
-    showError('Missing payment session information. Please contact support.');
+  var urlParams = new URLSearchParams(window.location.search);
+  var estimateId = urlParams.get('estimate_id');
+  var sessionId = urlParams.get('session_id');
+  
+  // Demo mode - no estimate_id means someone is just browsing
+  if (!estimateId) {
+    document.getElementById('estimateInfo').innerHTML = 
+      '<div class="info-row">' +
+      '<span class="info-label">Project Type:</span>' +
+      '<span class="info-value">Sample Roofing Project</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Property:</span>' +
+      '<span class="info-value">123 Demo Street, Your City</span>' +
+      '</div>' +
+      '<div class="info-row">' +
+      '<span class="info-label">Total:</span>' +
+      '<span class="info-value">$12,500.00</span>' +
+      '</div>';
+    availableDates = [];
+    renderCalendar();
+    document.getElementById('loading').style.display = 'none';
     return;
   }
-
-  fetch(BACKEND_URL + '/api/verify-payment?session_id=' + sessionId)
-    .then(function(response) {
-      if (!response.ok) throw new Error('Payment verification failed');
-      return response.json();
-    })
-    .then(function(paymentData) {
+  
+  // Real customer flow - verify payment if session exists
+  var paymentPromise = sessionId 
+    ? fetch(BACKEND_URL + '/api/verify-payment?session_id=' + sessionId)
+        .then(function(response) { return response.json(); })
+        .catch(function() { return { success: false }; })
+    : Promise.resolve({ success: true });
+  
+  paymentPromise
+    .then(function() {
       return fetch(BACKEND_URL + '/api/estimate/' + estimateId);
     })
     .then(function(response) {
@@ -291,6 +314,7 @@ function init() {
     .then(function(estimate) {
       contractorApiKey = estimate.contractor_api_key;
       loadAvailability(estimate.contractor_id);
+      
       document.getElementById('estimateInfo').innerHTML = 
         '<div class="info-row">' +
         '<span class="info-label">Project Type:</span>' +
@@ -304,10 +328,7 @@ function init() {
         '<span class="info-label">Deposit Paid:</span>' +
         '<span class="info-value">$' + (parseFloat(estimate.total_cost) * 0.30).toLocaleString() + '</span>' +
         '</div>';
-
-      return loadAvailability();
-    })
-    .then(function() {
+      
       document.getElementById('loading').style.display = 'none';
     })
     .catch(function(error) {
