@@ -323,6 +323,27 @@
   overflow-clip-margin: 0 !important;
 }
 
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+input:-internal-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px #151922 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: #151922 !important;
+  transition: background-color 600000s 0s, color 600000s 0s !important;
+}
+
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active,
+select#state {
+  -webkit-box-shadow: 0 0 0 1000px #151922 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: #151922 !important;
+}
+
 @media (max-width: 968px) {
   .main-content {
     grid-template-columns: 1fr;
