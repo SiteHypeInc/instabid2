@@ -264,6 +264,7 @@ var BACKEND_URL = 'https://roofbid-backend-production.up.railway.app';
 var selectedDate = null;
 var estimateId = null;
 var availableDates = [];
+var contractorApiKey = null;
 
 var urlParams = new URLSearchParams(window.location.search);
 var sessionId = urlParams.get('session_id');
@@ -288,6 +289,7 @@ function init() {
       return response.json();
     })
     .then(function(estimate) {
+      contractorApiKey = estimate.contractor_api_key;
       document.getElementById('estimateInfo').innerHTML = 
         '<div class="info-row">' +
         '<span class="info-label">Project Type:</span>' +
@@ -486,10 +488,22 @@ function confirmDate() {
     document.getElementById('content').style.display = 'none';
     document.getElementById('confirmation').style.display = 'block';
     
-    // Auto-redirect after 30 seconds
-    setTimeout(function() {
-      window.location.href = 'https://white-raven-264519.hostingersite.com';
-    }, 15000);
+    // Auto-redirect after 15 seconds to contractor's website
+setTimeout(function() {
+  if (contractorApiKey) {
+    fetch(BACKEND_URL + '/api/contractor/branding/' + contractorApiKey)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var url = (data.branding && data.branding.website_url) ? data.branding.website_url : '[https://instabid.pro](https://instabid.pro)';
+        window.location.href = url;
+      })
+      .catch(function() {
+        window.location.href = 'https://instabid.pro';
+      });
+  } else {
+    window.location.href = 'https://instabid.pro';
+  }
+}, 15000);
   })
   .catch(function(error) {
     console.error('Booking error:', error);
