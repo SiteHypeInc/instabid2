@@ -28,6 +28,19 @@ body {
   margin: 100px auto 0 auto;
 }
 
+.container {
+  position: relative;
+  z-index: 1;
+}
+
+And make sure your nav has a higher z-index:
+
+
+nav, .navbar, header {
+  position: relative;
+  z-index: 100;
+}
+
 h1 {
   text-align: center;
   color: #1f2937;
