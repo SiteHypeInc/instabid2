@@ -33,8 +33,6 @@ body {
   z-index: 1;
 }
 
-And make sure your nav has a higher z-index:
-
 
 nav, .navbar, header {
   position: relative;
@@ -529,7 +527,7 @@ setTimeout(function() {
     fetch(BACKEND_URL + '/api/contractor/branding/' + contractorApiKey)
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var url = (data.branding && data.branding.website_url) ? data.branding.website_url : '[https://instabid.pro](https://instabid.pro)';
+        var url = (data.branding && data.branding.website_url) ? data.branding.website_url : 'https://instabid.pro';
         window.location.href = url;
       })
       .catch(function() {
