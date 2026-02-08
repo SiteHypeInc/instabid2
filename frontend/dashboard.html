@@ -3507,8 +3507,8 @@ async function saveConfig(trade) {
   }, 3000);
 }
 
-// Load all pricing on page load
 async function loadContractorPricing() {
+  if (window.DEMO_MODE) return; // Skip in demo
   try {
     const response = await fetch(`${API_BASE}/api/contractor/pricing`, {
       headers: {
