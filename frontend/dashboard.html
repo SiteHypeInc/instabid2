@@ -300,10 +300,11 @@ body {
 // DEMO MODE CHECK - MUST BE FIRST
 // ============================================
 (function() {
-  // Skip all auth checks if in WordPress admin/editor
+  // Skip everything if in WordPress admin/editor
   if (window.location.href.includes('/wp-admin') || 
       window.location.href.includes('elementor') ||
-      window.location.href.includes('action=edit')) {
+      window.location.href.includes('action=edit') ||
+      window.location.href.includes('preview=true')) {
     window.DEMO_MODE = false;
     window.WP_EDITOR = true;
     return;
@@ -313,16 +314,12 @@ body {
   var isDemo = urlParams.get('demo') === 'true';
   
   if (isDemo) {
-    // Set demo flag globally
     window.DEMO_MODE = true;
-    
-    // Fake localStorage for demo
     window.demoStorage = {
       'session_token': 'demo_token_12345',
       'contractor_id': 'demo'
     };
     
-    // Override localStorage.getItem for demo
     var originalGetItem = localStorage.getItem.bind(localStorage);
     localStorage.getItem = function(key) {
       if (window.DEMO_MODE && window.demoStorage[key]) {
@@ -330,16 +327,19 @@ body {
       }
       return originalGetItem(key);
     };
-  } else {
-    window.DEMO_MODE = false;
-    
-    // Normal auth check - redirect if not logged in (but not in WP editor)
-    var token = localStorage.getItem('session_token');
-    var contractorId = localStorage.getItem('contractor_id');
-    
-    if (!token || !contractorId) {
-      window.location.href = '/login/';
-    }
+    return; // STOP HERE for demo mode
+  }
+  
+  // Only check auth ONCE - don't redirect if already on login page
+  if (window.location.href.includes('/login')) {
+    return;
+  }
+  
+  var token = localStorage.getItem('session_token');
+  var contractorId = localStorage.getItem('contractor_id');
+  
+  if (!token || !contractorId) {
+    window.location.replace('/login/'); // replace, not href (prevents back button loop)
   }
 })();
 </script>
