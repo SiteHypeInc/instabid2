@@ -3541,6 +3541,7 @@ function logout() {
 }
 
   async function loadPricingConfig() {
+  console.log('loadPricingConfig called, DEMO_MODE:', window.DEMO_MODE);
   if (window.DEMO_MODE) return; // Skip in demo
   try {
     const token = localStorage.getItem('session_token');
