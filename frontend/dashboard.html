@@ -300,6 +300,7 @@ body {
   var urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('demo') === 'true') {
     window.DEMO_MODE = true;
+    console.log('✅ DEMO_MODE set to true');
   }
 })();
 </script>
@@ -1834,6 +1835,7 @@ function authFetch(url, options = {}) {
   
   return fetch(url, options);
 }
+
 function loadDemoEstimates() {
   var container = document.getElementById('estimatesList');
   
