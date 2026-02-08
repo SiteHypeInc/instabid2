@@ -3194,7 +3194,10 @@ document.querySelectorAll('.sub-tab').forEach(tab => {
 
 window.addEventListener('load', function() {
   //loadConfig('roofing');
-  checkCalendarStatus();
+  var token = localStorage.getItem('session_token');
+  if (token) {
+    checkCalendarStatus();
+  }
 });
 
 function loadConfig(section) {
