@@ -3147,61 +3147,8 @@ document.querySelector('[data-main="company-profile"]').addEventListener('click'
   loadCompanyProfile();
 });</script>
 
+
 <script>
-// ============================================
-// DEMO DATA LOADERS
-// ============================================
-
-function loadDemoCompanyProfile() {
-  // Populate with fake data
-  document.getElementById('profile_company_name').value = 'ABC Roofing & Construction';
-  document.getElementById('profile_phone').value = '(555) 123-4567';
-  document.getElementById('profile_email').value = 'demo@abcroofing.com';
-  document.getElementById('profile_website_url').value = '[https://abcroofing.com](https://abcroofing.com)';
-  document.getElementById('profile_address').value = '123 Contractor Lane';
-  document.getElementById('profile_city').value = 'Austin';
-  document.getElementById('profile_state').value = 'TX';
-  document.getElementById('profile_zip').value = '78701';
-  document.getElementById('profile_license').value = 'LIC-12345-TX';
-  
-  // Colors
-  document.getElementById('profile_primary_color').value = '#1e3a5f';
-  document.getElementById('profile_primary_hex').value = '#1E3A5F';
-  document.getElementById('profile_secondary_color').value = '#00d4ff';
-  document.getElementById('profile_secondary_hex').value = '#00D4FF';
-  document.getElementById('profile_accent_color').value = '#ff6b35';
-  document.getElementById('profile_accent_hex').value = '#FF6B35';
-  document.getElementById('profile_label_color').value = '#333333';
-  document.getElementById('profile_label_hex').value = '#333333';
-  
-  // Business settings
-  document.getElementById('profile_tax_rate').value = '8.25';
-  document.getElementById('profile_default_markup').value = '35';
-  document.getElementById('profile_labor_rate_override').value = '75';
-  
-  // Subscription info
-  document.getElementById('profile_subscription_level').textContent = 'Professional';
-  document.getElementById('profile_subscription_status').textContent = 'Active';
-  document.getElementById('profile_renewal_date').textContent = '03/15/2025';
-  
-  // API Key & Share Link (fake)
-  document.getElementById('profile_api_key').value = 'ib_demo_abc123xyz789';
-  document.getElementById('profile_share_link').value = 'https://instabid.pro/estimate/?key=ib_demo_abc123xyz789';
-  
-  // Integrations
-  if (document.getElementById('profile_stripe_pk')) {
-    document.getElementById('profile_stripe_pk').value = 'pk_test_••••••••';
-  }
-  if (document.getElementById('profile_stripe_sk')) {
-    document.getElementById('profile_stripe_sk').value = '••••••••';
-  }
-  if (document.getElementById('profile_google_maps_key')) {
-    document.getElementById('profile_google_maps_key').value = 'AIza••••••••';
-  }
-  
-  setTimeout(generateEmbedCodes, 100);
-}
-
 
 const API_BASE = 'https://roofbid-backend-production.up.railway.app';
 
