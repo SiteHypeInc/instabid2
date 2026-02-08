@@ -294,7 +294,15 @@ body {
 
 </head>
 <body>
-
+<script>
+// Demo mode check - runs first
+(function() {
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') {
+    window.DEMO_MODE = true;
+  }
+})();
+</script>
 
 
 
@@ -1806,6 +1814,11 @@ let currentEstimate = null;
 
 // ✅ AUTH HELPER - ADDS AUTHORIZATION HEADER TO ALL FETCH CALLS
 function authFetch(url, options = {}) {
+  // Skip auth in demo mode
+  if (window.DEMO_MODE) {
+    return Promise.reject('Demo mode - no API calls');
+  }
+
   const token = localStorage.getItem('session_token');
   
   if (!token) {
@@ -1814,10 +1827,9 @@ function authFetch(url, options = {}) {
     return Promise.reject('Not authenticated');
   }
   
-  // Add Authorization header
   options.headers = {
     ...options.headers,
-    'Authorization': `Bearer ${token}`
+    'Authorization': 'Bearer ' + token
   };
   
   return fetch(url, options);
