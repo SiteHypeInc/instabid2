@@ -1864,8 +1864,8 @@ function loadDemoEstimates() {
 
 // Load estimates on page load
 async function loadEstimates() {
-  
-  if (window.DEMO_MODE) {
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') {
     loadDemoEstimates();
     return;
   }
@@ -3550,8 +3550,8 @@ function logout() {
 }
 
   async function loadPricingConfig() {
-  console.log('loadPricingConfig called, DEMO_MODE:', window.DEMO_MODE);
-  if (window.DEMO_MODE) return; // Skip in demo
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') return;
   try {
     const token = localStorage.getItem('session_token');
     const response = await fetch(`${window.RAILWAY_API}/api/contractor/pricing`, {
@@ -3584,7 +3584,8 @@ function logout() {
 
 // Check if first login - show welcome modal
 function checkFirstLogin() {
-  if (window.DEMO_MODE) return; // Skip in demo
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') return;
   
   const hasSeenWelcome = localStorage.getItem('instabid_welcome_seen');
   
