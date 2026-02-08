@@ -2950,7 +2950,9 @@ dropZone.addEventListener('drop', (e) => {
 });
 
 // Load contractor profile
-async function loadCompanyProfile() {
+  async function loadCompanyProfile() {
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') return;
   const contractorId = localStorage.getItem('contractor_id');
   const sessionToken = localStorage.getItem('session_token');
   
@@ -3514,7 +3516,8 @@ async function saveConfig(trade) {
 }
 
 async function loadContractorPricing() {
-  if (window.DEMO_MODE) return; // Skip in demo
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') return;
   try {
     const response = await fetch(`${API_BASE}/api/contractor/pricing`, {
       headers: {
