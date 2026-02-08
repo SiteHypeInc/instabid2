@@ -3198,6 +3198,12 @@ const API_BASE = 'https://roofbid-backend-production.up.railway.app';
 
 
 function authFetch(url, options = {}) {
+  // Check URL directly - no reliance on global variable
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') === 'true') {
+    return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+  }
+
   const token = localStorage.getItem('session_token');
   
   if (!token) {
