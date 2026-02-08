@@ -3540,7 +3540,8 @@ function logout() {
   window.location.href = '/login/';
 }
 
-async function loadPricingConfig() {
+  async function loadPricingConfig() {
+  if (window.DEMO_MODE) return; // Skip in demo
   try {
     const token = localStorage.getItem('session_token');
     const response = await fetch(`${window.RAILWAY_API}/api/contractor/pricing`, {
