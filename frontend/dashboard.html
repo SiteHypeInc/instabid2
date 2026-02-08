@@ -3598,7 +3598,12 @@ window.addEventListener('load', function() {
 });
 
 // Call on page load
-document.addEventListener('DOMContentLoaded', loadPricingConfig);
+document.addEventListener('DOMContentLoaded', function() {
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('demo') !== 'true') {
+    loadPricingConfig();
+  }
+});
 </script>
 <!-- WELCOME MODAL -->
 <div id="welcomeModal" style="
