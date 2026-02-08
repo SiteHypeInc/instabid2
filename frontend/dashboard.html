@@ -1810,7 +1810,7 @@ function authFetch(url, options = {}) {
   
   if (!token) {
     console.error('❌ No session token - redirecting to login');
-    window.location.href = '/login-html/';
+    window.location.href = '/login/';
     return Promise.reject('Not authenticated');
   }
   
