@@ -6,7 +6,7 @@
 <title>InstaBid - Contractor Dashboard</title>
 <style>
 <style>
-* {
+*{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -27,7 +27,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
   color: white;
   padding: 30px;
   border-radius: 12px 12px 0 0;
@@ -3181,7 +3181,12 @@ dropZone.addEventListener('drop', (e) => {
 });
 
 // Load contractor profile
-  async function loadCompanyProfile() {
+  
+    async function loadCompanyProfile() {
+  console.log('🔍 loadCompanyProfile called');
+  console.log('🔑 contractor_id:', localStorage.getItem('contractor_id'));
+  console.log('🔑 session_token:', localStorage.getItem('session_token'));
+  console.log('🌐 RAILWAY_API:', window.RAILWAY_API);
   var urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('demo') === 'true') return;
   const contractorId = localStorage.getItem('contractor_id');
