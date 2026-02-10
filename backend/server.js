@@ -2148,50 +2148,9 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
     console.log(`✅ Estimate #${estimateId} saved to database for contractor ${contractor_id}`);
 
     
+   // === EMAIL (non-blocking — estimate returns regardless) ===
+    try {
       const pdfBuffer = await generateEstimatePDF({
-      id: estimateId,
-      customerName: finalCustomerName,
-      customerEmail: finalCustomerEmail,
-      customerPhone: finalCustomerPhone,
-      propertyAddress: finalPropertyAddress,
-      city,
-      state,
-      zipCode: finalZipCode,
-      trade,
-      tradeDetails: tradeSpecificFields,
-      photos: tradeSpecificFields.photos || [],
-      laborHours: estimate.laborHours,
-      laborRate: estimate.laborRate,
-      laborCost: estimate.laborCost,
-      materialCost: estimate.materialCost,
-      equipmentCost: estimate.equipmentCost || 0,
-      totalCost: estimate.totalCost
-    });
-
-    console.log(`📄 PDF generated for estimate #${estimateId}`);
-
-    const contractBuffer = await generateContract({
-      id: estimateId,
-      customerName: finalCustomerName,
-      customerEmail: finalCustomerEmail,
-      customerPhone: finalCustomerPhone,
-      propertyAddress: finalPropertyAddress,
-      city,
-      state,
-      zipCode: finalZipCode,
-      trade,
-      laborHours: estimate.laborHours,
-      laborRate: estimate.laborRate,
-      laborCost: estimate.laborCost,
-      materialCost: estimate.materialCost,
-      equipmentCost: estimate.equipmentCost || 0,
-      totalCost: estimate.totalCost
-    });
-
-    console.log(`📝 Contract generated for estimate #${estimateId}`);
-
-    await sendEstimateEmails(
-      {
         id: estimateId,
         customerName: finalCustomerName,
         customerEmail: finalCustomerEmail,
@@ -2201,13 +2160,59 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
         state,
         zipCode: finalZipCode,
         trade,
+        tradeDetails: tradeSpecificFields,
         photos: tradeSpecificFields.photos || [],
-        ...estimate
-      },
-      pdfBuffer,
-      contractBuffer,
-      contractor.id  // Pass contractor ID for SMTP lookup
-    );
+        laborHours: estimate.laborHours,
+        laborRate: estimate.laborRate,
+        laborCost: estimate.laborCost,
+        materialCost: estimate.materialCost,
+        equipmentCost: estimate.equipmentCost || 0,
+        totalCost: estimate.totalCost
+      });
+      console.log(`📄 PDF generated for estimate #${estimateId}`);
+
+      const contractBuffer = await generateContract({
+        id: estimateId,
+        customerName: finalCustomerName,
+        customerEmail: finalCustomerEmail,
+        customerPhone: finalCustomerPhone,
+        propertyAddress: finalPropertyAddress,
+        city,
+        state,
+        zipCode: finalZipCode,
+        trade,
+        laborHours: estimate.laborHours,
+        laborRate: estimate.laborRate,
+        laborCost: estimate.laborCost,
+        materialCost: estimate.materialCost,
+        equipmentCost: estimate.equipmentCost || 0,
+        totalCost: estimate.totalCost
+      });
+      console.log(`📝 Contract generated for estimate #${estimateId}`);
+
+      await sendEstimateEmails(
+        {
+          id: estimateId,
+          customerName: finalCustomerName,
+          customerEmail: finalCustomerEmail,
+          customerPhone: finalCustomerPhone,
+          propertyAddress: finalPropertyAddress,
+          city,
+          state,
+          zipCode: finalZipCode,
+          trade,
+          photos: tradeSpecificFields.photos || [],
+          ...estimate
+        },
+        pdfBuffer,
+        contractBuffer,
+        contractor.id
+      );
+      console.log(`✅ Emails sent for estimate #${estimateId}`);
+    } catch (emailError) {
+      console.error(`⚠️ Email/PDF failed for estimate #${estimateId} — estimate still returned to customer:`, emailError.message);
+    }
+    // === END EMAIL ===
 
      // Get display settings (default to total only if not set)
     const displaySettings = contractor.estimate_display || {
