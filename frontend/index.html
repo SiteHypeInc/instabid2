@@ -1269,7 +1269,7 @@ document.getElementById('estimateForm').addEventListener('submit', function(e) {
   data.trade = selectedTrade;
   data.photos = uploadedPhotos;
   const urlParams = new URLSearchParams(window.location.search);
-  data.api_key = urlParams.get('key') || localStorage.getItem('contractor_api_key') || 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+  data.api_key = urlParams.get('key') || localStorage.getItem('contractor_api_key') || 'ib_5cb8c96a3c4ba27ea691eb8516260ce3847a9a438487412f74030ffa576730a4';
   console.log('🔑 API Key being sent:', data.api_key);
   var submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
@@ -1439,7 +1439,7 @@ document.getElementById('pdfBtn').addEventListener('click', function() {
 payload.trade = selectedTrade;
 payload.photos = uploadedPhotos;
 const urlParams = new URLSearchParams(window.location.search);
-payload.api_key = urlParams.get('key') || 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+payload.api_key = urlParams.get('key') || 'ib_5cb8c96a3c4ba27ea691eb8516260ce3847a9a438487412f74030ffa576730a4';
 
   
   fetch('https://roofbid-backend-production.up.railway.app/api/generate-pdf', {

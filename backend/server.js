@@ -54,7 +54,7 @@ function requireAdminKey(req, res, next) {
   }
   
   const apiKey = authHeader.split(' ')[1];
-  const validKey = 'ib_74064730bb369effbc6bdfe50b5352e72180054351a5f3afb87839af29b029be';
+  const validKey = 'ib_5cb8c96a3c4ba27ea691eb8516260ce3847a9a438487412f74030ffa576730a4';
   
   if (apiKey !== validKey) {
     return res.status(403).json({ error: 'Invalid API key' });
