@@ -349,7 +349,69 @@ select#state {
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 480px) {
+    .container {
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
 
+    .header {
+        padding: 15px !important;
+    }
+
+    .header h1 {
+        font-size: 1.4em !important;
+    }
+
+    .main-content {
+        padding: 10px !important;
+    }
+
+    .left-column, .right-column {
+        padding: 5px !important;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        font-size: 16px !important; /* prevents iOS zoom on focus */
+    }
+
+    .btn-primary {
+        padding: 14px 15px !important;
+        font-size: 1em !important;
+    }
+
+    .action-buttons {
+        flex-direction: column !important;
+    }
+
+    .photo-preview {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .cost-item {
+        font-size: 0.95em !important;
+        gap: 10px;
+    }
+
+    .cost-item:last-child {
+        font-size: 1.1em !important;
+    }
+
+    .map-container {
+        height: 250px !important;
+    }
+
+    .email-notification {
+        width: 92vw !important;
+        padding: 20px 15px !important;
+    }
+}
 @media (max-width: 768px) {
     .container {
         margin: 0 !important;
