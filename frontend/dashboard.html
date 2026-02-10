@@ -290,6 +290,83 @@ body {
 .content {
   min-height: auto;
 }
+
+/* ============================================
+   DASHBOARD MOBILE RESPONSIVE FIX
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    /* Force all config cards to fit screen */
+    .config-card {
+        max-width: 100% !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Stack ALL label + input rows vertically */
+    .config-item,
+    .config-card div[style*="grid-template-columns"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+
+    /* City/State/ZIP — wrap into 2 rows */
+    div[style*="grid-template-columns: 150px 1fr 1fr 120px"] {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+    }
+
+    div[style*="grid-template-columns: 150px 1fr 1fr 120px"] > label {
+        grid-column: 1 / -1 !important;
+    }
+
+    /* Brand colors — 2x2 grid instead of 4 across */
+    div[style*="grid-template-columns: repeat(4"] {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* Subscription info — stack vertically */
+    div[style*="grid-template-columns: repeat(3"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Make all inputs full width */
+    .config-card input,
+    .config-card select,
+    .config-card textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Fix embed code copy button rows */
+    div[style*="display: flex; gap: 10px"] {
+        flex-direction: column !important;
+    }
+
+    /* Section title */
+    .section-title {
+        font-size: 20px !important;
+        word-break: break-word !important;
+    }
+
+    /* Integrations grid rows */
+    div[style*="grid-template-columns: 140px"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+
+    /* Business settings rows */
+    div[style*="grid-template-columns: 200px"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+}
 </style>
 
 </head>
