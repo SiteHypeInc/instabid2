@@ -349,6 +349,49 @@ select#state {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+    .container {
+        margin: 0 !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .header {
+        padding: 20px 15px !important;
+    }
+
+    .header h1 {
+        font-size: 1.6em !important;
+    }
+
+    .main-content {
+        padding: 15px !important;
+        gap: 15px !important;
+    }
+
+    .left-column, .right-column {
+        padding: 10px !important;
+    }
+
+    .action-buttons {
+        flex-direction: column !important;
+    }
+
+    .photo-preview {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .map-container {
+        height: 300px !important;
+    }
+
+    /* Email notification popup fix */
+    .email-notification {
+        width: 90vw !important;
+        padding: 25px 20px !important;
+    }
+}
 </style>
 <script>
 // ============================================
