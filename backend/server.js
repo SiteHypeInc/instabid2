@@ -1527,6 +1527,7 @@ case 'drywall':{
   };
 }
 
+
 // ========== PDF GENERATION FUNCTION ==========
 async function generateEstimatePDF(estimateData) {
   return new Promise(async (resolve, reject) => {
@@ -1539,85 +1540,144 @@ async function generateEstimatePDF(estimateData) {
       doc.on('error', reject);
 
       const branding = estimateData.contractorBranding;
-      const primaryColor = branding?.primaryColor || '#2563eb';
+      const primaryColor = branding?.primaryColor || '#0077b6';
+      const accentColor = branding?.accentColor || '#00b4d8';
+
+      // ========== COLOR HEADER BAR ==========
+      doc.rect(0, 0, doc.page.width, 8).fill(primaryColor);
 
       // ========== CONTRACTOR HEADER ==========
-      if (branding) {
-        // Try to add logo
-        if (branding.logoUrl) {
-          try {
-            const axios = require('axios');
-            const logoResponse = await axios.get(branding.logoUrl, { 
-              responseType: 'arraybuffer',
-              timeout: 5000 
-            });
-            const logoBuffer = Buffer.from(logoResponse.data, 'binary');
-            doc.image(logoBuffer, 50, 50, { width: 120 });
-            doc.moveDown(4);
-          } catch (logoError) {
-            console.error('Logo load failed:', logoError.message);
-            // Fall back to text header
-            doc.fontSize(24).fillColor(primaryColor).text(branding.companyName || 'Estimate', { align: 'center' });
-            doc.moveDown(0.5);
-          }
-        } else {
-          // No logo - use company name
-          doc.fontSize(24).fillColor(primaryColor).text(branding.companyName || 'Estimate', { align: 'center' });
-          doc.moveDown(0.5);
+      let headerY = 30;
+
+      if (branding && branding.logoUrl) {
+        try {
+          const axios = require('axios');
+          const logoResponse = await axios.get(branding.logoUrl, {
+            responseType: 'arraybuffer',
+            timeout: 5000
+          });
+          const logoBuffer = Buffer.from(logoResponse.data, 'binary');
+          doc.image(logoBuffer, 50, headerY, { width: 100 });
+          headerY = 30; // Keep same Y for right-side info
+        } catch (logoError) {
+          console.error('Logo load failed:', logoError.message);
         }
-        
-        // Contractor contact info
-        doc.fontSize(9).fillColor('#666');
+      }
+
+      // Company name & contact (right-aligned)
+      const companyName = branding?.companyName || 'Estimate';
+      doc.fontSize(20).fillColor(primaryColor).text(companyName, 200, headerY, {
+        align: 'right',
+        width: 362
+      });
+
+      headerY += 28;
+      doc.fontSize(9).fillColor('#666666');
+
+      if (branding) {
         const contactParts = [];
         if (branding.phone) contactParts.push(branding.phone);
         if (branding.email) contactParts.push(branding.email);
         if (contactParts.length > 0) {
-          doc.text(contactParts.join('  |  '), { align: 'center' });
+          doc.text(contactParts.join('  •  '), 200, headerY, { align: 'right', width: 362 });
+          headerY += 14;
         }
-        if (branding.address || branding.city) {
-          const addressParts = [];
-          if (branding.address) addressParts.push(branding.address);
-          if (branding.city) addressParts.push(branding.city);
-          if (branding.state) addressParts.push(branding.state);
-          if (branding.zip) addressParts.push(branding.zip);
-          doc.text(addressParts.join(', '), { align: 'center' });
+        const addressParts = [];
+        if (branding.address) addressParts.push(branding.address);
+        if (branding.city) addressParts.push(branding.city);
+        if (branding.state) addressParts.push(branding.state);
+        if (branding.zip) addressParts.push(branding.zip);
+        if (addressParts.length > 0) {
+          doc.text(addressParts.join(', '), 200, headerY, { align: 'right', width: 362 });
+          headerY += 14;
         }
-        doc.moveDown(1);
-      } else {
-        // Default header
-        doc.fontSize(24).fillColor(primaryColor).text('Estimate', { align: 'center' });
-        doc.moveDown(0.5);
+        if (branding.licenseNumber) {
+          doc.text(`License #${branding.licenseNumber}`, 200, headerY, { align: 'right', width: 362 });
+          headerY += 14;
+        }
       }
 
-      doc.fontSize(10).fillColor('#666').text(`Estimate #${estimateData.id}`, { align: 'center' });
-      doc.moveDown(0.3);
-      doc.fontSize(9).fillColor('#999').text(`Generated: ${new Date().toLocaleDateString()}`, { align: 'center' });
-      doc.moveDown(2);
-      // ========== END CONTRACTOR HEADER ==========
+      // ========== DIVIDER ==========
+      headerY = Math.max(headerY, 95) + 15;
+      doc.moveTo(50, headerY).lineTo(562, headerY).strokeColor('#e0e0e0').lineWidth(1).stroke();
+
+      // ========== ESTIMATE INFO BAR ==========
+      headerY += 15;
+      const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+
+      // Light background box
+      doc.roundedRect(50, headerY, 512, 50, 4).fill('#f0f7ff');
+
+      doc.fontSize(12).fillColor(primaryColor).text(
+        `${tradeName} Estimate`,
+        65, headerY + 10
+      );
+      doc.fontSize(9).fillColor('#666666').text(
+        `#${estimateData.id}`,
+        65, headerY + 28
+      );
+      doc.fontSize(9).fillColor('#666666').text(
+        `Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+        350, headerY + 10,
+        { align: 'right', width: 200 }
+      );
+      doc.fontSize(9).fillColor('#666666').text(
+        'Valid for 30 days',
+        350, headerY + 28,
+        { align: 'right', width: 200 }
+      );
+
+      headerY += 70;
+
+      // ========== TWO-COLUMN: CUSTOMER + PROJECT ==========
+      const colLeftX = 50;
+      const colRightX = 310;
+      const colWidth = 240;
 
       // Customer Info
-      doc.fontSize(14).fillColor(primaryColor).text('Customer Information', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10).fillColor('#000');
-      doc.text(`Name: ${estimateData.customerName}`);
-      doc.text(`Email: ${estimateData.customerEmail}`);
-      if (estimateData.customerPhone) doc.text(`Phone: ${estimateData.customerPhone}`);
-      doc.text(`Address: ${estimateData.propertyAddress}, ${estimateData.city}, ${estimateData.state} ${estimateData.zipCode}`);
-      doc.moveDown(2);
+      doc.fontSize(10).fillColor(primaryColor).font('Helvetica-Bold').text('CUSTOMER', colLeftX, headerY);
+      doc.moveTo(colLeftX, headerY + 15).lineTo(colLeftX + colWidth, headerY + 15).strokeColor(primaryColor).lineWidth(1.5).stroke();
 
-      // ========== SCOPE OF WORK SECTION ==========
-      const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
-      doc.fontSize(14).fillColor(primaryColor).text(`${tradeName} Project Scope`, { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10).fillColor('#000');
-      
+      headerY += 22;
+      doc.fontSize(10).fillColor('#333333').font('Helvetica-Bold').text(estimateData.customerName || '', colLeftX, headerY);
+      headerY += 15;
+      doc.fontSize(9).fillColor('#555555').font('Helvetica');
+      if (estimateData.customerEmail) {
+        doc.text(estimateData.customerEmail, colLeftX, headerY);
+        headerY += 13;
+      }
+      if (estimateData.customerPhone) {
+        doc.text(estimateData.customerPhone, colLeftX, headerY);
+        headerY += 13;
+      }
+
+      // Project Address (right column)
+      let rightY = headerY - (estimateData.customerPhone ? 41 : 28);
+      doc.fontSize(10).fillColor(primaryColor).font('Helvetica-Bold').text('PROJECT ADDRESS', colRightX, rightY - 22);
+      doc.moveTo(colRightX, rightY - 7).lineTo(colRightX + colWidth, rightY - 7).strokeColor(primaryColor).lineWidth(1.5).stroke();
+
+      doc.fontSize(10).fillColor('#333333').font('Helvetica-Bold').text(
+        estimateData.propertyAddress || '', colRightX, rightY
+      );
+      doc.fontSize(9).fillColor('#555555').font('Helvetica').text(
+        `${estimateData.city || ''}, ${estimateData.state || ''} ${estimateData.zipCode || ''}`,
+        colRightX, rightY + 15
+      );
+
+      headerY = Math.max(headerY, rightY + 35) + 20;
+
+      // ========== SCOPE OF WORK ==========
+      doc.fontSize(10).fillColor(primaryColor).font('Helvetica-Bold').text('SCOPE OF WORK', colLeftX, headerY);
+      doc.moveTo(colLeftX, headerY + 15).lineTo(562, headerY + 15).strokeColor(primaryColor).lineWidth(1.5).stroke();
+      headerY += 25;
+
       const details = estimateData.tradeDetails || {};
       const scopeItems = [];
-      
-      // Common fields
+
+      // Common
       if (details.squareFeet) scopeItems.push(`${details.squareFeet} sq ft`);
-      
-      // Roofing fields
+
+      // Roofing
       if (details.pitch && details.pitch !== '') scopeItems.push(`Pitch: ${details.pitch}`);
       if (details.stories && details.stories !== '') scopeItems.push(`Stories: ${details.stories}`);
       if (details.material && details.material !== '') scopeItems.push(`Material: ${details.material}`);
@@ -1628,80 +1688,115 @@ async function generateEstimatePDF(estimateData) {
       if (details.plywoodSqft && details.plywoodSqft !== '' && details.plywoodSqft !== '0') scopeItems.push(`Plywood replacement: ${details.plywoodSqft} sq ft`);
       if (details.ridgeVentFeet && details.ridgeVentFeet !== '' && details.ridgeVentFeet !== '0') scopeItems.push(`Ridge vent: ${details.ridgeVentFeet} linear ft`);
       if (details.existingRoofType && details.existingRoofType !== '') scopeItems.push(`Existing roof: ${details.existingRoofType}`);
-      
-      // HVAC fields
+
+      // HVAC
       if (details.systemType) scopeItems.push(`System type: ${details.systemType}`);
       if (details.units && details.units !== '0') scopeItems.push(`Units: ${details.units}`);
-      if (details.ductwork) scopeItems.push(`Ductwork: ${details.ductwork}`);
-      
-      // Electrical fields
-      if (details.panelUpgrade && details.panelUpgrade !== 'none') scopeItems.push(`Panel upgrade: ${details.panelUpgrade}`);
-      if (details.outlets && details.outlets !== '0') scopeItems.push(`Outlets: ${details.outlets}`);
-      if (details.switches && details.switches !== '0') scopeItems.push(`Switches: ${details.switches}`);
-      if (details.fixtures && details.fixtures !== '0') scopeItems.push(`Fixtures: ${details.fixtures}`);
-      
-      // Plumbing fields
-      if (details.fixtureCount && details.fixtureCount !== '0') scopeItems.push(`Fixtures: ${details.fixtureCount}`);
-      if (details.waterHeaterType) scopeItems.push(`Water heater: ${details.waterHeaterType}`);
-      if (details.pipeType) scopeItems.push(`Pipe material: ${details.pipeType}`);
-      
-      // Flooring fields
-      if (details.flooringType) scopeItems.push(`Flooring type: ${details.flooringType}`);
-      if (details.removal === 'yes') scopeItems.push(`Includes removal of existing flooring`);
-      
-      // Painting fields
-      if (details.surface) scopeItems.push(`Surface: ${details.surface}`);
-      if (details.coats && details.coats !== '0') scopeItems.push(`Coats: ${details.coats}`);
-      if (details.condition) scopeItems.push(`Surface condition: ${details.condition}`);
-      
-      // Drywall fields
-      if (details.finishLevel) scopeItems.push(`Finish level: ${details.finishLevel}`);
-      if (details.ceilingHeight) scopeItems.push(`Ceiling height: ${details.ceilingHeight} ft`);
-      
-      // Siding fields
-      if (details.sidingType) scopeItems.push(`Siding type: ${details.sidingType}`);
-      
-      // Print scope items as bullet points
-      scopeItems.forEach(item => {
-        doc.text(`  •  ${item}`);
-      });
-      
-      if (scopeItems.length === 0) {
-        doc.text(`  •  ${tradeName} services as discussed`);
-      }
-      
-      doc.moveDown(2);
-      // ========== END SCOPE OF WORK ==========
+      if (details.existingDucts) scopeItems.push(`Existing ductwork: ${details.existingDucts}`);
+      if (details.tonnage) scopeItems.push(`Tonnage: ${details.tonnage}`);
+      if (details.efficiency) scopeItems.push(`Efficiency: ${details.efficiency}`);
 
-      // ========== 📸 CUSTOMER PHOTOS SECTION ==========
+      // Electrical
+      if (details.serviceType) scopeItems.push(`Service type: ${details.serviceType}`);
+      if (details.amperage) scopeItems.push(`Panel amperage: ${details.amperage}A`);
+      if (details.outletCount && details.outletCount !== '0') scopeItems.push(`Outlets: ${details.outletCount}`);
+      if (details.switchCount && details.switchCount !== '0') scopeItems.push(`Switches: ${details.switchCount}`);
+      if (details.fixtureCount && details.fixtureCount !== '0') scopeItems.push(`Light fixtures: ${details.fixtureCount}`);
+
+      // Plumbing
+      if (details.bathrooms) scopeItems.push(`Bathrooms: ${details.bathrooms}`);
+      if (details.heaterType) scopeItems.push(`Water heater: ${details.heaterType}`);
+      if (details.toiletCount && details.toiletCount !== '0') scopeItems.push(`Toilets: ${details.toiletCount}`);
+      if (details.sinkCount && details.sinkCount !== '0') scopeItems.push(`Sinks: ${details.sinkCount}`);
+
+      // Flooring
+      if (details.floorType) scopeItems.push(`Flooring type: ${details.floorType}`);
+      if (details.needRemoval === 'yes') scopeItems.push('Includes removal of existing flooring');
+      if (details.stairs === 'yes') scopeItems.push(`Includes stairs (${details.stairSteps || '0'} steps)`);
+
+      // Painting
+      if (details.paintType) scopeItems.push(`Type: ${details.paintType}`);
+      if (details.coats && details.coats !== '0') scopeItems.push(`Coats: ${details.coats}`);
+      if (details.includeCeilings === 'yes') scopeItems.push('Includes ceilings');
+      if (details.includeTrim === 'yes') scopeItems.push('Includes trim');
+      if (details.cabinetPainting === 'yes') scopeItems.push(`Cabinet painting (${details.cabinetCount || '0'} faces)`);
+
+      // Drywall
+      if (details.projectType) scopeItems.push(`Project type: ${details.projectType}`);
+      if (details.ceilingHeight) scopeItems.push(`Ceiling height: ${details.ceilingHeight}`);
+      if (details.finishLevel) scopeItems.push(`Finish level: ${details.finishLevel}`);
+
+      // Siding
+      if (details.sidingType) scopeItems.push(`Siding type: ${details.sidingType}`);
+      if (details.needsRemoval === 'yes') scopeItems.push('Includes removal of existing siding');
+
+      doc.fontSize(9).fillColor('#444444').font('Helvetica');
+      if (scopeItems.length > 0) {
+        // Two-column layout for scope items
+        const midpoint = Math.ceil(scopeItems.length / 2);
+        const leftItems = scopeItems.slice(0, midpoint);
+        const rightItems = scopeItems.slice(midpoint);
+
+        let scopeY = headerY;
+        leftItems.forEach(item => {
+          doc.circle(colLeftX + 3, scopeY + 4, 2).fill('#999999');
+          doc.fillColor('#444444').text(item, colLeftX + 12, scopeY, { width: 230 });
+          scopeY += 15;
+        });
+
+        let scopeYRight = headerY;
+        rightItems.forEach(item => {
+          doc.circle(colRightX + 3, scopeYRight + 4, 2).fill('#999999');
+          doc.fillColor('#444444').text(item, colRightX + 12, scopeYRight, { width: 230 });
+          scopeYRight += 15;
+        });
+
+        headerY = Math.max(scopeY, scopeYRight) + 15;
+      } else {
+        doc.text(`${tradeName} services as discussed`, colLeftX, headerY);
+        headerY += 25;
+      }
+
+      // ========== CUSTOMER PHOTOS ==========
       if (estimateData.photos && estimateData.photos.length > 0) {
-        doc.fontSize(14).fillColor(primaryColor).text(`Customer Photos (${estimateData.photos.length})`, { underline: true });
-        doc.moveDown(0.5);
+        // Check if we need a new page
+        if (headerY > 500) {
+          doc.addPage();
+          doc.rect(0, 0, doc.page.width, 4).fill(primaryColor);
+          headerY = 30;
+        }
+
+        doc.fontSize(10).fillColor(primaryColor).font('Helvetica-Bold').text('PROJECT PHOTOS', colLeftX, headerY);
+        doc.moveTo(colLeftX, headerY + 15).lineTo(562, headerY + 15).strokeColor(primaryColor).lineWidth(1.5).stroke();
+        headerY += 25;
 
         const axios = require('axios');
-        const photosPerRow = 2;
-        const photoWidth = 220;
-        const photoHeight = 165;
-        const photoSpacing = 20;
-        const startX = 50;
-        let currentX = startX;
-        let currentY = doc.y;
+        const photosPerRow = 3;
+        const photoWidth = 160;
+        const photoHeight = 120;
+        const photoSpacing = 16;
+        let currentX = colLeftX;
 
         for (let i = 0; i < estimateData.photos.length; i++) {
           try {
-            const response = await axios.get(estimateData.photos[i], { 
+            const response = await axios.get(estimateData.photos[i], {
               responseType: 'arraybuffer',
-              timeout: 5000 
+              timeout: 5000
             });
             const imageBuffer = Buffer.from(response.data, 'binary');
 
-            if (currentY + photoHeight > doc.page.height - 100) {
+            if (headerY + photoHeight > doc.page.height - 80) {
               doc.addPage();
-              currentY = 50;
-              currentX = startX;
+              doc.rect(0, 0, doc.page.width, 4).fill(primaryColor);
+              headerY = 30;
+              currentX = colLeftX;
             }
 
-            doc.image(imageBuffer, currentX, currentY, {
+            // Photo border
+            doc.roundedRect(currentX - 1, headerY - 1, photoWidth + 2, photoHeight + 2, 3)
+              .strokeColor('#e0e0e0').lineWidth(1).stroke();
+
+            doc.image(imageBuffer, currentX, headerY, {
               width: photoWidth,
               height: photoHeight,
               fit: [photoWidth, photoHeight],
@@ -1710,55 +1805,131 @@ async function generateEstimatePDF(estimateData) {
             });
 
             currentX += photoWidth + photoSpacing;
-            
+
             if ((i + 1) % photosPerRow === 0) {
-              currentX = startX;
-              currentY += photoHeight + photoSpacing;
+              currentX = colLeftX;
+              headerY += photoHeight + photoSpacing;
             }
           } catch (photoError) {
             console.error(`Failed to load photo ${i + 1}:`, photoError.message);
           }
         }
 
-        doc.y = currentY + photoHeight + 30;
-        doc.moveDown(1);
+        // Adjust Y if last row wasn't full
+        if (estimateData.photos.length % photosPerRow !== 0) {
+          headerY += photoHeight + photoSpacing;
+        }
+        headerY += 10;
       }
-      // ========== END PHOTOS SECTION ==========
 
-      // ========== COST BREAKDOWN (Respects Display Settings) ==========
-      const displaySettings = estimateData.displaySettings || { showLabor: true, showMaterials: true, showEquipment: true, showTotal: true };
-      
+      // ========== COST BREAKDOWN TABLE ==========
+      // Check if we need a new page
+      if (headerY > 550) {
+        doc.addPage();
+        doc.rect(0, 0, doc.page.width, 4).fill(primaryColor);
+        headerY = 30;
+      }
+
+      const displaySettings = estimateData.displaySettings || {
+        showLabor: true,
+        showMaterials: true,
+        showEquipment: true,
+        showTotal: true
+      };
+
       if (displaySettings.showLabor || displaySettings.showMaterials || displaySettings.showEquipment) {
-        doc.fontSize(14).fillColor(primaryColor).text('Cost Breakdown', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(10).fillColor('#000');
-        
-        if (displaySettings.showLabor) {
-          doc.text(`Labor: ${estimateData.laborHours} hours @ $${estimateData.laborRate}/hr = $${estimateData.laborCost.toLocaleString()}`);
-        }
-        if (displaySettings.showMaterials) {
-          doc.text(`Materials: $${estimateData.materialCost.toLocaleString()}`);
-        }
-        if (displaySettings.showEquipment) {
-          doc.text(`Equipment: $${estimateData.equipmentCost.toLocaleString()}`);
-        }
-        doc.moveDown(1);
-      }
-      // ========== END COST BREAKDOWN ==========
+        doc.fontSize(10).fillColor(primaryColor).font('Helvetica-Bold').text('COST BREAKDOWN', colLeftX, headerY);
+        doc.moveTo(colLeftX, headerY + 15).lineTo(562, headerY + 15).strokeColor(primaryColor).lineWidth(1.5).stroke();
+        headerY += 25;
 
-      // Total
-      doc.fontSize(18).fillColor(primaryColor);
-      doc.text(`TOTAL ESTIMATE: $${estimateData.totalCost.toLocaleString()}`, { align: 'right' });
-      doc.moveDown(2);
+        const tableX = colLeftX;
+        const tableWidth = 512;
+        const descWidth = 350;
+        const amountWidth = 162;
+        const rowHeight = 28;
+
+        // Table header
+        doc.roundedRect(tableX, headerY, tableWidth, rowHeight, 2).fill('#f5f5f5');
+        doc.fontSize(9).fillColor('#666666').font('Helvetica-Bold');
+        doc.text('Description', tableX + 15, headerY + 8, { width: descWidth });
+        doc.text('Amount', tableX + descWidth, headerY + 8, { width: amountWidth - 15, align: 'right' });
+        headerY += rowHeight;
+
+        // Table rows
+        doc.font('Helvetica').fillColor('#333333');
+        let isAlt = false;
+
+        const addRow = (label, amount) => {
+          if (isAlt) {
+            doc.rect(tableX, headerY, tableWidth, rowHeight).fill('#fafafa');
+          }
+          doc.fillColor('#333333').fontSize(9);
+          doc.text(label, tableX + 15, headerY + 8, { width: descWidth });
+          doc.text(`$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, tableX + descWidth, headerY + 8, { width: amountWidth - 15, align: 'right' });
+          // Row border
+          doc.moveTo(tableX, headerY + rowHeight).lineTo(tableX + tableWidth, headerY + rowHeight).strokeColor('#eeeeee').lineWidth(0.5).stroke();
+          headerY += rowHeight;
+          isAlt = !isAlt;
+        };
+
+        if (displaySettings.showMaterials) {
+          addRow('Materials', estimateData.materialCost);
+        }
+        if (displaySettings.showLabor) {
+          addRow(`Labor (${estimateData.laborHours} hrs @ $${estimateData.laborRate}/hr)`, estimateData.laborCost);
+        }
+        if (displaySettings.showEquipment && estimateData.equipmentCost > 0) {
+          addRow('Equipment', estimateData.equipmentCost);
+        }
+
+        headerY += 5;
+      }
+
+      // ========== TOTAL BOX ==========
+      const totalBoxY = headerY + 5;
+      doc.roundedRect(310, totalBoxY, 252, 50, 4).fill(primaryColor);
+      doc.fontSize(10).fillColor('#ffffff').font('Helvetica').text(
+        'TOTAL ESTIMATE',
+        325, totalBoxY + 10,
+        { width: 222, align: 'left' }
+      );
+      doc.fontSize(20).fillColor('#ffffff').font('Helvetica-Bold').text(
+        `$${estimateData.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        325, totalBoxY + 25,
+        { width: 222, align: 'right' }
+      );
+
+      headerY = totalBoxY + 70;
+
+      // ========== TIMELINE ==========
+      if (estimateData.laborHours) {
+        const timelineDays = Math.ceil(estimateData.laborHours / 8);
+        doc.fontSize(9).fillColor('#888888').font('Helvetica').text(
+          `Estimated timeline: ${timelineDays} working day${timelineDays > 1 ? 's' : ''}`,
+          colLeftX, headerY,
+          { align: 'right', width: 512 }
+        );
+        headerY += 20;
+      }
 
       // ========== DISCLAIMER ==========
-      doc.moveDown(1);
-      doc.fontSize(8).fillColor('#888');
-      doc.text(
-        'ESTIMATE ONLY — Actual prices may vary ±10-15% depending on site conditions, material availability, and seasonal factors. Final pricing confirmed after on-site assessment. This estimate is valid for 30 days.',
-        { align: 'center', width: 500 }
+      // Push to bottom of page if space allows
+      const disclaimerY = Math.max(headerY + 20, doc.page.height - 120);
+
+      doc.moveTo(50, disclaimerY).lineTo(562, disclaimerY).strokeColor('#e0e0e0').lineWidth(0.5).stroke();
+
+      doc.fontSize(7).fillColor('#aaaaaa').font('Helvetica').text(
+        'ESTIMATE DISCLAIMER: Actual prices may vary ±10-15% depending on site conditions, material availability, and seasonal factors. Final pricing confirmed after on-site assessment. This estimate is valid for 30 days from the date issued.',
+        50, disclaimerY + 10,
+        { align: 'center', width: 512, lineGap: 2 }
       );
-      // ========== END DISCLAIMER ==========
+
+      // ========== POWERED BY FOOTER ==========
+      doc.fontSize(7).fillColor('#cccccc').text(
+        'Powered by InstaBid.pro',
+        50, doc.page.height - 40,
+        { align: 'center', width: 512 }
+      );
 
       doc.end();
     } catch (error) {
@@ -2150,8 +2321,23 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
     
    // === EMAIL (non-blocking — estimate returns regardless) ===
     try {
+      const contractorBranding = {
+      companyName: contractor.company_name,
+      email: contractor.email,
+      phone: contractor.phone || '',
+      address: contractor.address || '',
+      city: contractor.city || '',
+      state: contractor.state || '',
+      zip: contractor.zip || '',
+      licenseNumber: contractor.license_number || '',
+      logoUrl: contractor.logo_url || '',
+      primaryColor: contractor.primary_color || '#0077b6',
+      secondaryColor: contractor.secondary_color || '#0077b6',
+      accentColor: contractor.accent_color || '#00b4d8'
+    };
       const pdfBuffer = await generateEstimatePDF({
-        id: estimateId,
+      contractorBranding,
+      id: estimateId,
         customerName: finalCustomerName,
         customerEmail: finalCustomerEmail,
         customerPhone: finalCustomerPhone,
