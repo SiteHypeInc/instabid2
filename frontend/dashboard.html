@@ -3427,8 +3427,11 @@ smtp_pass: document.getElementById('profile_smtp_pass').value !== '••••�
 // Load profile when Company Profile tab is clicked
 document.querySelector('[data-main="company-profile"]').addEventListener('click', function() {
   loadCompanyProfile();
-});</script>
+});
 
+// Auto-load on page load
+loadCompanyProfile();
+</script>
 
 <script>
 
