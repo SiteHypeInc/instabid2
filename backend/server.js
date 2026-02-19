@@ -3724,6 +3724,39 @@ app.post('/api/register', async (req, res) => {
     const contractor = result.rows[0];
     
     console.log('✅ New contractor registered:', contractor.email);
+
+    // Send notification email to admin
+try {
+  const nodemailer = require('nodemailer');
+  
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.NOTIFICATION_EMAIL,
+      pass: process.env.NOTIFICATION_EMAIL_PASSWORD
+    }
+  });
+  
+  await transporter.sendMail({
+    from: 'InstaBid <noreply@instabid.pro>',
+    to: process.env.ADMIN_EMAIL,
+    subject: '🎉 New Contractor Signup - ' + company_name,
+    html: `
+      <h2>New Contractor Registered!</h2>
+      <p><strong>Company:</strong> ${company_name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+      <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+      <hr>
+      <p><a href="https://instabid.pro/dashboard">View Dashboard</a></p>
+    `
+  });
+  
+  console.log('📧 Admin notification sent');
+} catch (emailError) {
+  console.error('⚠️ Failed to send admin notification:', emailError.message);
+  // Don't fail registration if email fails
+}
     
     res.json({
       success: true,
@@ -3992,7 +4025,19 @@ app.post('/api/import-snapshots', requireAuth, async (req, res) => {
   setImmediate(async () => {
     try {
       const { Pool } = require('pg');
-      const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+      
+      const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+  max: 10
+});
+
+// Handle pool errors so they don't crash the app
+pool.on('error', (err) => {
+  console.error('⚠️ Unexpected database pool error:', err.message);
+});
       
       const DEFAULT_REGION = 'National';
       
