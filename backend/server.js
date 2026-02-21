@@ -3725,38 +3725,33 @@ app.post('/api/register', async (req, res) => {
     
     console.log('✅ New contractor registered:', contractor.email);
 
-    // Send notification email to admin
-try {
-  const nodemailer = require('nodemailer');
-  
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.NOTIFICATION_EMAIL,
-      pass: process.env.NOTIFICATION_EMAIL_PASSWORD
-    }
-  });
-  
-  await transporter.sendMail({
-    from: 'InstaBid <noreply@instabid.pro>',
-    to: process.env.ADMIN_EMAIL,
-    subject: '🎉 New Contractor Signup - ' + company_name,
-    html: `
-      <h2>New Contractor Registered!</h2>
-      <p><strong>Company:</strong> ${company_name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-      <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-      <hr>
-      <p><a href="https://instabid.pro/dashboard">View Dashboard</a></p>
-    `
-  });
-  
+  // Send notification email to admin (non-blocking)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.NOTIFICATION_EMAIL,
+    pass: process.env.NOTIFICATION_EMAIL_PASSWORD
+  }
+});
+
+transporter.sendMail({
+  from: 'InstaBid <noreply@instabid.pro>',
+  to: process.env.ADMIN_EMAIL,
+  subject: '🎉 New Contractor Signup - ' + company_name,
+  html: `
+    <h2>New Contractor Registered!</h2>
+    <p><strong>Company:</strong> ${company_name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+    <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+    <hr>
+    <p><a href="[https://instabid.pro/dashboard">View](https://instabid.pro/dashboard">View) Dashboard</a></p>
+  `
+}).then(() => {
   console.log('📧 Admin notification sent');
-} catch (emailError) {
-  console.error('⚠️ Failed to send admin notification:', emailError.message);
-  // Don't fail registration if email fails
-}
+}).catch(err => {
+  console.error('⚠️ Failed to send admin notification:', err.message);
+});
     
     res.json({
       success: true,
