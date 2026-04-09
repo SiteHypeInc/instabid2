@@ -342,10 +342,71 @@ async function initDatabase() {
     `);
 
     await pool.query(`
-      ALTER TABLE estimates 
+      ALTER TABLE estimates
       ADD COLUMN IF NOT EXISTS contractor_id INT
     `);
-    
+
+    // contractors + contractor_sessions (staging seed — safe IF NOT EXISTS guards for prod)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS contractors (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        company_name VARCHAR(255) NOT NULL,
+        phone VARCHAR(50),
+        api_key VARCHAR(255) UNIQUE,
+        subscription_status VARCHAR(50) DEFAULT 'trial',
+        tax_rate DECIMAL(5,2) DEFAULT 0.00,
+        pricing_config JSONB,
+        default_markup DECIMAL(5,2) DEFAULT 0.00,
+        labor_rate_override DECIMAL(10,2),
+        estimate_display VARCHAR(50) DEFAULT 'detailed',
+        logo_url TEXT,
+        primary_color VARCHAR(20),
+        secondary_color VARCHAR(20),
+        accent_color VARCHAR(20),
+        address TEXT,
+        city VARCHAR(100),
+        state VARCHAR(2),
+        zip VARCHAR(10),
+        license_number VARCHAR(100),
+        google_refresh_token TEXT,
+        google_calendar_id VARCHAR(255),
+        last_calendar_sync TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS contractor_sessions (
+        id SERIAL PRIMARY KEY,
+        contractor_id INTEGER REFERENCES contractors(id) ON DELETE CASCADE,
+        session_token VARCHAR(255) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS contractor_pricing (
+        id SERIAL PRIMARY KEY,
+        contractor_id INTEGER REFERENCES contractors(id) ON DELETE CASCADE,
+        trade VARCHAR(50) NOT NULL,
+        pricing_key VARCHAR(100) NOT NULL,
+        value DECIMAL(10,2),
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(contractor_id, trade, pricing_key)
+      );
+    `);
+
+    // Seed test contractor for staging
+    await pool.query(`
+      INSERT INTO contractors (email, password_hash, company_name, api_key, subscription_status)
+      VALUES (
+        'john@sitehypedesigns.com',
+        '$2b$10$placeholder_hash_for_staging_only',
+        'John Dudley Contracting (Staging)',
+        'ib_5cb8c96a3c4ba27ea691eb8516260ce3847a9a438487412f74030ffa576730a4',
+        'pro'
+      )
+      ON CONFLICT (email) DO NOTHING;
+    `);
+
     console.log('✅ Database tables initialized');
   } catch (error) {
     console.error('❌ Database initialization error:', error);
