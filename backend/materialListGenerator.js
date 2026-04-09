@@ -680,6 +680,7 @@ case 'plumbing': {
     garbageDisposal = 'no',
     iceMaker = 'no',
     waterSoftener = 'no',
+    dishwasherHookup = 'no',
     toiletCount = 0,
     sinkCount = 0,
     faucetCount = 0,
@@ -854,10 +855,47 @@ case 'plumbing': {
       laborHours += 6 * tubShowerCount;
     }
     
+    // Add-on flags work alongside fixture counts in the same job
+    if (garbageDisposal === 'yes') {
+      materialList.push({
+        item: 'Garbage Disposal Installation',
+        quantity: 1,
+        unit: 'unit',
+        unitCost: 325,
+        totalCost: 325,
+        category: 'Add-ons'
+      });
+      laborHours += 1.5;
+    }
+
+    if (iceMaker === 'yes') {
+      materialList.push({
+        item: 'Ice Maker Line Installation',
+        quantity: 1,
+        unit: 'line',
+        unitCost: 150,
+        totalCost: 150,
+        category: 'Add-ons'
+      });
+      laborHours += 1;
+    }
+
+    if (dishwasherHookup === 'yes') {
+      materialList.push({
+        item: 'Dishwasher Hookup',
+        quantity: 1,
+        unit: 'hookup',
+        unitCost: 200,
+        totalCost: 200,
+        category: 'Add-ons'
+      });
+      laborHours += 2;
+    }
+
     laborHours *= accessMult;
     laborHours = Math.max(laborHours, 2);
   }
-  
+
   // ========== GENERAL ==========
   else {
     materialList.push({
