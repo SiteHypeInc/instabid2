@@ -2320,8 +2320,30 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
     const taxAmount = estimate.totalCost * (taxRate / 100);
     const totalWithTax = estimate.totalCost * (1 + taxRate / 100);
 
-    
-   
+    // Quote-only short-circuit: skip DB insert, PDF generation, email send.
+    // Used by InstaBid Live AI agent for mid-call price probes so we don't
+    // spam the contractor's dashboard / customer inbox.
+    if (req.body.quote_only === true) {
+      console.log(`📞 quote_only mode: returning estimate without persisting`);
+      return res.json({
+        success: true,
+        quote_only: true,
+        estimate: {
+          trade,
+          totalCost: estimate.totalCost,
+          materialCost: estimate.materialCost,
+          laborCost: estimate.laborCost,
+          laborHours: estimate.laborHours,
+          equipmentCost: estimate.equipmentCost || 0,
+          taxRate,
+          taxAmount,
+          totalWithTax,
+          regionalMultiplier,
+          msa
+        },
+        materialList: materialListResult.materialList
+      });
+    }
 
     const insertQuery = `
       INSERT INTO estimates (
