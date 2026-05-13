@@ -1489,6 +1489,56 @@ case 'drywall':{
       equipmentCost = 200 + (sidingStories >= 2 ? 150 : 0);
       break;
 
+    // ========== COUNTERTOPS ==========
+    case 'countertops': {
+      const counterSqft = parseFloat(data.squareFeet || data.counterSqft) || 0;
+      const counterType = (data.countertopType || data.material || 'granite').toLowerCase();
+      const edgeProfile = (data.edgeProfile || 'eased').toLowerCase();
+      const sinkCutouts = parseInt(data.sinkCutouts) || 0;
+      const cooktopCutouts = parseInt(data.cooktopCutouts) || 0;
+      const backsplashSqft = parseFloat(data.backsplashSqft) || 0;
+      const counterRemoval = data.removal === 'yes' || data.removal === true;
+      const linearFeet = parseFloat(data.linearFeet) || Math.max(counterSqft / 2, 0);
+
+      // Installed-material rates per sqft (slab + fabrication), pre-regional.
+      const counterMaterialRates = {
+        'laminate': 20,
+        'butcher_block': 40,
+        'tile': 25,
+        'corian': 50,
+        'solid_surface': 50,
+        'granite': 45,
+        'soapstone': 70,
+        'marble': 65,
+        'quartz': 55,
+        'quartzite': 75
+      };
+      const matRate = counterMaterialRates[counterType] || 45;
+      materialCost = (counterSqft + backsplashSqft) * matRate * 1.10; // 10% waste
+
+      // Edge profile per linear foot
+      const edgeRates = { 'eased': 0, 'beveled': 5, 'bullnose': 8, 'ogee': 15, 'waterfall': 25 };
+      materialCost += linearFeet * (edgeRates[edgeProfile] || 0);
+
+      // Cutouts (material/template charge)
+      materialCost += sinkCutouts * 125;
+      materialCost += cooktopCutouts * 175;
+
+      // Labor: ~0.25 install hrs per finished sqft + cutout/edge/backsplash labor
+      laborHours = (counterSqft + backsplashSqft) * 0.25;
+      laborHours += sinkCutouts * 0.5;
+      laborHours += cooktopCutouts * 0.75;
+      laborHours += linearFeet * 0.05; // edge work
+      if (counterRemoval) {
+        materialCost += 75; // disposal
+        laborHours += counterSqft * 0.1;
+      }
+
+      materialCost *= regionalMultiplier;
+      equipmentCost = 150; // dollies, suction handles, polishing pads
+      break;
+    }
+
     // ========== DEFAULT ==========
     default:
       console.warn(`⚠️ Unknown trade: ${trade} - using generic calculation`);
@@ -2270,8 +2320,30 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
     const taxAmount = estimate.totalCost * (taxRate / 100);
     const totalWithTax = estimate.totalCost * (1 + taxRate / 100);
 
-    
-   
+    // Quote-only short-circuit: skip DB insert, PDF generation, email send.
+    // Used by InstaBid Live AI agent for mid-call price probes so we don't
+    // spam the contractor's dashboard / customer inbox.
+    if (req.body.quote_only === true) {
+      console.log(`📞 quote_only mode: returning estimate without persisting`);
+      return res.json({
+        success: true,
+        quote_only: true,
+        estimate: {
+          trade,
+          totalCost: estimate.totalCost,
+          materialCost: estimate.materialCost,
+          laborCost: estimate.laborCost,
+          laborHours: estimate.laborHours,
+          equipmentCost: estimate.equipmentCost || 0,
+          taxRate,
+          taxAmount,
+          totalWithTax,
+          regionalMultiplier,
+          msa
+        },
+        materialList: materialListResult.materialList
+      });
+    }
 
     const insertQuery = `
       INSERT INTO estimates (
