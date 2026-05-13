@@ -2238,6 +2238,122 @@ case 'drywall': {
   };
 }
 
+    // ============================================
+    // COUNTERTOPS
+    // ============================================
+    case 'countertops': {
+      const {
+        squareFeet = 0,
+        countertopType = 'granite',
+        edgeProfile = 'eased',
+        sinkCutouts = 0,
+        cooktopCutouts = 0,
+        backsplashSqft = 0,
+        linearFeet,
+        removal = false
+      } = criteria;
+
+      const getPrice = (key, def) => pricingConfig.countertops?.[key] ?? def;
+
+      const materialRates = {
+        'laminate': getPrice('counter_laminate', 20),
+        'butcher_block': getPrice('counter_butcher_block', 40),
+        'tile': getPrice('counter_tile', 25),
+        'corian': getPrice('counter_corian', 50),
+        'solid_surface': getPrice('counter_corian', 50),
+        'granite': getPrice('counter_granite', 45),
+        'soapstone': getPrice('counter_soapstone', 70),
+        'marble': getPrice('counter_marble', 65),
+        'quartz': getPrice('counter_quartz', 55),
+        'quartzite': getPrice('counter_quartzite', 75)
+      };
+      const matRate = materialRates[countertopType.toLowerCase()] || materialRates.granite;
+      const slabSqft = squareFeet + backsplashSqft;
+      const adjustedSqft = slabSqft * 1.10; // 10% waste
+
+      const materialList = [];
+      materialList.push({
+        item: `${countertopType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Countertop`,
+        quantity: Math.ceil(adjustedSqft),
+        unit: 'sqft',
+        unitCost: matRate,
+        totalCost: adjustedSqft * matRate,
+        category: 'countertop_material'
+      });
+
+      const lf = linearFeet || Math.max(squareFeet / 2, 0);
+      const edgeRates = {
+        'eased': getPrice('counter_edge_eased', 0),
+        'beveled': getPrice('counter_edge_beveled', 5),
+        'bullnose': getPrice('counter_edge_bullnose', 8),
+        'ogee': getPrice('counter_edge_ogee', 15),
+        'waterfall': getPrice('counter_edge_waterfall', 25)
+      };
+      const edgeRate = edgeRates[edgeProfile.toLowerCase()] ?? 0;
+      if (edgeRate > 0 && lf > 0) {
+        materialList.push({
+          item: `${edgeProfile} Edge Profile`,
+          quantity: lf,
+          unit: 'linear feet',
+          unitCost: edgeRate,
+          totalCost: lf * edgeRate,
+          category: 'fabrication'
+        });
+      }
+
+      if (sinkCutouts > 0) {
+        const cutoutCost = getPrice('counter_sink_cutout', 125);
+        materialList.push({
+          item: 'Sink Cutout',
+          quantity: sinkCutouts,
+          unit: 'each',
+          unitCost: cutoutCost,
+          totalCost: sinkCutouts * cutoutCost,
+          category: 'fabrication'
+        });
+      }
+      if (cooktopCutouts > 0) {
+        const cooktopCost = getPrice('counter_cooktop_cutout', 175);
+        materialList.push({
+          item: 'Cooktop Cutout',
+          quantity: cooktopCutouts,
+          unit: 'each',
+          unitCost: cooktopCost,
+          totalCost: cooktopCutouts * cooktopCost,
+          category: 'fabrication'
+        });
+      }
+      if (removal) {
+        const removalCost = getPrice('counter_removal', 75);
+        materialList.push({
+          item: 'Existing Counter Removal',
+          quantity: 1,
+          unit: 'job',
+          unitCost: removalCost,
+          totalCost: removalCost,
+          category: 'removal'
+        });
+      }
+
+      // Labor: 0.25 hrs/sqft install + cutouts + edge + removal
+      let laborHours = slabSqft * 0.25;
+      laborHours += sinkCutouts * 0.5;
+      laborHours += cooktopCutouts * 0.75;
+      laborHours += lf * 0.05;
+      if (removal) laborHours += squareFeet * 0.1;
+
+      const totalMaterialCost = materialList.reduce(
+        (sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0
+      );
+
+      return {
+        trade: 'countertops',
+        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+        laborHours: Math.round(laborHours * 100) / 100,
+        materialList
+      };
+    }
+
  default:
       return {
         trade: trade,
