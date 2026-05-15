@@ -867,12 +867,37 @@ async function calculateTradeEstimate(trade, data, hourlyRate, state, msa, contr
       
    // ========== PAINTING - SYNCED WITH FORM & DASHBOARD ==========
   case 'painting':{
+  // Compact-payload shim for AI/voice-tool callers that send {surface, paintArea,
+  // colorChange} instead of the form's {paintType, squareFeet, colorChangeDramatic}.
+  // Kicks in only when the canonical fields are absent so the contractor form
+  // contract is unaffected.
+  if (!data.paintType && data.surface) {
+    const s = String(data.surface).toLowerCase();
+    if (s === 'exterior_siding') data.paintType = 'exterior';
+    else if (s.startsWith('interior') || s === 'cabinets') data.paintType = 'interior';
+  }
+  if ((data.squareFeet === undefined || data.squareFeet === null || data.squareFeet === 0 || data.squareFeet === '0') && data.paintArea) {
+    data.squareFeet = data.paintArea;
+  }
+  if ((data.squareFeet === undefined || data.squareFeet === null || data.squareFeet === 0 || data.squareFeet === '0') && data.rooms) {
+    data.squareFeet = parseInt(data.rooms) * 380;
+  }
+  if (data.colorChangeDramatic === undefined && data.colorChange === 'dark_to_light') {
+    data.colorChangeDramatic = 'yes';
+  }
+  if (data.surface === 'interior_ceiling' && data.includeCeilings === undefined) {
+    data.includeCeilings = 'yes';
+  }
+  if (data.surface === 'interior_trim' && data.trimLinearFeet === undefined && data.squareFeet) {
+    data.trimLinearFeet = Math.max(40, parseFloat(data.squareFeet) * 0.2);
+  }
+
   const paintSqft = parseFloat(data.squareFeet) || 0;
   const paintType = (data.paintType || 'exterior').toLowerCase();
   const stories = parseInt(data.stories) || 1;
   const coats = parseInt(data.coats) || 2;
   const rooms = parseInt(data.rooms) || 1;
-  
+
   // Boolean/option fields
   const includeCeilings = data.includeCeilings === 'yes';
   const trimLinearFeet = parseFloat(data.trimLinearFeet) || 0;
