@@ -1245,13 +1245,102 @@ case 'electrical': {
     // ========== PLUMBING - CALIBRATED ==========
     // ========== PLUMBING - CALIBRATED ==========
 case 'plumbing':
+  // Aliases reconcile Gemini Live tool enum names with the issue's spec names.
+  const PLUMB_SCOPE_ALIAS = {
+    rough_in: 'rough_in_new',
+    water_heater: 'water_heater_replace',
+    drain_line: 'drain_line',
+    supply_line: 'supply_line',
+  };
+  const rawPlumbScope = (data.scope || '').toLowerCase();
+  const plumbScope = PLUMB_SCOPE_ALIAS[rawPlumbScope] || rawPlumbScope;
   const plumbServiceType = (data.plumbingType || data.serviceType || data.workType || 'fixture').toLowerCase();
   const fixtureType = (data.fixtureType || 'toilet').toLowerCase();
   const plumbFixtureCount = parseInt(data.fixtureCount || data.fixtures) || 1;
   const plumbSqft = parseFloat(data.squareFootage || data.squareFeet) || 0;
   const waterHeaterType = (data.waterHeaterType || data.heaterType || (data.tankless === 'yes' ? 'tankless' : 'tank')).toLowerCase();
 
-      if (plumbServiceType === 'fixture') {
+      // TEA-825: scope-based curves. When `scope` is provided, branch on it and
+      // skip the legacy plumbingType/serviceType flow so distinct scopes yield
+      // distinct totals.
+      if (plumbScope === 'fixture_replace') {
+        // Replace existing fixture(s) in place — no supply/drain rerouting.
+        const fixtureCosts = {
+          'toilet':         getPrice('plumbing', 'plumb_toilet'),
+          'sink':           getPrice('plumbing', 'plumb_sink_bath'),
+          'sink_bath':      getPrice('plumbing', 'plumb_sink_bath'),
+          'sink_kitchen':   getPrice('plumbing', 'plumb_sink_kitchen'),
+          'faucet':         getPrice('plumbing', 'plumb_faucet_bath'),
+          'faucet_bath':    getPrice('plumbing', 'plumb_faucet_bath'),
+          'faucet_kitchen': getPrice('plumbing', 'plumb_faucet_kitchen'),
+          'shower':         getPrice('plumbing', 'plumb_shower_valve'),
+          'tub':            getPrice('plumbing', 'plumb_tub'),
+          'dishwasher':     getPrice('plumbing', 'plumb_dishwasher'),
+          'disposal':       getPrice('plumbing', 'plumb_garbage_disposal'),
+        };
+        const laborPerFixture = {
+          'toilet': 2, 'sink': 2, 'sink_bath': 2, 'sink_kitchen': 2.5,
+          'faucet': 1.5, 'faucet_bath': 1.5, 'faucet_kitchen': 1.5,
+          'shower': 3, 'tub': 4, 'dishwasher': 2, 'disposal': 1.5,
+        };
+        materialCost = (fixtureCosts[fixtureType] || 400) * plumbFixtureCount + 75;
+        laborHours = (laborPerFixture[fixtureType] || 2) * plumbFixtureCount;
+      } else if (plumbScope === 'sink_relocate') {
+        // Relocate a sink — extend/move supply + drain lines.
+        const relocateInches = parseFloat(data.relocateDistance || data.relocateInches || 16);
+        const relocateFeet = Math.max(1, relocateInches / 12);
+        const sinkBase = (fixtureType.startsWith('sink_kitchen') || fixtureType === 'kitchen')
+          ? getPrice('plumbing', 'plumb_sink_kitchen')
+          : getPrice('plumbing', 'plumb_sink_bath');
+        // Materials: replacement sink + pipe/fitting cost per linear foot of relocation + supplies.
+        materialCost = sinkBase + relocateFeet * 18 + 150;
+        // Labor: 4 hr setup + 1.5 hr per linear foot of relocation (cut, route, test).
+        laborHours = 4 + relocateFeet * 1.5;
+      } else if (plumbScope === 'rough_in_new') {
+        // Brand-new rough-in (new fixture locations, no fixture install yet).
+        const stubCount = parseInt(data.stubCount || data.fixtureCount || data.roughInCount) || 1;
+        // Materials: supply + DWV pipe, fittings, vent, hangers per stub + setup supplies.
+        materialCost = stubCount * 250 + 200;
+        // Labor: 6 hr per stub-out (route + vent + test) + 2 hr setup.
+        laborHours = stubCount * 6 + 2;
+      } else if (plumbScope === 'drain_repair') {
+        const severity = (data.severity || data.drainSeverity || 'minor').toLowerCase();
+        if (severity === 'extensive' || severity === 'major') {
+          materialCost = 250;
+          laborHours = 6;
+        } else if (severity === 'moderate') {
+          materialCost = 150;
+          laborHours = 3;
+        } else {
+          materialCost = 75;
+          laborHours = 1.5;
+        }
+      } else if (plumbScope === 'drain_line' || plumbScope === 'supply_line') {
+        // Linear-foot drain or supply line run (matches Gemini Live tool args).
+        const linearFeet = parseFloat(data.linearFeet || data.lineFeet) || 10;
+        if (plumbScope === 'drain_line') {
+          // Larger pipe, more labor than supply.
+          materialCost = linearFeet * 12 + 75;
+          laborHours = linearFeet * 0.5 + 1.5;
+        } else {
+          materialCost = linearFeet * 6 + 50;
+          laborHours = linearFeet * 0.35 + 1;
+        }
+      } else if (plumbScope === 'water_heater_replace') {
+        const heaterCapacity = parseInt(data.heaterCapacity || data.capacityGallons) || 50;
+        if (waterHeaterType === 'tankless') {
+          const heaterFuel = (data.heaterFuel || data.fuel || 'gas').toLowerCase();
+          materialCost = heaterFuel === 'electric'
+            ? getPrice('plumbing', 'plumb_heater_tankless_elec') + 200
+            : getPrice('plumbing', 'plumb_heater_tankless_gas') + 200;
+          laborHours = 12;
+        } else {
+          materialCost = (heaterCapacity >= 50
+            ? getPrice('plumbing', 'plumb_heater_tank_50')
+            : getPrice('plumbing', 'plumb_heater_tank_40')) + 150;
+          laborHours = 8;
+        }
+      } else if (plumbServiceType === 'fixture') {
         const fixtureCosts = { 
           'toilet': getPrice('plumbing', 'plumb_toilet'), 
           'sink': getPrice('plumbing', 'plumb_sink'), 
