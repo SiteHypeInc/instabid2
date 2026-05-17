@@ -2354,6 +2354,78 @@ case 'drywall': {
       };
     }
 
+    case 'cabinets': {
+      const {
+        linearFeet = 0,
+        tier = 'stock',
+        material = 'oak',
+        doorStyle = 'shaker',
+        crown = false
+      } = criteria;
+
+      const getPrice = (key, def) => pricingConfig.cabinets?.[key] ?? def;
+
+      const tierRates = {
+        'stock':       { material: getPrice('cab_stock_per_lf', 250),       laborHoursPerLf: 1.5 },
+        'semi_custom': { material: getPrice('cab_semi_custom_per_lf', 450), laborHoursPerLf: 2.0 },
+        'custom':      { material: getPrice('cab_custom_per_lf', 700),      laborHoursPerLf: 2.5 }
+      };
+      const tierKey = (tier || 'stock').toLowerCase();
+      const tierRate = tierRates[tierKey] || tierRates.stock;
+
+      const materialMult = {
+        'mdf': 0.85, 'birch': 0.95, 'oak': 1.0,
+        'maple': 1.05, 'cherry': 1.15, 'walnut': 1.3
+      }[(material || 'oak').toLowerCase()] || 1.0;
+
+      const doorMult = {
+        'flat': 0.95, 'shaker': 1.0, 'raised': 1.1
+      }[(doorStyle || 'shaker').toLowerCase()] || 1.0;
+
+      const lf = parseFloat(linearFeet) || 0;
+      const crownOn = crown === true || crown === 'true' || crown === 'yes';
+
+      const titleCase = (s) => String(s).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const cabRate = tierRate.material * materialMult * doorMult;
+      const adjustedLf = lf * 1.10; // 10% waste
+
+      const materialList = [];
+      materialList.push({
+        item: `${titleCase(tierKey)} ${titleCase(material)} ${titleCase(doorStyle)} Cabinets`,
+        quantity: Math.ceil(adjustedLf * 10) / 10,
+        unit: 'linear feet',
+        unitCost: Math.round(cabRate * 100) / 100,
+        totalCost: adjustedLf * cabRate,
+        category: 'cabinet_material'
+      });
+
+      let laborHours = lf * tierRate.laborHoursPerLf;
+
+      if (crownOn) {
+        const crownRate = getPrice('cab_crown_lf', 6.5);
+        materialList.push({
+          item: 'Cabinet Crown Molding',
+          quantity: lf,
+          unit: 'linear feet',
+          unitCost: crownRate,
+          totalCost: lf * crownRate,
+          category: 'cabinet_trim'
+        });
+        laborHours += lf * 0.1;
+      }
+
+      const totalMaterialCost = materialList.reduce(
+        (sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0
+      );
+
+      return {
+        trade: 'cabinets',
+        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+        laborHours: Math.round(laborHours * 100) / 100,
+        materialList
+      };
+    }
+
  default:
       return {
         trade: trade,
