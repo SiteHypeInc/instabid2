@@ -1564,6 +1564,44 @@ case 'drywall':{
       break;
     }
 
+    case 'cabinets': {
+      const linearFeet = parseFloat(data.linearFeet) || 0;
+      const tier = (data.tier || 'stock').toLowerCase();
+      const material = (data.material || 'oak').toLowerCase();
+      const doorStyle = (data.doorStyle || 'shaker').toLowerCase();
+      const crown = data.crown === true || data.crown === 'true' || data.crown === 'yes';
+
+      // Per-LF base rate (oak shaker baseline), tier-scaled. Combined
+      // base+wall typical kitchen run.
+      const tierRates = {
+        'stock':       { material: 250, laborHoursPerLf: 1.5 },
+        'semi_custom': { material: 450, laborHoursPerLf: 2.0 },
+        'custom':      { material: 700, laborHoursPerLf: 2.5 }
+      };
+      const tierRate = tierRates[tier] || tierRates.stock;
+
+      const materialMult = {
+        'mdf': 0.85, 'birch': 0.95, 'oak': 1.0,
+        'maple': 1.05, 'cherry': 1.15, 'walnut': 1.3
+      }[material] || 1.0;
+
+      const doorMult = {
+        'flat': 0.95, 'shaker': 1.0, 'raised': 1.1
+      }[doorStyle] || 1.0;
+
+      materialCost = linearFeet * tierRate.material * materialMult * doorMult * 1.10; // 10% waste
+      laborHours = linearFeet * tierRate.laborHoursPerLf;
+
+      if (crown) {
+        materialCost += linearFeet * 6.5;          // crown molding $/LF
+        laborHours   += linearFeet * 0.1;          // crown install hrs/LF
+      }
+
+      materialCost *= regionalMultiplier;
+      equipmentCost = 100; // levels, shims, clamps, finish hardware allowance
+      break;
+    }
+
     // ========== DEFAULT ==========
     default:
       console.warn(`⚠️ Unknown trade: ${trade} - using generic calculation`);
