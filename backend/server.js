@@ -1245,7 +1245,15 @@ case 'electrical': {
     // ========== PLUMBING - CALIBRATED ==========
     // ========== PLUMBING - CALIBRATED ==========
 case 'plumbing':
-  const plumbScope = (data.scope || '').toLowerCase();
+  // Aliases reconcile Gemini Live tool enum names with the issue's spec names.
+  const PLUMB_SCOPE_ALIAS = {
+    rough_in: 'rough_in_new',
+    water_heater: 'water_heater_replace',
+    drain_line: 'drain_line',
+    supply_line: 'supply_line',
+  };
+  const rawPlumbScope = (data.scope || '').toLowerCase();
+  const plumbScope = PLUMB_SCOPE_ALIAS[rawPlumbScope] || rawPlumbScope;
   const plumbServiceType = (data.plumbingType || data.serviceType || data.workType || 'fixture').toLowerCase();
   const fixtureType = (data.fixtureType || 'toilet').toLowerCase();
   const plumbFixtureCount = parseInt(data.fixtureCount || data.fixtures) || 1;
@@ -1306,6 +1314,17 @@ case 'plumbing':
         } else {
           materialCost = 75;
           laborHours = 1.5;
+        }
+      } else if (plumbScope === 'drain_line' || plumbScope === 'supply_line') {
+        // Linear-foot drain or supply line run (matches Gemini Live tool args).
+        const linearFeet = parseFloat(data.linearFeet || data.lineFeet) || 10;
+        if (plumbScope === 'drain_line') {
+          // Larger pipe, more labor than supply.
+          materialCost = linearFeet * 12 + 75;
+          laborHours = linearFeet * 0.5 + 1.5;
+        } else {
+          materialCost = linearFeet * 6 + 50;
+          laborHours = linearFeet * 0.35 + 1;
         }
       } else if (plumbScope === 'water_heater_replace') {
         const heaterCapacity = parseInt(data.heaterCapacity || data.capacityGallons) || 50;
