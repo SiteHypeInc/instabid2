@@ -2356,10 +2356,13 @@ try {
 
     const contractor_id = contractor.id;
 
-    const finalCustomerName = customerName || customer_name || req.body.name;
-    const finalCustomerEmail = customerEmail || customer_email || req.body.email;
+    // Defaults below are sentinels for the InstaBid Live walk-session sink,
+    // which doesn't always supply customer fields. Required-NOT-NULL columns
+    // must receive a non-empty value or the INSERT blows up.
+    const finalCustomerName = customerName || customer_name || req.body.name || 'InstaBid Live Customer';
+    const finalCustomerEmail = customerEmail || customer_email || req.body.email || (contractor && contractor.email) || 'noreply@instabid.local';
     const finalCustomerPhone = customerPhone || customer_phone || req.body.phone || '';
-    const finalPropertyAddress = propertyAddress || address || '';
+    const finalPropertyAddress = propertyAddress || address || 'Address not provided';
     
     console.log(`📋 Customer: ${finalCustomerName}, Trade: ${trade}`);
     console.log(`📍 Location: ${city}, ${state} ${finalZipCode}`);
