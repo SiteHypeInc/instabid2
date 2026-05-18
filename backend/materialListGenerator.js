@@ -694,10 +694,119 @@ case 'plumbing': {
   // Access multiplier
   const accessMultipliers = { 'basement': 1.0, 'crawlspace': 1.15, 'slab': 1.35 };
   const accessMult = accessMultipliers[accessType] || 1.0;
-  
+
   // Location multiplier
   const locationMultipliers = { 'garage': 1.0, 'basement': 1.0, 'closet': 1.1, 'attic': 1.25 };
   const locationMult = locationMultipliers[waterHeaterLocation] || 1.0;
+
+  // Plumbing default prices (mirror server.js defaults)
+  const PLUMB_PRICES = {
+    plumb_toilet: (pricingConfig.plumbing?.plumb_toilet) ?? 375,
+    plumb_sink_bath: (pricingConfig.plumbing?.plumb_sink_bath) ?? 350,
+    plumb_sink_kitchen: (pricingConfig.plumbing?.plumb_sink_kitchen) ?? 550,
+    plumb_faucet_bath: (pricingConfig.plumbing?.plumb_faucet_bath) ?? 225,
+    plumb_faucet_kitchen: (pricingConfig.plumbing?.plumb_faucet_kitchen) ?? 300,
+    plumb_shower_valve: (pricingConfig.plumbing?.plumb_shower_valve) ?? 450,
+    plumb_tub: (pricingConfig.plumbing?.plumb_tub) ?? 1200,
+    plumb_heater_tank_40: (pricingConfig.plumbing?.plumb_heater_tank_40) ?? 1200,
+    plumb_heater_tank_50: (pricingConfig.plumbing?.plumb_heater_tank_50) ?? 1600,
+    plumb_heater_tankless_gas: (pricingConfig.plumbing?.plumb_heater_tankless_gas) ?? 3500,
+    plumb_heater_tankless_elec: (pricingConfig.plumbing?.plumb_heater_tankless_elec) ?? 2200,
+  };
+
+  // TEA-825: scope-based branches — checked before legacy serviceType flow.
+  const PLUMB_SCOPE_ALIAS = {
+    rough_in: 'rough_in_new',
+    water_heater: 'water_heater_replace',
+    drain_line: 'drain_line',
+    supply_line: 'supply_line',
+  };
+  const rawScope = (criteria.scope || '').toLowerCase();
+  const plumbScope = PLUMB_SCOPE_ALIAS[rawScope] || rawScope;
+  const fixtureType = (criteria.fixtureType || 'toilet').toLowerCase();
+  const fixtureCount = parseInt(criteria.fixtureCount || criteria.fixtures) || 1;
+
+  if (plumbScope === 'fixture_replace') {
+    // Replace existing fixture(s) in place — no supply/drain rerouting.
+    const fixtureMaterialCosts = {
+      toilet: PLUMB_PRICES.plumb_toilet,
+      sink: PLUMB_PRICES.plumb_sink_bath,
+      sink_bath: PLUMB_PRICES.plumb_sink_bath,
+      sink_kitchen: PLUMB_PRICES.plumb_sink_kitchen,
+      faucet: PLUMB_PRICES.plumb_faucet_bath,
+      faucet_bath: PLUMB_PRICES.plumb_faucet_bath,
+      faucet_kitchen: PLUMB_PRICES.plumb_faucet_kitchen,
+      shower: PLUMB_PRICES.plumb_shower_valve,
+      tub: PLUMB_PRICES.plumb_tub,
+    };
+    const laborPerFixture = {
+      toilet: 2, sink: 2, sink_bath: 2, sink_kitchen: 2.5,
+      faucet: 1.5, faucet_bath: 1.5, faucet_kitchen: 1.5,
+      shower: 3, tub: 4,
+    };
+    const unitCost = fixtureMaterialCosts[fixtureType] || 400;
+    materialList.push({
+      item: `${fixtureType.replace(/_/g, ' ')} replacement`.replace(/\b\w/g, c => c.toUpperCase()),
+      quantity: fixtureCount,
+      unit: 'fixtures',
+      unitCost,
+      totalCost: unitCost * fixtureCount,
+      category: 'Fixtures',
+    });
+    materialList.push({ item: 'Supplies & Connections', quantity: 1, unit: 'set', unitCost: 75, totalCost: 75, category: 'Supplies' });
+    laborHours = (laborPerFixture[fixtureType] || 2) * fixtureCount;
+  } else if (plumbScope === 'sink_relocate') {
+    const relocateInches = parseFloat(criteria.relocateDistance || criteria.relocateInches || 16);
+    const relocateFeet = Math.max(1, relocateInches / 12);
+    const sinkBase = (fixtureType.startsWith('sink_kitchen') || fixtureType === 'kitchen')
+      ? PLUMB_PRICES.plumb_sink_kitchen
+      : PLUMB_PRICES.plumb_sink_bath;
+    const pipingCost = Math.round(relocateFeet * 18 * 100) / 100;
+    materialList.push({ item: 'Replacement Sink', quantity: 1, unit: 'unit', unitCost: sinkBase, totalCost: sinkBase, category: 'Fixtures' });
+    materialList.push({ item: 'Supply & Drain Extension', quantity: Math.round(relocateFeet * 10) / 10, unit: 'linear ft', unitCost: 18, totalCost: pipingCost, category: 'Pipe' });
+    materialList.push({ item: 'Fittings & Supplies', quantity: 1, unit: 'set', unitCost: 150, totalCost: 150, category: 'Supplies' });
+    laborHours = 4 + relocateFeet * 1.5;
+  } else if (plumbScope === 'rough_in_new') {
+    const stubCount = parseInt(criteria.stubCount || criteria.roughInCount || criteria.fixtureCount) || 1;
+    const perStub = 250;
+    materialList.push({ item: 'Supply & DWV Rough-In per Stub', quantity: stubCount, unit: 'stubs', unitCost: perStub, totalCost: perStub * stubCount, category: 'Pipe' });
+    materialList.push({ item: 'Setup Supplies (fittings, hangers, vent)', quantity: 1, unit: 'set', unitCost: 200, totalCost: 200, category: 'Supplies' });
+    laborHours = stubCount * 6 + 2;
+  } else if (plumbScope === 'drain_repair') {
+    const severity = (criteria.severity || criteria.drainSeverity || 'minor').toLowerCase();
+    let matCost, hrs;
+    if (severity === 'extensive' || severity === 'major') { matCost = 250; hrs = 6; }
+    else if (severity === 'moderate') { matCost = 150; hrs = 3; }
+    else { matCost = 75; hrs = 1.5; }
+    materialList.push({ item: `Drain Repair (${severity})`, quantity: 1, unit: 'job', unitCost: matCost, totalCost: matCost, category: 'Drain' });
+    laborHours = hrs;
+  } else if (plumbScope === 'drain_line') {
+    const linearFeet = parseFloat(criteria.linearFeet || criteria.lineFeet) || 10;
+    materialList.push({ item: 'Drain Line', quantity: linearFeet, unit: 'linear ft', unitCost: 12, totalCost: linearFeet * 12, category: 'Pipe' });
+    materialList.push({ item: 'Fittings & Supplies', quantity: 1, unit: 'set', unitCost: 75, totalCost: 75, category: 'Supplies' });
+    laborHours = linearFeet * 0.5 + 1.5;
+  } else if (plumbScope === 'supply_line') {
+    const linearFeet = parseFloat(criteria.linearFeet || criteria.lineFeet) || 10;
+    materialList.push({ item: 'Supply Line', quantity: linearFeet, unit: 'linear ft', unitCost: 6, totalCost: linearFeet * 6, category: 'Pipe' });
+    materialList.push({ item: 'Fittings & Supplies', quantity: 1, unit: 'set', unitCost: 50, totalCost: 50, category: 'Supplies' });
+    laborHours = linearFeet * 0.35 + 1;
+  } else if (plumbScope === 'water_heater_replace') {
+    const heaterCapacity = parseInt(criteria.heaterCapacity || criteria.capacityGallons) || 50;
+    const heaterFuel = (criteria.heaterFuel || criteria.fuel || 'gas').toLowerCase();
+    let unitCost, heaterName, hrs;
+    if (heaterType === 'tankless') {
+      unitCost = heaterFuel === 'electric' ? PLUMB_PRICES.plumb_heater_tankless_elec : PLUMB_PRICES.plumb_heater_tankless_gas;
+      heaterName = `Tankless Water Heater (${heaterFuel === 'electric' ? 'Electric' : 'Gas'})`;
+      hrs = 12;
+    } else {
+      unitCost = heaterCapacity >= 50 ? PLUMB_PRICES.plumb_heater_tank_50 : PLUMB_PRICES.plumb_heater_tank_40;
+      heaterName = `Tank Water Heater (${heaterCapacity} gal)`;
+      hrs = 8;
+    }
+    materialList.push({ item: heaterName, quantity: 1, unit: 'unit', unitCost, totalCost: unitCost, category: 'Water Heater' });
+    materialList.push({ item: 'Installation Supplies', quantity: 1, unit: 'set', unitCost: 200, totalCost: 200, category: 'Supplies' });
+    laborHours = hrs * locationMult;
+  } else {
 
   // ========== REPIPE ==========
   if (serviceType === 'repipe' && squareFeet > 0) {
@@ -968,7 +1077,8 @@ case 'plumbing': {
       laborHours += 4;
     }
   }
-  
+  } // end legacy serviceType block (no scope provided)
+
   // Labor line item
   materialList.push({
     item: `Plumbing Labor (${accessType} access)`,
