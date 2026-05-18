@@ -2426,6 +2426,106 @@ case 'drywall': {
       };
     }
 
+    case 'range_hood': {
+      const ventType = (criteria.ventType || 'recirculating').toLowerCase();
+      const cfmTier = String(criteria.cfmTier || '300');
+      const unitGrade = (criteria.unitGrade || 'builder').toLowerCase();
+
+      const getPrice = (key, def) => pricingConfig.range_hood?.[key] ?? def;
+
+      const unitCostTable = {
+        'builder': { '300': 180, '600': 300, '900': 500, '1200': 750 },
+        'mid':     { '300': 380, '600': 600, '900': 950, '1200': 1400 },
+        'pro':     { '300': 750, '600': 1200, '900': 1900, '1200': 2800 }
+      };
+      const gradeRow = unitCostTable[unitGrade] || unitCostTable.builder;
+      const unitCost = getPrice(`unit_${unitGrade}_${cfmTier}`, gradeRow[cfmTier] || gradeRow['300']);
+
+      const ventLaborHours = {
+        'recirculating': 2,
+        'ductless_makeup': 4,
+        'exterior_vented': 8
+      }[ventType] || 2;
+
+      const titleCase = (s) => String(s).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const materialList = [];
+
+      materialList.push({
+        item: `${titleCase(unitGrade)} Range Hood (${cfmTier} CFM)`,
+        quantity: 1,
+        unit: 'unit',
+        unitCost: unitCost,
+        totalCost: unitCost,
+        category: 'range_hood_unit'
+      });
+
+      if (ventType === 'exterior_vented') {
+        const ductCost = getPrice('ext_duct_kit', 280);
+        const capCost = getPrice('ext_wall_cap', 80);
+        materialList.push({
+          item: '8" Galvanized Duct + Strapping',
+          quantity: 1,
+          unit: 'kit',
+          unitCost: ductCost,
+          totalCost: ductCost,
+          category: 'range_hood_vent'
+        });
+        materialList.push({
+          item: 'Exterior Wall Cap + Flashing',
+          quantity: 1,
+          unit: 'each',
+          unitCost: capCost,
+          totalCost: capCost,
+          category: 'range_hood_vent'
+        });
+      } else if (ventType === 'ductless_makeup') {
+        const kitCost = getPrice('ductless_makeup_kit', 80);
+        materialList.push({
+          item: 'Recirc Filter + Makeup-Air Register Kit',
+          quantity: 1,
+          unit: 'kit',
+          unitCost: kitCost,
+          totalCost: kitCost,
+          category: 'range_hood_vent'
+        });
+      } else {
+        const filterCost = getPrice('recirc_filter_kit', 60);
+        materialList.push({
+          item: 'Recirculating Charcoal Filter Kit',
+          quantity: 1,
+          unit: 'kit',
+          unitCost: filterCost,
+          totalCost: filterCost,
+          category: 'range_hood_vent'
+        });
+      }
+
+      let laborHours = ventLaborHours;
+      if (ventType === 'exterior_vented' && parseInt(cfmTier, 10) >= 600) {
+        const makeupAirCost = getPrice('makeup_air_unit', 450);
+        materialList.push({
+          item: 'Powered Makeup-Air Damper Assembly',
+          quantity: 1,
+          unit: 'each',
+          unitCost: makeupAirCost,
+          totalCost: makeupAirCost,
+          category: 'range_hood_makeup_air'
+        });
+        laborHours += 2;
+      }
+
+      const totalMaterialCost = materialList.reduce(
+        (sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0
+      );
+
+      return {
+        trade: 'range_hood',
+        totalMaterialCost: Math.round(totalMaterialCost * 100) / 100,
+        laborHours: Math.round(laborHours * 100) / 100,
+        materialList
+      };
+    }
+
  default:
       return {
         trade: trade,

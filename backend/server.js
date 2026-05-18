@@ -1691,6 +1691,47 @@ case 'drywall':{
       break;
     }
 
+    case 'range_hood': {
+      const ventType = (data.ventType || 'recirculating').toLowerCase();
+      const cfmTier = String(data.cfmTier || '300');
+      const unitGrade = (data.unitGrade || 'builder').toLowerCase();
+
+      const unitCostTable = {
+        'builder': { '300': 180, '600': 300, '900': 500, '1200': 750 },
+        'mid':     { '300': 380, '600': 600, '900': 950, '1200': 1400 },
+        'pro':     { '300': 750, '600': 1200, '900': 1900, '1200': 2800 }
+      };
+      const gradeRow = unitCostTable[unitGrade] || unitCostTable.builder;
+      const unitCost = gradeRow[cfmTier] || gradeRow['300'];
+
+      // Vent path drives both labor and add-on materials.
+      const ventLaborHours = {
+        'recirculating': 2,
+        'ductless_makeup': 4,
+        'exterior_vented': 8
+      }[ventType] || 2;
+
+      const ventMaterial = {
+        'recirculating': 60,
+        'ductless_makeup': 80,
+        'exterior_vented': 360
+      }[ventType] || 60;
+
+      // Makeup-air upcharge: required by code in most jurisdictions when
+      // exhaust >= 400 CFM. Apply at 600 CFM and above on exterior_vented.
+      let makeupAirMaterial = 0;
+      let makeupAirHours = 0;
+      if (ventType === 'exterior_vented' && parseInt(cfmTier, 10) >= 600) {
+        makeupAirMaterial = 450;
+        makeupAirHours = 2;
+      }
+
+      materialCost = (unitCost + ventMaterial + makeupAirMaterial) * regionalMultiplier;
+      laborHours = ventLaborHours + makeupAirHours;
+      equipmentCost = 50; // tin snips, sealant, strapping, fasteners
+      break;
+    }
+
     // ========== DEFAULT ==========
     default:
       console.warn(`⚠️ Unknown trade: ${trade} - using generic calculation`);
