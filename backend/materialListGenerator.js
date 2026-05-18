@@ -2355,6 +2355,9 @@ case 'drywall': {
     }
 
     case 'cabinets': {
+      // John-calibrated installed rates ($/LF). Single rate by tier × species
+      // category; doorStyle + cabinetType + crown are descriptive in the
+      // materialList but do not stack as multipliers.
       const {
         linearFeet = 0,
         tier = 'stock',
@@ -2365,54 +2368,55 @@ case 'drywall': {
 
       const getPrice = (key, def) => pricingConfig.cabinets?.[key] ?? def;
 
-      const tierRates = {
-        'stock':       { material: getPrice('cab_stock_per_lf', 250),       laborHoursPerLf: 1.5 },
-        'semi_custom': { material: getPrice('cab_semi_custom_per_lf', 450), laborHoursPerLf: 2.0 },
-        'custom':      { material: getPrice('cab_custom_per_lf', 700),      laborHoursPerLf: 2.5 }
+      const installedRatesPerLf = {
+        'stock':       { generic: getPrice('cab_stock_lf', 175),               premium: getPrice('cab_stock_premium_lf', 175) },
+        'semi_custom': { generic: getPrice('cab_semi_custom_lf', 300),         premium: getPrice('cab_semi_custom_premium_lf', 400) },
+        'custom':      { generic: getPrice('cab_custom_lf', 650),              premium: getPrice('cab_custom_premium_lf', 800) }
       };
       const tierKey = (tier || 'stock').toLowerCase();
-      const tierRate = tierRates[tierKey] || tierRates.stock;
-
-      const materialMult = {
-        'mdf': 0.85, 'birch': 0.95, 'oak': 1.0,
-        'maple': 1.05, 'cherry': 1.15, 'walnut': 1.3
-      }[(material || 'oak').toLowerCase()] || 1.0;
-
-      const doorMult = {
-        'flat': 0.95, 'shaker': 1.0, 'raised': 1.1
-      }[(doorStyle || 'shaker').toLowerCase()] || 1.0;
+      const materialKey = (material || 'oak').toLowerCase();
+      const premiumSpecies = ['cherry', 'maple', 'walnut'];
+      const cat = premiumSpecies.includes(materialKey) ? 'premium' : 'generic';
+      const rateRow = installedRatesPerLf[tierKey] || installedRatesPerLf.stock;
+      const ratePerLf = rateRow[cat];
 
       const lf = parseFloat(linearFeet) || 0;
       const crownOn = crown === true || crown === 'true' || crown === 'yes';
-
       const titleCase = (s) => String(s).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-      const cabRate = tierRate.material * materialMult * doorMult;
-      const adjustedLf = lf * 1.10; // 10% waste
 
+      const totalInstalled = lf * ratePerLf;
+      // 65% of installed is shown as material on the line-items; the remaining
+      // 35% becomes labor and is back-derived as hours via hourlyRate below.
+      const materialPortion = totalInstalled * 0.65;
+      const laborPortion = totalInstalled * 0.35;
+
+      const descriptor = `${titleCase(tierKey)} ${titleCase(materialKey)} ${titleCase(doorStyle)} Cabinets (installed)`;
       const materialList = [];
       materialList.push({
-        item: `${titleCase(tierKey)} ${titleCase(material)} ${titleCase(doorStyle)} Cabinets`,
-        quantity: Math.ceil(adjustedLf * 10) / 10,
+        item: descriptor,
+        quantity: lf,
         unit: 'linear feet',
-        unitCost: Math.round(cabRate * 100) / 100,
-        totalCost: adjustedLf * cabRate,
+        unitCost: Math.round(ratePerLf * 0.65 * 100) / 100,
+        totalCost: Math.round(materialPortion * 100) / 100,
         category: 'cabinet_material'
       });
 
-      let laborHours = lf * tierRate.laborHoursPerLf;
-
       if (crownOn) {
-        const crownRate = getPrice('cab_crown_lf', 6.5);
+        // Crown is included in the installed carry; show as a $0 informational
+        // line so the line-items reflect what was spec'd.
         materialList.push({
-          item: 'Cabinet Crown Molding',
+          item: 'Cabinet Crown Molding (included in installed rate)',
           quantity: lf,
           unit: 'linear feet',
-          unitCost: crownRate,
-          totalCost: lf * crownRate,
+          unitCost: 0,
+          totalCost: 0,
           category: 'cabinet_trim'
         });
-        laborHours += lf * 0.1;
       }
+
+      // laborHours back-derived; downstream multiplies by hourlyRate.
+      const hourlyRate = pricingConfig.cabinets?.hourly_rate || 67.5;
+      const laborHours = laborPortion / hourlyRate;
 
       const totalMaterialCost = materialList.reduce(
         (sum, item) => item.category !== 'Labor' ? sum + item.totalCost : sum, 0

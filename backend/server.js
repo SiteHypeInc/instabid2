@@ -1654,37 +1654,27 @@ case 'drywall':{
     }
 
     case 'cabinets': {
+      // John-calibrated installed rates ($/LF, material+labor inclusive).
+      // Single rate by tier × species category. Carries are mid-of-range:
+      //   semi-custom generic = $300/LF; cherry/maple premium = $400/LF.
       const linearFeet = parseFloat(data.linearFeet) || 0;
       const tier = (data.tier || 'stock').toLowerCase();
       const material = (data.material || 'oak').toLowerCase();
-      const doorStyle = (data.doorStyle || 'shaker').toLowerCase();
-      const crown = data.crown === true || data.crown === 'true' || data.crown === 'yes';
 
-      // Per-LF base rate (oak shaker baseline), tier-scaled. Combined
-      // base+wall typical kitchen run.
-      const tierRates = {
-        'stock':       { material: 250, laborHoursPerLf: 1.5 },
-        'semi_custom': { material: 450, laborHoursPerLf: 2.0 },
-        'custom':      { material: 700, laborHoursPerLf: 2.5 }
+      const installedRatesPerLf = {
+        'stock':       { generic: 175, premium: 175 }, // cherry isn't stock; fall back
+        'semi_custom': { generic: 300, premium: 400 },
+        'custom':      { generic: 650, premium: 800 }
       };
-      const tierRate = tierRates[tier] || tierRates.stock;
+      const premiumSpecies = ['cherry', 'maple', 'walnut'];
+      const cat = premiumSpecies.includes(material) ? 'premium' : 'generic';
+      const rateRow = installedRatesPerLf[tier] || installedRatesPerLf.stock;
+      const ratePerLf = rateRow[cat];
 
-      const materialMult = {
-        'mdf': 0.85, 'birch': 0.95, 'oak': 1.0,
-        'maple': 1.05, 'cherry': 1.15, 'walnut': 1.3
-      }[material] || 1.0;
-
-      const doorMult = {
-        'flat': 0.95, 'shaker': 1.0, 'raised': 1.1
-      }[doorStyle] || 1.0;
-
-      materialCost = linearFeet * tierRate.material * materialMult * doorMult * 1.10; // 10% waste
-      laborHours = linearFeet * tierRate.laborHoursPerLf;
-
-      if (crown) {
-        materialCost += linearFeet * 6.5;          // crown molding $/LF
-        laborHours   += linearFeet * 0.1;          // crown install hrs/LF
-      }
+      const totalInstalled = linearFeet * ratePerLf;
+      // 65% material / 35% labor — cabinets are material-heavy
+      materialCost = totalInstalled * 0.65;
+      laborHours = (totalInstalled * 0.35) / hourlyRate;
 
       materialCost *= regionalMultiplier;
       equipmentCost = 100; // levels, shims, clamps, finish hardware allowance
