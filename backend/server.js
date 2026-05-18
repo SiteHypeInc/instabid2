@@ -2326,7 +2326,9 @@ app.post('/api/estimate', async (req, res) => {
 
     const finalZipCode = zipCode || zip || '';
     const finalCity = city || 'Unknown';
-    const finalState = state || 'Unknown';
+    // estimates.state is varchar(2). Coerce to a valid 2-char state code so
+    // missing-state payloads (e.g. walk-session sink) don't blow the INSERT.
+    const finalState = String(state || 'XX').slice(0, 2).toUpperCase();
 
    // ✅ ROBUST FALLBACK: ZIP → STATE → NATIONAL
 let regionalMultiplier = 1.0;
