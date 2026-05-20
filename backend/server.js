@@ -269,6 +269,70 @@ async function sendEstimateEmails(estimateData, pdfBuffer, contractBuffer, contr
 }
 
 
+// TEA-848: contractor-only "estimate ready for review" email. No PDF / no
+// customer copy — contractor opens the preview URL, edits if needed, and hits
+// Send to fire the real customer-facing send path.
+async function sendContractorReviewEmail(estimateData, contractorId) {
+  const tradeName = estimateData.trade.charAt(0).toUpperCase() + estimateData.trade.slice(1);
+  const domain = process.env.MAILGUN_DOMAIN;
+  const backendUrl = process.env.BACKEND_URL || 'https://roofbid-backend-production.up.railway.app';
+  const previewUrl = `${backendUrl}/estimates/${estimateData.id}/preview`;
+
+  try {
+    const result = await pool.query(
+      'SELECT email, company_name FROM contractors WHERE id = $1',
+      [contractorId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error('Contractor not found');
+    }
+
+    const contractor = result.rows[0];
+    const toEmail = contractor.email;
+    const companyName = contractor.company_name || 'InstaBid';
+
+    console.log(`📧 Sending contractor review email for estimate ${estimateData.id} → ${toEmail}`);
+
+    await mg.messages.create(domain, {
+      from: `InstaBid Notifications <notifications@instabid.pro>`,
+      to: [toEmail],
+      subject: `Estimate ready for review — ${estimateData.customerName} (${tradeName})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Estimate Ready for Review</h1>
+          </div>
+          <div style="padding: 20px; background: #f9fafb;">
+            <p>Hi ${companyName},</p>
+            <p>A new ${tradeName} estimate for <strong>${estimateData.customerName}</strong> is ready for your review. Open the link below to see the line items, edit anything that needs adjusting, then hit <strong>Send to customer</strong>.</p>
+            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="font-size: 22px; font-weight: bold; color: #1e40af; margin: 0;">
+                Draft Total: $${Number(estimateData.totalCost || 0).toLocaleString()}
+              </p>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+              <a href="${previewUrl}"
+                 style="display: inline-block; background: #2563eb; color: white; padding: 15px 40px;
+                        text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                Review &amp; Send Estimate
+              </a>
+            </div>
+            <p style="margin-top: 30px; color: #666; font-size: 12px;">
+              The customer will not receive anything until you click Send.
+            </p>
+          </div>
+        </div>
+      `
+    });
+
+    console.log(`✅ Contractor review email sent for estimate ${estimateData.id}`);
+  } catch (error) {
+    console.error('❌ Contractor review email failed:', error.message);
+    throw error;
+  }
+}
+
 // Initialize database tables
 async function initDatabase() {
   try {
@@ -342,10 +406,30 @@ async function initDatabase() {
     `);
 
     await pool.query(`
-      ALTER TABLE estimates 
+      ALTER TABLE estimates
       ADD COLUMN IF NOT EXISTS contractor_id INT
     `);
-    
+
+    // TEA-848: draft/sent lifecycle. Defaulting to 'sent' protects backfill +
+    // any path that doesn't pass status explicitly.
+    await pool.query(`
+      ALTER TABLE estimates
+        ADD COLUMN IF NOT EXISTS status VARCHAR(16) NOT NULL DEFAULT 'sent'
+    `);
+    await pool.query(`
+      ALTER TABLE estimates
+        ADD COLUMN IF NOT EXISTS send_to_customer_at TIMESTAMP
+    `);
+    await pool.query(`
+      UPDATE estimates
+         SET send_to_customer_at = created_at
+       WHERE send_to_customer_at IS NULL
+         AND status = 'sent'
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_estimates_status ON estimates(status)
+    `);
+
     console.log('✅ Database tables initialized');
   } catch (error) {
     console.error('❌ Database initialization error:', error);
@@ -2533,6 +2617,12 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
       });
     }
 
+    // TEA-848: draft flag gates the customer-facing email + PDF. When draft is
+    // true we persist as 'draft' with send_to_customer_at=NULL and fire the
+    // contractor review email instead. When omitted/false: existing behavior.
+    const isDraft = req.body.draft === true;
+    const estimateStatus = isDraft ? 'draft' : 'sent';
+
     const insertQuery = `
       INSERT INTO estimates (
         contractor_id,
@@ -2544,8 +2634,10 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
         tax_rate, tax_amount, total_with_tax,
         photos,
         material_list,
+        status,
+        send_to_customer_at,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, NOW())
       RETURNING id
     `;
 
@@ -2570,7 +2662,9 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
       taxAmount,                                      // $18
       totalWithTax,                                   // $19
       JSON.stringify(tradeSpecificFields.photos || []), // $20
-      JSON.stringify(materialListResult)              // $21 ← NEW
+      JSON.stringify(materialListResult),             // $21
+      estimateStatus,                                 // $22
+      isDraft ? null : new Date()                     // $23
     ];
 
     const result = await pool.query(insertQuery, values);
@@ -2580,6 +2674,22 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
 
     
    // === EMAIL (non-blocking — estimate returns regardless) ===
+    if (isDraft) {
+      // TEA-848: draft mode — contractor review only, no customer email/PDF.
+      try {
+        await sendContractorReviewEmail(
+          {
+            id: estimateId,
+            customerName: finalCustomerName,
+            trade,
+            totalCost: estimate.totalCost
+          },
+          contractor.id
+        );
+      } catch (reviewEmailError) {
+        console.error(`⚠️ Contractor review email failed for estimate #${estimateId}:`, reviewEmailError.message);
+      }
+    } else {
     try {
       const contractorBranding = {
       companyName: contractor.company_name,
@@ -2658,6 +2768,7 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
     } catch (emailError) {
       console.error(`⚠️ Email/PDF failed for estimate #${estimateId} — estimate still returned to customer:`, emailError.message);
     }
+    } // end !isDraft email branch
     // === END EMAIL ===
 
      // Get display settings (default to total only if not set)
@@ -2683,6 +2794,7 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
    res.json({
   success: true,
   estimateId,
+  status: estimateStatus,
   lineItems,
   displaySettings,
   subtotal: estimate.totalCost,
@@ -2709,6 +2821,418 @@ console.log(`📦 Material list generated: ${materialListResult.materialList.len
       error: error.message,
       user_message: 'An error occurred. Please try again or contact us directly.'
     });
+  }
+});
+
+// ========== TEA-848: DRAFT / SEND / EDIT / PREVIEW ==========
+//
+// Public endpoints intentionally key off the integer estimate id (same pattern
+// as /api/create-checkout-session-email and /api/estimate/:id). The contractor
+// receives the URL by email, so the id is the bearer of access.
+// ============================================================
+
+// Internal helper: load an estimate row + contractor for the customer send path.
+async function loadEstimateWithContractor(estimateId) {
+  const result = await pool.query(
+    `SELECT e.*, c.id as c_id, c.email as c_email, c.company_name as c_company_name,
+            c.phone as c_phone, c.address as c_address, c.city as c_city,
+            c.state as c_state, c.zip as c_zip, c.license_number as c_license_number,
+            c.logo_url as c_logo_url, c.primary_color as c_primary_color,
+            c.secondary_color as c_secondary_color, c.accent_color as c_accent_color
+       FROM estimates e
+       LEFT JOIN contractors c ON e.contractor_id = c.id
+      WHERE e.id = $1`,
+    [estimateId]
+  );
+  return result.rows[0] || null;
+}
+
+// POST /api/estimates/:id/send — flip a draft to sent, fire customer email + PDF.
+// Idempotent: a row already in 'sent' returns 200 with the existing timestamp.
+app.post('/api/estimates/:id/send', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const row = await loadEstimateWithContractor(id);
+    if (!row) {
+      return res.status(404).json({ ok: false, error: 'Estimate not found' });
+    }
+
+    if (row.status === 'sent') {
+      return res.json({
+        ok: true,
+        status: 'sent',
+        send_to_customer_at: row.send_to_customer_at
+      });
+    }
+
+    const updateResult = await pool.query(
+      `UPDATE estimates
+          SET status = 'sent',
+              send_to_customer_at = NOW()
+        WHERE id = $1
+      RETURNING send_to_customer_at`,
+      [id]
+    );
+    const sentAt = updateResult.rows[0].send_to_customer_at;
+
+    // Fire customer email + PDF in the same shape the original POST /api/estimate
+    // non-draft path uses.
+    try {
+      const contractorBranding = {
+        companyName: row.c_company_name,
+        email: row.c_email,
+        phone: row.c_phone || '',
+        address: row.c_address || '',
+        city: row.c_city || '',
+        state: row.c_state || '',
+        zip: row.c_zip || '',
+        licenseNumber: row.c_license_number || '',
+        logoUrl: row.c_logo_url || '',
+        primaryColor: row.c_primary_color || '#0077b6',
+        secondaryColor: row.c_secondary_color || '#0077b6',
+        accentColor: row.c_accent_color || '#00b4d8'
+      };
+
+      const estimateForEmail = {
+        contractorBranding,
+        id: row.id,
+        customerName: row.customer_name,
+        customerEmail: row.customer_email,
+        customerPhone: row.customer_phone,
+        propertyAddress: row.property_address,
+        city: row.city,
+        state: row.state,
+        zipCode: row.zip_code,
+        trade: row.trade,
+        tradeDetails: row.trade_details || {},
+        photos: row.photos || [],
+        laborHours: Number(row.labor_hours) || 0,
+        laborRate: Number(row.labor_rate) || 0,
+        laborCost: Number(row.labor_cost) || 0,
+        materialCost: Number(row.material_cost) || 0,
+        equipmentCost: Number(row.equipment_cost) || 0,
+        totalCost: Number(row.total_cost) || 0
+      };
+
+      const pdfBuffer = await generateEstimatePDF(estimateForEmail);
+      const contractBuffer = await generateContract(estimateForEmail);
+
+      await sendEstimateEmails(estimateForEmail, pdfBuffer, contractBuffer, row.c_id);
+      console.log(`✅ Customer email fired for estimate #${id} via /send`);
+    } catch (emailError) {
+      console.error(`⚠️ /send email/PDF failed for #${id} — row already flipped:`, emailError.message);
+    }
+
+    res.json({ ok: true, status: 'sent', send_to_customer_at: sentAt });
+  } catch (error) {
+    console.error(`❌ /api/estimates/${id}/send error:`, error);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// POST /api/estimates/:id/edit — update line item qty/price; recompute totals.
+// Forbidden once status='sent'. Identifier is the line item index in
+// material_list.materialList (sku-equivalent for these non-SKU items).
+app.post('/api/estimates/:id/edit', async (req, res) => {
+  const { id } = req.params;
+  const incomingLineItems = Array.isArray(req.body.line_items) ? req.body.line_items : null;
+
+  if (!incomingLineItems) {
+    return res.status(400).json({ ok: false, error: 'line_items array required' });
+  }
+
+  try {
+    const row = await pool.query(
+      'SELECT id, status, material_list, labor_cost, tax_rate FROM estimates WHERE id = $1',
+      [id]
+    );
+    if (row.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: 'Estimate not found' });
+    }
+    const estimate = row.rows[0];
+
+    if (estimate.status === 'sent') {
+      return res.status(409).json({ ok: false, error: 'Estimate already sent — edits locked' });
+    }
+
+    const stored = estimate.material_list || {};
+    const items = Array.isArray(stored.materialList) ? stored.materialList.slice() : [];
+
+    if (items.length === 0) {
+      return res.status(400).json({ ok: false, error: 'Estimate has no material list to edit' });
+    }
+
+    // Index-based merge. Each incoming item is {index, quantity, unitPrice}.
+    // Accept legacy {sku, quantity, unitPrice} where sku == item name (first match).
+    for (const incoming of incomingLineItems) {
+      let target = -1;
+      if (Number.isInteger(incoming.index) && incoming.index >= 0 && incoming.index < items.length) {
+        target = incoming.index;
+      } else if (incoming.sku) {
+        target = items.findIndex(it => it && it.item === incoming.sku);
+      }
+      if (target === -1) continue;
+
+      const newQty = Number(incoming.quantity);
+      const newUnit = Number(incoming.unitPrice);
+      if (Number.isFinite(newQty)) items[target].quantity = newQty;
+      if (Number.isFinite(newUnit)) items[target].unitCost = newUnit;
+      const qty = Number(items[target].quantity) || 0;
+      const unit = Number(items[target].unitCost) || 0;
+      items[target].totalCost = qty * unit;
+    }
+
+    const materialCost = items.reduce(
+      (sum, it) => (it && it.category !== 'Labor') ? sum + (Number(it.totalCost) || 0) : sum,
+      0
+    );
+    const laborCost = Number(estimate.labor_cost) || 0;
+    const materialMarkup = materialCost * 0.20;
+    const totalCost = materialCost + materialMarkup + laborCost;
+    const taxRate = Number(estimate.tax_rate) || 0;
+    const taxAmount = totalCost * (taxRate / 100);
+    const totalWithTax = totalCost + taxAmount;
+
+    const updatedMaterialList = {
+      ...stored,
+      materialList: items,
+      totalMaterialCost: materialCost
+    };
+
+    await pool.query(
+      `UPDATE estimates
+          SET material_list = $1,
+              material_cost = $2,
+              total_cost    = $3,
+              tax_amount    = $4,
+              total_with_tax = $5
+        WHERE id = $6`,
+      [JSON.stringify(updatedMaterialList), materialCost, totalCost, taxAmount, totalWithTax, id]
+    );
+
+    res.json({
+      ok: true,
+      estimateId: Number(id),
+      material_cost: materialCost,
+      total_cost: totalCost,
+      tax_amount: taxAmount,
+      total_with_tax: totalWithTax,
+      line_items: items
+    });
+  } catch (error) {
+    console.error(`❌ /api/estimates/${id}/edit error:`, error);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// GET /estimates/:id/preview — server-rendered editable estimate. Becomes
+// read-only with a "Sent on …" banner once status='sent'.
+app.get('/estimates/:id/preview', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const row = await loadEstimateWithContractor(id);
+    if (!row) {
+      return res.status(404).type('html').send('<h1>Estimate not found</h1>');
+    }
+
+    const stored = row.material_list || {};
+    const items = Array.isArray(stored.materialList) ? stored.materialList : [];
+    const tradeLabel = (row.trade || '').charAt(0).toUpperCase() + (row.trade || '').slice(1);
+    const isSent = row.status === 'sent';
+    const sentAt = row.send_to_customer_at
+      ? new Date(row.send_to_customer_at).toLocaleString('en-US', { timeZoneName: 'short' })
+      : '';
+    const companyName = row.c_company_name || 'InstaBid';
+    const primaryColor = row.c_primary_color || '#2563eb';
+
+    const escape = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+    const rowsHtml = items.map((it, idx) => {
+      const qty = Number(it.quantity) || 0;
+      const unitCost = Number(it.unitCost) || 0;
+      const totalCost = Number(it.totalCost) || 0;
+      const readonly = isSent ? 'readonly' : '';
+      return `
+        <tr data-index="${idx}">
+          <td>${escape(it.item || '')}</td>
+          <td>
+            <input type="number" step="any" name="quantity" value="${qty}" ${readonly}
+                   data-index="${idx}" class="qty" />
+          </td>
+          <td>${escape(it.unit || '')}</td>
+          <td>
+            <input type="number" step="any" name="unitPrice" value="${unitCost}" ${readonly}
+                   data-index="${idx}" class="unit" />
+          </td>
+          <td class="line-total" data-index="${idx}">$${totalCost.toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const grandTotal = Number(row.total_with_tax || row.total_cost || 0);
+
+    const banner = isSent
+      ? `<div class="banner sent">Sent to ${escape(row.customer_email)} on ${escape(sentAt)}</div>`
+      : `<div class="banner draft">Draft — review and edit, then click <strong>Send to customer</strong>.</div>`;
+
+    const buttons = isSent
+      ? ''
+      : `
+        <div class="actions">
+          <button id="saveBtn" class="btn btn-secondary">Save changes</button>
+          <button id="sendBtn" class="btn btn-primary">Send to customer</button>
+        </div>
+      `;
+
+    const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escape(tradeLabel)} Estimate — ${escape(row.customer_name)}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+           margin: 0; background: #f3f4f6; color: #111827; }
+    header { background: ${escape(primaryColor)}; color: white; padding: 16px 20px; }
+    header h1 { margin: 0; font-size: 18px; }
+    header .sub { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+    main { max-width: 760px; margin: 0 auto; padding: 16px; }
+    .card { background: white; border-radius: 8px; padding: 16px; margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; }
+    .banner.draft { background: #fef3c7; color: #92400e; }
+    .banner.sent  { background: #d1fae5; color: #065f46; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 8px 6px; border-bottom: 1px solid #e5e7eb; text-align: left; vertical-align: middle; }
+    th { background: #f9fafb; font-size: 12px; text-transform: uppercase; color: #6b7280; }
+    td input[type=number] { width: 90px; padding: 6px; font-size: 14px;
+                            border: 1px solid #d1d5db; border-radius: 4px; }
+    td input[readonly] { background: #f9fafb; color: #6b7280; }
+    .total-row { font-weight: 700; font-size: 16px; }
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+    .btn { padding: 12px 20px; border: 0; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    .btn-primary { background: ${escape(primaryColor)}; color: white; }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    @media (max-width: 540px) {
+      th:nth-child(3), td:nth-child(3) { display: none; }
+      td input[type=number] { width: 70px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>${escape(companyName)} — ${escape(tradeLabel)} Estimate</h1>
+    <div class="sub">Estimate #${row.id} · ${escape(row.customer_name)} · ${escape(row.property_address)}</div>
+  </header>
+  <main>
+    ${banner}
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Description</th><th>Qty</th><th>Unit</th><th>Unit Price</th><th>Total</th></tr>
+        </thead>
+        <tbody id="lines">${rowsHtml}</tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td colspan="4" style="text-align:right">Grand Total</td>
+            <td id="grandTotal">$${grandTotal.toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      ${buttons}
+    </div>
+  </main>
+  <script>
+    (function () {
+      var estimateId = ${row.id};
+      var isSent = ${isSent ? 'true' : 'false'};
+      if (isSent) return;
+
+      function collectLineItems() {
+        var rows = document.querySelectorAll('#lines tr');
+        var items = [];
+        rows.forEach(function (tr) {
+          var idx = Number(tr.getAttribute('data-index'));
+          var qty = Number(tr.querySelector('input.qty').value);
+          var unit = Number(tr.querySelector('input.unit').value);
+          items.push({ index: idx, quantity: qty, unitPrice: unit });
+        });
+        return items;
+      }
+
+      function setBusy(busy) {
+        document.getElementById('saveBtn').disabled = busy;
+        document.getElementById('sendBtn').disabled = busy;
+      }
+
+      function renderTotals(data) {
+        if (!data) return;
+        if (Array.isArray(data.line_items)) {
+          data.line_items.forEach(function (it, idx) {
+            var cell = document.querySelector('.line-total[data-index="' + idx + '"]');
+            if (cell) cell.textContent = '$' + (Number(it.totalCost) || 0).toFixed(2);
+          });
+        }
+        var grand = (data.total_with_tax != null ? data.total_with_tax : data.total_cost);
+        if (grand != null) {
+          document.getElementById('grandTotal').textContent = '$' + Number(grand).toFixed(2);
+        }
+      }
+
+      document.getElementById('saveBtn').addEventListener('click', function () {
+        setBusy(true);
+        fetch('/api/estimates/' + estimateId + '/edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line_items: collectLineItems() })
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            if (!res.ok) { alert('Save failed: ' + (res.data && res.data.error || 'unknown')); return; }
+            renderTotals(res.data);
+          })
+          .catch(function (e) { alert('Save failed: ' + e.message); })
+          .finally(function () { setBusy(false); });
+      });
+
+      document.getElementById('sendBtn').addEventListener('click', function () {
+        if (!confirm('Send this estimate to the customer? They will receive the email immediately.')) return;
+        setBusy(true);
+        // Save edits first so the email reflects the current numbers.
+        fetch('/api/estimates/' + estimateId + '/edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ line_items: collectLineItems() })
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (saveRes) {
+            if (!saveRes.ok) throw new Error((saveRes.data && saveRes.data.error) || 'save failed');
+            return fetch('/api/estimates/' + estimateId + '/send', { method: 'POST' });
+          })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+          .then(function (res) {
+            if (!res.ok) throw new Error((res.data && res.data.error) || 'send failed');
+            window.location.reload();
+          })
+          .catch(function (e) { alert('Send failed: ' + e.message); setBusy(false); });
+      });
+    }());
+  </script>
+</body>
+</html>`;
+
+    res.type('html').send(html);
+  } catch (error) {
+    console.error(`❌ /estimates/${id}/preview error:`, error);
+    res.status(500).type('html').send('<h1>Preview unavailable</h1>');
   }
 });
 
